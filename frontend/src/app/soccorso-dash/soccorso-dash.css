@@ -426,6 +426,7 @@ table tbody tr:hover td {
     .recent-orders table th:nth-child(2),
     .recent-orders table td:nth-child(2) { display: none; }
 }
+    .profile-photo-sm { width: 6rem; height: 6rem; border-radius: 50%; overflow: hidden; border: 2px solid var(--info-light); }
 
 /* ==========================================================================
    9. SIDEBAR MOBILE (OFFCANVAS)
