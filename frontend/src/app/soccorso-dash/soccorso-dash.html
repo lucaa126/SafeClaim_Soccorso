@@ -1,0 +1,228 @@
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container-fluid dashboard-container" [class.dark-theme-variables]="isDarkMode">
+  
+  <div class="row g-0">
+
+    <div class="col-lg-2 d-none d-lg-block sidebar-container">
+      <div class="sidebar-logo">
+        <img src="https://cdn-icons-png.flaticon.com/512/1065/1065646.png" alt="Logo">
+        <h2>SOCC<span class="danger">ORSO</span></h2>
+      </div>
+
+      <div class="sidebar-menu">
+        <a routerLink="/dashboard" class="active">
+          <span class="material-icons-sharp">grid_view</span>
+          <h3>Dashboard</h3>
+        </a>
+        <a routerLink="/richieste">
+          <span class="material-icons-sharp">campaign</span>
+          <h3>Richieste <span class="badge bg-danger ms-2" *ngIf="requests.length">{{requests.length}}</span></h3>
+        </a>
+        <a routerLink="/flotta">
+          <span class="material-icons-sharp">local_shipping</span>
+          <h3>Flotta</h3>
+        </a>
+        <a routerLink="/analytics">
+          <span class="material-icons-sharp">insights</span>
+          <h3>Analytics</h3>
+        </a>
+        <a routerLink="/settings">
+          <span class="material-icons-sharp">settings</span>
+          <h3>Impostazioni</h3>
+        </a>
+        <a (click)="logout()" class="mt-auto logout-btn">
+          <span class="material-icons-sharp">logout</span>
+          <h3>Logout</h3>
+        </a>
+      </div>
+    </div>
+
+    <main class="col-12 col-lg-7 main-content p-4">
+      
+      <div class="d-flex justify-content-between align-items-center d-lg-none mb-4 mobile-header">
+        <div class="d-flex align-items-center gap-2">
+           <button class="btn " (click)="openMenu()"><span class="material-icons-sharp">menu</span></button>
+           <h2 class="m-0 text-primary">Soccorso</h2>
+        </div>
+        <div class="profile-photo-sm">
+           <img src="https://i.pravatar.cc/150?img=12" alt="Profile">
+        </div>
+      </div>
+
+      <div class="header-section mb-4">
+        <h1>Dashboard Operativa</h1>
+        <p class="text">Benvenuto, {{workshopName}}</p>
+        
+        <div class="status-card mt-3" [class.active]="acceptingSoccorsi">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="mb-0">Stato Operativo</h5>
+              <small>{{ acceptingSoccorsi ? 'Online - Ricezione chiamate' : 'Offline - Non disponibile' }}</small>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input fs-3" type="checkbox" [checked]="acceptingSoccorsi" (change)="toggleSoccorsi()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+          <div class="kpi-card bg-primary-light">
+            <span class="material-icons-sharp icon">sos</span>
+            <div class="details">
+              <h3>{{requests.length}}</h3>
+              <p>Richieste Attive</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+           <div class="kpi-card bg-success-light">
+             <span class="material-icons-sharp icon">check_circle</span>
+             <div class="details">
+               <h3>12</h3>
+               <p>Completati Oggi</p>
+             </div>
+           </div>
+         </div>
+         <div class="col-12 col-md-4">
+           <div class="kpi-card bg-warning-light">
+             <span class="material-icons-sharp icon">schedule</span>
+             <div class="details">
+               <h3>14m</h3>
+               <p>Tempo Medio</p>
+             </div>
+           </div>
+         </div>
+      </div>
+
+      <div class="recent-orders">
+        <h2>Richieste in Coda</h2>
+        <div class="table-responsive bg-white rounded-4 shadow-sm p-3 mt-2" *ngIf="requests.length > 0; else noReq">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Veicolo</th>
+                <th>Posizione</th>
+                <th>Stato</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let req of requests" [class.table-active]="selectedRequest?.id === req.id" (click)="selectRequest(req)">
+                <td>{{req.id}}</td>
+                <td>{{req.vehicleType}}</td>
+                <td><span class="text-primary cursor-pointer"><span class="material-icons-sharp fs-6 align-middle">place</span> Vedi Mappa</span></td>
+                <td>
+                  <span class="badge" 
+                    [class.bg-warning]="!req.status" 
+                    [class.bg-success]="req.status === 'accepted'"
+                    [class.bg-secondary]="req.status === 'handled'">
+                    {{ req.status ? req.status : 'In Attesa' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary" *ngIf="!req.status" (click)="acceptRequest(req); $event.stopPropagation()">Accetta</button>
+                  <button class="btn btn-sm btn-success" *ngIf="req.status === 'accepted'" (click)="markHandled(req); $event.stopPropagation()">Completa</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-template #noReq>
+          <div class="text-center p-5 bg-white rounded-4 shadow-sm">
+            <span class="material-icons-sharp fs-1 text-muted">thumb_up</span>
+            <p class="mt-2 text-muted">Nessuna richiesta attiva al momento.</p>
+          </div>
+        </ng-template>
+      </div>
+    </main>
+
+    <div class="col-12 col-lg-3 right-section p-4 ">
+      
+      <div class="nav d-flex justify-content-end align-items-center gap-4 mb-4">
+        <div class="dark-mode-toggle" (click)="toggleDarkMode()">
+          <span class="material-icons-sharp" [class.active]="!isDarkMode">light_mode</span>
+          <span class="material-icons-sharp" [class.active]="isDarkMode">dark_mode</span>
+        </div>
+        <div class="profile d-flex gap-3 text-end align-items-center">
+           <div class="d-none d-md-block">
+             <p class="mb-0">Ciao, <b>Admin</b></p>
+             <small class="text">Capo Officina</small>
+           </div>
+           <div class="profile-photo">
+             <img src="https://i.pravatar.cc/150?img=12" alt="Admin">
+           </div>
+        </div>
+      </div>
+
+      <div class="request-detail-card mt-4" *ngIf="selectedRequest">
+        <h3 class="mb-3">Dettaglio Intervento</h3>
+        <div class="card border-0 shadow-sm p-3">
+          <div class="d-flex justify-content-between mb-2">
+             <span class="text-muted">ID:</span>
+             <strong>{{selectedRequest.id}}</strong>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+             <span class="text-muted">Cliente:</span>
+             <strong>{{selectedRequest.contact}}</strong>
+          </div>
+           <div class="map-placeholder my-3 rounded">
+             <span><span class="material-icons-sharp">map</span> Mappa Live</span>
+           </div>
+           <div class="d-grid gap-2">
+             <button class="btn btn-primary" (click)="acceptRequest(selectedRequest)" [disabled]="selectedRequest.status">
+               {{ selectedRequest.status ? 'Intervento in corso' : 'Prendi in Carico' }}
+             </button>
+             <button class="btn btn-outline-danger" (click)="declineRequest(selectedRequest)" *ngIf="!selectedRequest.status">Rifiuta</button>
+           </div>
+        </div>
+      </div>
+
+      <div class="updates mt-4">
+        <h3>Aggiornamenti Recenti</h3>
+        <div class="update-item d-flex gap-3 mb-3 p-3 rounded shadow-sm">
+           <div class="icon-box bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width:40px; height:40px">
+             <span class="material-icons-sharp fs-5">message</span>
+           </div>
+           <div>
+             <p class="mb-0 small"><b>Centrale:</b> Traffico intenso sulla A4.</p>
+             <small class="text">2 minuti fa</small>
+           </div>
+        </div>
+        <div class="update-item d-flex gap-3 mb-3 p-3 rounded shadow-sm">
+           <div class="icon-box bg-warning text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width:40px; height:40px">
+             <span class="material-icons-sharp fs-5">build</span>
+           </div>
+           <div>
+             <p class="mb-0 small"><b>Officina:</b> Carroattrezzi 04 in manutenzione.</p>
+             <small class="text">1 ora fa</small>
+           </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="mobile-sidebar-overlay" [class.show]="isSidebarOpen" (click)="closeMenu()"></div>
+  <aside class="mobile-sidebar" [class.open]="isSidebarOpen">
+    <div class="top">
+       <div class="logo">
+         <h2>SOCC<span class="danger">ORSO</span></h2>
+       </div>
+       <div class="close" (click)="closeMenu()">
+         <span class="material-icons-sharp">close</span>
+       </div>
+    </div>
+    <div class="sidebar-links">
+        <a routerLink="/dashboard" class="active" (click)="closeMenu()"><span class="material-icons-sharp">grid_view</span> Dashboard</a>
+        <a routerLink="/richieste" (click)="closeMenu()"><span class="material-icons-sharp">campaign</span> Richieste</a>
+        <a (click)="logout()"><span class="material-icons-sharp">logout</span> Logout</a>
+    </div>
+  </aside>
+
+</div>

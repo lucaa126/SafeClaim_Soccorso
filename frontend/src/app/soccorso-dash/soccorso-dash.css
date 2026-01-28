@@ -1,0 +1,466 @@
+/* ==========================================================================
+   1. IMPORTS & FONTS
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+/* @import url('https://fonts.googleapis.com/icon?family=Material+Icons+Sharp'); */
+
+/* ==========================================================================
+   2. CONFIGURAZIONE VARIABILI & TEMI (THEMING ENGINE)
+   ========================================================================== */
+:host {
+    display: block;
+    width: 100%;
+}
+
+/* --- LIGHT MODE (DEFAULT) --- */
+.dashboard-container {
+    /* Palette Colori Principali */
+    --primary: #7380ec;
+    --primary-variant: #111e88;
+    --danger: #ff7782;
+    --success: #41f1b6;
+    --warning: #ffbb55;
+    
+    /* Sfondi e Testi Light */
+    --white: #ffffff;        /* Sfondo Card */
+    --light: #f6f6f9;        /* Sfondo Pagina */
+    --dark: #363949;         /* Testo Principale (Scuro) */
+    --info-dark: #7d8da1;    /* Testo Secondario (Grigio) */
+    --info-light: #dce1eb;   /* Divisori / Sfondi secondari */
+    
+    /* Varianti Trasparenti (per badge e hover) */
+    --primary-light: rgba(115, 128, 236, 0.18);
+    --success-light: rgba(65, 241, 182, 0.18);
+    --warning-light: rgba(255, 187, 85, 0.18);
+    --danger-light: rgba(255, 119, 130, 0.18);
+    
+    /* Dimensioni e Spaziature */
+    --card-border-radius: 1.6rem;
+    --border-radius-1: 0.4rem;
+    --border-radius-2: 0.8rem;
+    --border-radius-3: 1.2rem;
+    --card-padding: 1.6rem;
+    
+    /* Effetti Visivi */
+    --box-shadow: 0 1.5rem 2rem rgba(132, 139, 200, 0.18);
+    --card-border: 1px solid transparent; /* Invisibile in Light Mode */
+    --transition: all 300ms ease;
+
+    /* Impostazioni Container */
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.88rem;
+    background: var(--light);
+    color: var(--dark);
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* --- DARK MODE OVERRIDE --- */
+.dashboard-container.dark-theme-variables {
+    /* Sfondi Scuri */
+    --light: #0d1117;        /* Background quasi nero (GitHub style) */
+    --white: #161b22;        /* Card grigio scuro */
+    
+    /* Testi Chiari per leggibilità */
+    --dark: #edeffd;         /* Testo Principale (Bianco sporco) */
+    --info-dark: #a0aec0;    /* Testo Secondario (Grigio chiaro) */
+    --info-light: #21262d;   /* Elementi UI scuri */
+    
+    /* Ombre più soft e Bordi di contrasto */
+    --box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.4);
+    --card-border: 1px solid rgba(255, 255, 255, 0.12); /* Fondamentale per definire le card */
+}
+
+/* ==========================================================================
+   3. RESET GLOBALE & OVERRIDES DI BOOTSTRAP (CRITICO)
+   ========================================================================== */
+* {
+    margin: 0; padding: 0; outline: 0; appearance: none;
+    border: 0; text-decoration: none; list-style: none; box-sizing: border-box;
+}
+
+/* Forzatura Colori Testi (Vince su Bootstrap) */
+h1, h2, h3, h4, h5, h6 { color: var(--dark) !important; font-weight: 600; }
+h1 { font-size: 1.8rem; font-weight: 800; }
+h2 { font-size: 1.4rem; }
+h3 { font-size: 0.87rem; }
+p, span, div, li { color: var(--dark); }
+
+/* Fix specifico per classi di utilità Bootstrap */
+.text-muted { color: var(--info-dark) !important; }
+.text-primary { color: var(--primary) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-success { color: var(--success) !important; }
+.text-warning { color: var(--warning) !important; }
+
+/* Fix Sfondi Card Bootstrap */
+.card, .bg-white {
+    background-color: var(--white) !important;
+    color: var(--dark) !important;
+    border: var(--card-border); /* Aggiunge il bordo in dark mode */
+}
+
+/* Immagini e Link */
+img { display: block; width: 100%; }
+a { color: inherit; cursor: pointer; text-decoration: none; }
+
+/* Scrollbar Custom (Stile Moderno) */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--light); }
+::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary-variant); }
+
+/* ==========================================================================
+   4. SIDEBAR (SINISTRA)
+   ========================================================================== */
+.sidebar-container {
+    height: 100vh;
+    background: var(--white);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 1rem 0 2rem rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    padding-top: 1rem;
+    border-right: var(--card-border);
+    transition: var(--transition);
+}
+
+.sidebar-logo {
+    display: flex; gap: 0.8rem; align-items: center; justify-content: center;
+    margin-bottom: 2rem; margin-top: 1rem;
+}
+.sidebar-logo img { width: 2rem; height: 2rem; }
+.sidebar-logo h2 { margin-bottom: 0; font-size: 1.4rem; }
+.sidebar-logo .danger { color: var(--danger) !important; }
+
+.sidebar-menu {
+    display: flex; flex-direction: column; height: 80vh; position: relative; top: 1rem;
+}
+
+.sidebar-menu a {
+    display: flex; align-items: center; gap: 1rem;
+    color: var(--info-dark); margin-left: 2rem; height: 3.7rem;
+    transition: var(--transition); position: relative;
+}
+
+.sidebar-menu a span { font-size: 1.6rem; transition: var(--transition); color: var(--info-dark); }
+
+/* Hover & Active State */
+.sidebar-menu a:hover, 
+.sidebar-menu a.active {
+    color: var(--primary);
+    background: var(--light); 
+    margin-left: 0;
+    padding-left: 2rem; /* Effetto rientro */
+}
+
+.sidebar-menu a:hover span, 
+.sidebar-menu a.active span {
+    color: var(--primary); margin-left: 0.5rem;
+}
+
+/* Barra laterale attiva */
+.sidebar-menu a.active::before {
+    content: ''; width: 6px; height: 100%; background: var(--primary);
+    position: absolute; left: 0; top: 0;
+}
+
+.sidebar-menu .logout-btn { position: absolute; bottom: 2rem; width: 100%; cursor: pointer; }
+
+/* ==========================================================================
+   5. MAIN CONTENT (CENTRALE)
+   ========================================================================== */
+.main-content {
+    background: var(--light);
+    min-height: 100vh;
+    padding: 1.5rem;
+    transition: var(--transition);
+}
+
+/* Header Mobile */
+.mobile-header {
+    background: var(--white);
+    padding: 0.8rem 1rem;
+    border-radius: var(--border-radius-2);
+    box-shadow: var(--box-shadow);
+    border: var(--card-border);
+    margin-bottom: 1.5rem;
+}
+.mobile-header h2 { font-size: 1.2rem; }
+
+/* Status Card (Online/Offline) */
+.status-card {
+    background: var(--white);
+    padding: 1.2rem;
+    border-radius: var(--border-radius-2);
+    box-shadow: var(--box-shadow);
+    border: var(--card-border);
+    transition: var(--transition);
+}
+.status-card h5 { margin: 0; font-size: 1rem; color: var(--dark) !important; }
+.status-card.active { border-left: 5px solid var(--success); }
+
+/* KPI Cards (Statistiche) */
+.kpi-card {
+    background: var(--white);
+    padding: var(--card-padding);
+    border-radius: var(--border-radius-3);
+    box-shadow: var(--box-shadow);
+    border: var(--card-border);
+    transition: var(--transition);
+    display: flex; align-items: center; gap: 1rem;
+}
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: none;
+    border-color: var(--primary); /* Highlight hover */
+}
+
+.kpi-card .icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #ffffff !important; /* Icona sempre bianca */
+    font-size: 1.5rem;
+}
+
+.kpi-card .details h3 { margin: 0; font-size: 1.8rem; font-weight: 700; }
+.kpi-card .details p { margin: 0; font-size: 0.85rem; color: var(--info-dark); }
+
+/* Colori specifici KPI */
+.bg-primary-light .icon { background: var(--primary); }
+.bg-success-light .icon { background: var(--success); }
+.bg-warning-light .icon { background: var(--warning); }
+
+/* ==========================================================================
+   6. TABELLE (RICHIESTE)
+   ========================================================================== */
+.recent-orders { margin-top: 2rem; }
+.recent-orders h2 { margin-bottom: 1rem; }
+
+.recent-orders .table-responsive {
+    background: var(--white);
+    padding: var(--card-padding);
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--box-shadow);
+    border: var(--card-border);
+}
+
+table { width: 100%; border-collapse: collapse; }
+
+table thead th {
+    padding-bottom: 1rem;
+    color: var(--info-dark) !important;
+    font-weight: 600;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+table tbody td {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--info-light);
+    color: var(--dark);
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+
+table tbody tr:last-child td { border: none; }
+
+table tbody tr:hover td {
+    background: var(--light);
+    color: var(--dark);
+    cursor: pointer;
+}
+
+/* Badges (Stati) */
+.badge {
+    padding: 0.5rem 0.8rem;
+    border-radius: var(--border-radius-1);
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+/* Override Bootstrap Badges */
+.badge.bg-warning { background: var(--warning-light) !important; color: var(--warning) !important; }
+.badge.bg-success { background: var(--success-light) !important; color: var(--success) !important; }
+.badge.bg-secondary { background: var(--info-light) !important; color: var(--info-dark) !important; }
+.badge.bg-danger { background: var(--danger-light) !important; color: var(--danger) !important; }
+.badge.bg-primary { background: var(--primary-light) !important; color: var(--primary) !important; }
+
+/* ==========================================================================
+   7. SEZIONE DESTRA & DETTAGLI (FIX LEGGIBILITÀ)
+   ========================================================================== */
+.right-section {
+    background: var(--light);
+    padding: 1.5rem;
+    transition: var(--transition);
+}
+/* Bordo sinistro solo in dark mode */
+.dashboard-container.dark-theme-variables .right-section { border-left: var(--card-border); }
+
+/* Dark Mode Toggle */
+.dark-mode-toggle {
+    background: var(--info-light);
+    display: flex; justify-content: space-between; align-items: center;
+    height: 1.8rem; width: 4.5rem; cursor: pointer; border-radius: var(--border-radius-1);
+}
+.dark-mode-toggle span {
+    font-size: 1.2rem; width: 50%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--info-dark);
+}
+.dark-mode-toggle span.active {
+    background: var(--primary); color: white !important; border-radius: var(--border-radius-1);
+}
+
+/* Profilo */
+.profile { text-align: right; }
+.profile p { margin: 0; color: var(--dark); font-weight: 500; }
+.profile small { display: block; color: var(--info-dark); }
+.profile-photo { width: 3rem; height: 3rem; border-radius: 50%; overflow: hidden; border: 2px solid var(--info-light); }
+
+/* --- CARD DETTAGLIO INTERVENTO (FIX CRITICO) --- */
+.request-detail-card { margin-top: 2rem; }
+.request-detail-card h3 { margin-bottom: 1rem; }
+
+.request-detail-card .card {
+    background: var(--white) !important;
+    border-radius: var(--card-border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--box-shadow);
+    border: var(--card-border);
+}
+
+/* Etichette (ID, Cliente) */
+.request-detail-card .text-muted {
+    color: var(--info-dark) !important;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Valori (Es. 12345, Nome Cognome) */
+.request-detail-card strong, 
+.request-detail-card b {
+    color: var(--dark) !important; /* Diventa bianco in Dark Mode */
+    font-weight: 700;
+    font-size: 1rem;
+    display: block; /* Assicura allineamento */
+}
+
+/* Mappa Placeholder */
+.map-placeholder {
+    background: var(--light);
+    height: 160px;
+    border-radius: var(--border-radius-2);
+    display: flex; align-items: center; justify-content: center;
+    border: 2px dashed var(--info-dark);
+    color: var(--info-dark);
+    font-weight: 600;
+    margin: 1.5rem 0;
+    transition: var(--transition);
+}
+.map-placeholder:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Pulsanti Azione */
+.d-grid .btn { padding: 0.8rem; border-radius: var(--border-radius-1); font-weight: 600; }
+.btn-primary { background: var(--primary) !important; border: none; }
+.btn-primary:hover { background: var(--primary-variant) !important; }
+.btn-outline-danger { color: var(--danger); border-color: var(--danger); }
+.btn-outline-danger:hover { background: var(--danger); color: white; }
+
+/* Updates / Notifiche */
+.updates { margin-top: 2rem; }
+.updates h3 { margin-bottom: 1rem; }
+
+.updates .update-item {
+    background: var(--white);
+    padding: 1.2rem;
+    border-radius: var(--border-radius-2);
+    margin-bottom: 1rem;
+    box-shadow: var(--box-shadow);
+    border: var(--card-border);
+    transition: var(--transition);
+    display: grid;
+    grid-template-columns: 40px auto;
+    gap: 1rem;
+}
+.updates .update-item:hover { transform: translateX(-5px); }
+
+.updates .icon-box {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+}
+.updates p { font-size: 0.85rem; line-height: 1.4; color: var(--dark); margin: 0; }
+.updates p b { color: var(--dark); }
+.updates small { color: var(--info-dark) !important; }
+
+/* ==========================================================================
+   8. RESPONSIVE MOBILE & TABLET
+   ========================================================================== */
+@media screen and (max-width: 1200px) {
+    .container-fluid { width: 100%; padding: 0; }
+    
+    .sidebar-container { display: none; } /* Nasconde Sidebar Desktop */
+    
+    .main-content { grid-column: 1 / -1; padding: 1rem; }
+    .right-section { grid-column: 1 / -1; width: 100%; padding: 1rem; border-left: none; }
+    
+    /* Layout a colonna singola */
+    .row.g-0 { display: flex; flex-direction: column; }
+    .col-lg-2, .col-lg-7, .col-lg-3 { width: 100%; }
+}
+
+@media screen and (max-width: 768px) {
+    html { font-size: 14px; }
+    
+    .mobile-header { display: flex !important; justify-content: space-between; align-items: center; }
+    
+    /* Tabelle Responsive */
+    .recent-orders { width: 100%; overflow-x: auto; }
+    .recent-orders table { min-width: 400px; }
+    
+    /* Colonne tabella da nascondere su mobile stretto */
+    .recent-orders table th:nth-child(2),
+    .recent-orders table td:nth-child(2) { display: none; }
+}
+
+/* ==========================================================================
+   9. SIDEBAR MOBILE (OFFCANVAS)
+   ========================================================================== */
+.mobile-sidebar-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); z-index: 1000; display: none; backdrop-filter: blur(4px);
+}
+.mobile-sidebar-overlay.show { display: block; animation: fadeIn 0.3s ease; }
+
+.mobile-sidebar {
+    position: fixed; top: 0; left: -100%; height: 100vh; width: 18rem;
+    background: var(--white); z-index: 1001; padding: 1.5rem;
+    box-shadow: 2rem 0 2rem rgba(0,0,0,0.1); border-right: var(--card-border);
+    transition: left 400ms ease; display: flex; flex-direction: column;
+}
+
+.mobile-sidebar.open { left: 0; }
+
+.mobile-sidebar .top {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;
+}
+.mobile-sidebar .logo h2 { font-size: 1.4rem; color: var(--dark); }
+.mobile-sidebar .close { cursor: pointer; font-size: 2rem; color: var(--dark); }
+
+.mobile-sidebar .sidebar-links { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.mobile-sidebar .sidebar-links a {
+    display: flex; align-items: center; gap: 1.2rem;
+    color: var(--info-dark); font-size: 1.1rem; font-weight: 500;
+    transition: var(--transition);
+}
+.mobile-sidebar .sidebar-links a.active,
+.mobile-sidebar .sidebar-links a:hover {
+    color: var(--primary); transform: translateX(10px);
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
