@@ -2,36 +2,76 @@ import { Component, OnInit, Renderer2, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { HttpClientModule } from '@angular/common/http';
+// Assicurati che il percorso sia giusto
+import { TrafficService,TrafficIncident } from '../traffic.service';
+import { from } from 'rxjs';
 
 @Component({
   selector: 'app-soccorso-dash',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, HttpClientModule],
   templateUrl: './soccorso-dash.html',
   styleUrl: './soccorso-dash.css',
   encapsulation: ViewEncapsulation.None
 })
 export class SoccorsoDash implements OnInit {
 
+  // UI State
   isSidebarOpen: boolean = false;
   isDarkMode: boolean = false;
   acceptingSoccorsi: boolean = true;
   workshopName: string = 'Officina Centrale';
   
+  // Data State
   requests: Array<any> = [];
   selectedRequest: any = null;
+  
+  // Traffic State
+  trafficNews: TrafficIncident[] = [];
+  isLoadingTraffic: boolean = false;
 
-  constructor(private renderer: Renderer2) {}
+  // Unico Costruttore con entrambe le injection
+  constructor(
+    private renderer: Renderer2,
+    private trafficService: TrafficService
+  ) {}
 
   ngOnInit(): void {
-    // Check system preference for dark mode
+    // 1. Dark Mode Check
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       this.toggleDarkMode();
     }
+    // 2. Caricamento Dati
     this.loadRequests();
+    this.loadRealTraffic();
   }
 
-  // UI ACTIONS
+  // --- TRAFFIC LOGIC ---
+  loadRealTraffic(): void {
+    this.isLoadingTraffic = true;
+    this.trafficService.getRealTimeTraffic('Milano').subscribe({
+      next: (data) => {
+        this.trafficNews = data;
+        this.isLoadingTraffic = false;
+      },
+      error: (e) => {
+        console.error('Errore traffico', e);
+        this.isLoadingTraffic = false;
+      }
+    });
+  }
+
+  getIconByText(text: string): string {
+    const t = text.toLowerCase();
+    if (t.includes('incidente') || t.includes('schianto') || t.includes('mortale')) return 'car_crash';
+    if (t.includes('lavori') || t.includes('cantiere')) return 'construction';
+    if (t.includes('coda') || t.includes('rallentamenti') || t.includes('traffico')) return 'traffic';
+    if (t.includes('chiusa') || t.includes('blocco')) return 'no_transfer';
+    return 'campaign'; 
+  }
+
+  // --- CORE LOGIC ---
   openMenu(): void { this.isSidebarOpen = true; }
   closeMenu(): void { this.isSidebarOpen = false; }
 
@@ -45,58 +85,22 @@ export class SoccorsoDash implements OnInit {
     }
   }
 
-  logout(): void {
-    // Logic for logout
-    console.log("Logout triggered");
-  }
+  logout(): void { console.log("Logout triggered"); }
 
-  toggleSoccorsi(): void {
-    this.acceptingSoccorsi = !this.acceptingSoccorsi;
-  }
+  toggleSoccorsi(): void { this.acceptingSoccorsi = !this.acceptingSoccorsi; }
 
-  // DATA MOCKING
   loadRequests(): void {
     this.requests = [
-      {
-        id: 'SOS-2491',
-        time: new Date(),
-        vehicleType: 'Fiat Ducato (Furgone)',
-        contact: '+39 333 1234567',
-        status: null, // null = pending
-        lat: 45.4642, lng: 9.1900
-      },
-      {
-        id: 'SOS-2492',
-        time: new Date(Date.now() - 1000 * 60 * 15),
-        vehicleType: 'BMW X3 (SUV)',
-        contact: '+39 338 9876543',
-        status: 'accepted',
-        lat: 45.4700, lng: 9.1800
-      },
-      {
-        id: 'SOS-2488',
-        time: new Date(Date.now() - 1000 * 60 * 120),
-        vehicleType: 'Smart ForTwo',
-        contact: '+39 339 0000000',
-        status: 'handled',
-        lat: 45.4500, lng: 9.2000
-      }
+      { id: 'SOS-2491', time: new Date(), vehicleType: 'Fiat Ducato (Furgone)', contact: '+39 333 1234567', status: null, lat: 45.4642, lng: 9.1900 },
+      { id: 'SOS-2492', time: new Date(Date.now() - 1000 * 60 * 15), vehicleType: 'BMW X3 (SUV)', contact: '+39 338 9876543', status: 'accepted', lat: 45.4700, lng: 9.1800 },
+      { id: 'SOS-2488', time: new Date(Date.now() - 1000 * 60 * 120), vehicleType: 'Smart ForTwo', contact: '+39 339 0000000', status: 'handled', lat: 45.4500, lng: 9.2000 }
     ];
-    // Seleziona il primo se disponibile
-    if (this.requests.length > 0) {
-      this.selectedRequest = this.requests[0];
-    }
+    if (this.requests.length > 0) this.selectedRequest = this.requests[0];
   }
 
-  selectRequest(req: any): void {
-    this.selectedRequest = req;
-    // Su mobile potresti voler scrollare alla sezione dettagli o aprire una modale
-  }
+  selectRequest(req: any): void { this.selectedRequest = req; }
 
-  acceptRequest(req: any): void {
-    req.status = 'accepted';
-    // Sposta logica API qui
-  }
+  acceptRequest(req: any): void { req.status = 'accepted'; }
 
   declineRequest(req: any): void {
     this.requests = this.requests.filter(x => x.id !== req.id);
@@ -105,7 +109,6 @@ export class SoccorsoDash implements OnInit {
 
   markHandled(req: any): void {
     req.status = 'handled';
-    // Sposta nello storico o rimuovi
     setTimeout(() => {
         this.requests = this.requests.filter(x => x.id !== req.id);
         if(this.selectedRequest?.id === req.id) this.selectedRequest = this.requests[0] || null;

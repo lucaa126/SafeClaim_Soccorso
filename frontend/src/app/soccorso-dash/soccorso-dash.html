@@ -183,24 +183,42 @@
       </div>
 
       <div class="updates mt-4">
-        <h3>Aggiornamenti Recenti</h3>
-        <div class="update-item d-flex gap-3 mb-3 p-3 rounded shadow-sm">
-           <div class="icon-box bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width:40px; height:40px">
-             <span class="material-icons-sharp fs-5">message</span>
-           </div>
-           <div>
-             <p class="mb-0 small"><b>Centrale:</b> Traffico intenso sulla A4.</p>
-             <small class="text">2 minuti fa</small>
-           </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h3 class="m-0">Notizie Traffico Live</h3>
+          <button class="btn btn-sm btn-light" (click)="loadRealTraffic()">
+            <span class="material-icons-sharp fs-6" [class.spin]="isLoadingTraffic">sync</span>
+          </button>
         </div>
-        <div class="update-item d-flex gap-3 mb-3 p-3 rounded shadow-sm">
-           <div class="icon-box bg-warning text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width:40px; height:40px">
-             <span class="material-icons-sharp fs-5">build</span>
-           </div>
-           <div>
-             <p class="mb-0 small"><b>Officina:</b> Carroattrezzi 04 in manutenzione.</p>
-             <small class="text">1 ora fa</small>
-           </div>
+      
+        <div class="traffic-list" style="max-height: 500px; overflow-y: auto;">
+          
+          <div *ngIf="trafficNews.length === 0 && !isLoadingTraffic" class="text-center p-3">
+            <span class="material-icons-sharp text-muted">feed</span>
+            <p class="text-muted small">Nessuna notizia rilevante trovata.</p>
+          </div>
+      
+          <a *ngFor="let news of trafficNews" [href]="news.link" target="_blank" class="text-decoration-none">
+            <div class="update-item d-flex gap-3 mb-3 p-3 rounded shadow-sm bg-white hover-effect">
+              
+              <div class="icon-box text-white rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" 
+                   [class.bg-danger]="getIconByText(news.title) === 'car_crash'"
+                   [class.bg-warning]="getIconByText(news.title) === 'traffic'"
+                   [class.bg-secondary]="getIconByText(news.title) === 'campaign'"
+                   style="width:40px; height:40px">
+                <span class="material-icons-sharp fs-5">{{ getIconByText(news.title) }}</span>
+              </div>
+              
+              <div class="w-100 overflow-hidden">
+                <p class="mb-1 fw-bold text-dark small text-truncate">{{ news.title }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                   <small class="text-primary">{{ news.source }}</small>
+                   <small class="text-muted" style="font-size: 0.7rem">{{ news.pubDate | date:'HH:mm' }}</small>
+                </div>
+              </div>
+      
+            </div>
+          </a>
+      
         </div>
       </div>
 
@@ -226,3 +244,9 @@
   </aside>
 
 </div>
+
+<style>
+  .hover-effect:hover { background-color: #f1f2f6 !important; transform: translateX(5px); transition: all 0.2s; }
+  .spin { animation: rotation 1s infinite linear; }
+  @keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(359deg); } }
+</style>
