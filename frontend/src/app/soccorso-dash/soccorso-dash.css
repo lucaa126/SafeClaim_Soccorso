@@ -2,7 +2,6 @@
    1. IMPORTS & FONTS
    ========================================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
-/* @import url('https://fonts.googleapis.com/icon?family=Material+Icons+Sharp'); */
 
 /* ==========================================================================
    2. CONFIGURAZIONE VARIABILI & TEMI (THEMING ENGINE)
@@ -22,13 +21,13 @@
     --warning: #ffbb55;
     
     /* Sfondi e Testi Light */
-    --white: #ffffff;        /* Sfondo Card */
-    --light: #f6f6f9;        /* Sfondo Pagina */
-    --dark: #363949;         /* Testo Principale (Scuro) */
-    --info-dark: #7d8da1;    /* Testo Secondario (Grigio) */
-    --info-light: #dce1eb;   /* Divisori / Sfondi secondari */
+    --white: #ffffff;
+    --light: #f6f6f9;
+    --dark: #363949;
+    --info-dark: #7d8da1;
+    --info-light: #dce1eb;
     
-    /* Varianti Trasparenti (per badge e hover) */
+    /* Varianti Trasparenti */
     --primary-light: rgba(115, 128, 236, 0.18);
     --success-light: rgba(65, 241, 182, 0.18);
     --warning-light: rgba(255, 187, 85, 0.18);
@@ -41,9 +40,12 @@
     --border-radius-3: 1.2rem;
     --card-padding: 1.6rem;
     
+    /* Configurazione Layout Sidebar */
+    --sidebar-width: 16rem; 
+    
     /* Effetti Visivi */
     --box-shadow: 0 1.5rem 2rem rgba(132, 139, 200, 0.18);
-    --card-border: 1px solid transparent; /* Invisibile in Light Mode */
+    --card-border: 1px solid transparent; 
     --transition: all 300ms ease;
 
     /* Impostazioni Container */
@@ -58,72 +60,72 @@
 
 /* --- DARK MODE OVERRIDE --- */
 .dashboard-container.dark-theme-variables {
-    /* Sfondi Scuri */
-    --light: #0d1117;        /* Background quasi nero (GitHub style) */
-    --white: #161b22;        /* Card grigio scuro */
-    
-    /* Testi Chiari per leggibilità */
-    --dark: #edeffd;         /* Testo Principale (Bianco sporco) */
-    --info-dark: #a0aec0;    /* Testo Secondario (Grigio chiaro) */
-    --info-light: #21262d;   /* Elementi UI scuri */
-    
-    /* Ombre più soft e Bordi di contrasto */
+    --light: #0d1117;        /* GitHub Dark Background */
+    --white: #161b22;        /* Card Dark */
+    --dark: #edeffd;         /* Testo Chiaro */
+    --info-dark: #a0aec0;
+    --info-light: #21262d;
     --box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.4);
-    --card-border: 1px solid rgba(255, 255, 255, 0.12); /* Fondamentale per definire le card */
+    --card-border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 /* ==========================================================================
-   3. RESET GLOBALE & OVERRIDES DI BOOTSTRAP (CRITICO)
+   3. RESET GLOBALE & OVERRIDES DI BOOTSTRAP
    ========================================================================== */
 * {
     margin: 0; padding: 0; outline: 0; appearance: none;
     border: 0; text-decoration: none; list-style: none; box-sizing: border-box;
 }
 
-/* Forzatura Colori Testi (Vince su Bootstrap) */
 h1, h2, h3, h4, h5, h6 { color: var(--dark) !important; font-weight: 600; }
 h1 { font-size: 1.8rem; font-weight: 800; }
 h2 { font-size: 1.4rem; }
 h3 { font-size: 0.87rem; }
 p, span, div, li { color: var(--dark); }
 
-/* Fix specifico per classi di utilità Bootstrap */
+/* Utility Override */
 .text-muted { color: var(--info-dark) !important; }
 .text-primary { color: var(--primary) !important; }
 .text-danger { color: var(--danger) !important; }
 .text-success { color: var(--success) !important; }
 .text-warning { color: var(--warning) !important; }
 
-/* Fix Sfondi Card Bootstrap */
+/* Bootstrap Card Override */
 .card, .bg-white {
     background-color: var(--white) !important;
     color: var(--dark) !important;
-    border: var(--card-border); /* Aggiunge il bordo in dark mode */
+    border: var(--card-border);
 }
 
-/* Immagini e Link */
 img { display: block; width: 100%; }
 a { color: inherit; cursor: pointer; text-decoration: none; }
 
-/* Scrollbar Custom (Stile Moderno) */
+/* Scrollbar Custom */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--light); }
 ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--primary-variant); }
 
+/* Animazioni */
+.spin { animation: rotation 1s infinite linear; }
+@keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(359deg); } }
+.hover-effect:hover { background-color: rgba(0,0,0,0.02) !important; transform: translateX(5px); transition: all 0.2s; }
+
 /* ==========================================================================
-   4. SIDEBAR (SINISTRA)
+   4. SIDEBAR DESKTOP (FISSA A SINISTRA)
    ========================================================================== */
 .sidebar-container {
+    position: fixed; /* Fissa rispetto alla finestra */
+    top: 0;
+    left: 0;
     height: 100vh;
+    width: var(--sidebar-width);
     background: var(--white);
     display: flex;
     flex-direction: column;
-    box-shadow: 1rem 0 2rem rgba(0, 0, 0, 0.05);
-    position: sticky;
-    top: 0;
-    z-index: 99;
     padding-top: 1rem;
+    box-shadow: 1rem 0 2rem rgba(0, 0, 0, 0.05);
+    z-index: 99;
     border-right: var(--card-border);
     transition: var(--transition);
 }
@@ -147,14 +149,15 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
 }
 
 .sidebar-menu a span { font-size: 1.6rem; transition: var(--transition); color: var(--info-dark); }
+.sidebar-menu a h3 { margin: 0; transition: var(--transition); }
 
-/* Hover & Active State */
+/* Sidebar Hover & Active */
 .sidebar-menu a:hover, 
 .sidebar-menu a.active {
     color: var(--primary);
     background: var(--light); 
     margin-left: 0;
-    padding-left: 2rem; /* Effetto rientro */
+    padding-left: 2rem;
 }
 
 .sidebar-menu a:hover span, 
@@ -162,25 +165,35 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
     color: var(--primary); margin-left: 0.5rem;
 }
 
-/* Barra laterale attiva */
 .sidebar-menu a.active::before {
     content: ''; width: 6px; height: 100%; background: var(--primary);
     position: absolute; left: 0; top: 0;
 }
 
+/* Badge contatore messaggi */
+.sidebar-menu .message-count {
+    background: var(--danger); color: white; padding: 2px 10px;
+    font-size: 11px; border-radius: var(--border-radius-1);
+    margin-left: auto; margin-right: 1rem;
+}
+
 .sidebar-menu .logout-btn { position: absolute; bottom: 2rem; width: 100%; cursor: pointer; }
 
 /* ==========================================================================
-   5. MAIN CONTENT (CENTRALE)
+   5. WRAPPER PRINCIPALE (GESTIONE SPAZI)
    ========================================================================== */
-.main-content {
-    background: var(--light);
-    min-height: 100vh;
-    padding: 1.5rem;
+/* Questo container sposta tutto il contenuto a destra della sidebar fissa */
+.main-wrapper {
+    margin-left: var(--sidebar-width); /* Lascia spazio alla sidebar */
+    width: calc(100% - var(--sidebar-width));
     transition: var(--transition);
+    padding: 1.5rem;
 }
 
-/* Header Mobile */
+/* ==========================================================================
+   6. CONTENUTO CENTRALE (DASHBOARD)
+   ========================================================================== */
+/* Header Mobile (Visibile solo se < LG) */
 .mobile-header {
     background: var(--white);
     padding: 0.8rem 1rem;
@@ -189,9 +202,8 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
     border: var(--card-border);
     margin-bottom: 1.5rem;
 }
-.mobile-header h2 { font-size: 1.2rem; }
 
-/* Status Card (Online/Offline) */
+/* Status Card */
 .status-card {
     background: var(--white);
     padding: 1.2rem;
@@ -203,7 +215,7 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
 .status-card h5 { margin: 0; font-size: 1rem; color: var(--dark) !important; }
 .status-card.active { border-left: 5px solid var(--success); }
 
-/* KPI Cards (Statistiche) */
+/* KPI Cards */
 .kpi-card {
     background: var(--white);
     padding: var(--card-padding);
@@ -216,26 +228,25 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
 .kpi-card:hover {
     transform: translateY(-5px);
     box-shadow: none;
-    border-color: var(--primary); /* Highlight hover */
+    border-color: var(--primary);
 }
 
 .kpi-card .icon {
     width: 48px; height: 48px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    color: #ffffff !important; /* Icona sempre bianca */
+    color: #ffffff !important;
     font-size: 1.5rem;
 }
-
 .kpi-card .details h3 { margin: 0; font-size: 1.8rem; font-weight: 700; }
 .kpi-card .details p { margin: 0; font-size: 0.85rem; color: var(--info-dark); }
 
-/* Colori specifici KPI */
+/* Colori Icone KPI */
 .bg-primary-light .icon { background: var(--primary); }
 .bg-success-light .icon { background: var(--success); }
 .bg-warning-light .icon { background: var(--warning); }
 
 /* ==========================================================================
-   6. TABELLE (RICHIESTE)
+   7. TABELLE
    ========================================================================== */
 .recent-orders { margin-top: 2rem; }
 .recent-orders h2 { margin-bottom: 1rem; }
@@ -249,40 +260,25 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
 }
 
 table { width: 100%; border-collapse: collapse; }
-
 table thead th {
     padding-bottom: 1rem;
     color: var(--info-dark) !important;
-    font-weight: 600;
-    text-align: left;
-    font-size: 0.9rem;
+    font-weight: 600; text-align: left; font-size: 0.9rem;
 }
-
 table tbody td {
     padding: 1rem 0;
     border-bottom: 1px solid var(--info-light);
-    color: var(--dark);
-    font-size: 0.9rem;
-    vertical-align: middle;
+    color: var(--dark); font-size: 0.9rem; vertical-align: middle;
 }
-
 table tbody tr:last-child td { border: none; }
+table tbody tr:hover td { background: var(--light); color: var(--dark); cursor: pointer; }
 
-table tbody tr:hover td {
-    background: var(--light);
-    color: var(--dark);
-    cursor: pointer;
-}
-
-/* Badges (Stati) */
+/* Badges */
 .badge {
     padding: 0.5rem 0.8rem;
     border-radius: var(--border-radius-1);
-    font-weight: 600;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
+    font-weight: 600; font-size: 0.75rem; letter-spacing: 0.5px;
 }
-/* Override Bootstrap Badges */
 .badge.bg-warning { background: var(--warning-light) !important; color: var(--warning) !important; }
 .badge.bg-success { background: var(--success-light) !important; color: var(--success) !important; }
 .badge.bg-secondary { background: var(--info-light) !important; color: var(--info-dark) !important; }
@@ -290,15 +286,12 @@ table tbody tr:hover td {
 .badge.bg-primary { background: var(--primary-light) !important; color: var(--primary) !important; }
 
 /* ==========================================================================
-   7. SEZIONE DESTRA & DETTAGLI (FIX LEGGIBILITÀ)
+   8. SEZIONE DESTRA
    ========================================================================== */
 .right-section {
-    background: var(--light);
-    padding: 1.5rem;
+    padding-left: 2rem;
     transition: var(--transition);
 }
-/* Bordo sinistro solo in dark mode */
-.dashboard-container.dark-theme-variables .right-section { border-left: var(--card-border); }
 
 /* Dark Mode Toggle */
 .dark-mode-toggle {
@@ -321,7 +314,7 @@ table tbody tr:hover td {
 .profile small { display: block; color: var(--info-dark); }
 .profile-photo { width: 3rem; height: 3rem; border-radius: 50%; overflow: hidden; border: 2px solid var(--info-light); }
 
-/* --- CARD DETTAGLIO INTERVENTO (FIX CRITICO) --- */
+/* --- CARD DETTAGLIO INTERVENTO --- */
 .request-detail-card { margin-top: 2rem; }
 .request-detail-card h3 { margin-bottom: 1rem; }
 
@@ -333,37 +326,13 @@ table tbody tr:hover td {
     border: var(--card-border);
 }
 
-/* Etichette (ID, Cliente) */
 .request-detail-card .text-muted {
-    color: var(--info-dark) !important;
-    font-weight: 500;
-    font-size: 0.9rem;
+    color: var(--info-dark) !important; font-weight: 500; font-size: 0.9rem;
+}
+.request-detail-card strong {
+    color: var(--dark) !important; font-weight: 700; font-size: 1rem; display: block;
 }
 
-/* Valori (Es. 12345, Nome Cognome) */
-.request-detail-card strong, 
-.request-detail-card b {
-    color: var(--dark) !important; /* Diventa bianco in Dark Mode */
-    font-weight: 700;
-    font-size: 1rem;
-    display: block; /* Assicura allineamento */
-}
-
-/* Mappa Placeholder */
-.map-placeholder {
-    background: var(--light);
-    height: 160px;
-    border-radius: var(--border-radius-2);
-    display: flex; align-items: center; justify-content: center;
-    border: 2px dashed var(--info-dark);
-    color: var(--info-dark);
-    font-weight: 600;
-    margin: 1.5rem 0;
-    transition: var(--transition);
-}
-.map-placeholder:hover { border-color: var(--primary); color: var(--primary); }
-
-/* Pulsanti Azione */
 .d-grid .btn { padding: 0.8rem; border-radius: var(--border-radius-1); font-weight: 600; }
 .btn-primary { background: var(--primary) !important; border: none; }
 .btn-primary:hover { background: var(--primary-variant) !important; }
@@ -382,9 +351,6 @@ table tbody tr:hover td {
     box-shadow: var(--box-shadow);
     border: var(--card-border);
     transition: var(--transition);
-    display: grid;
-    grid-template-columns: 40px auto;
-    gap: 1rem;
 }
 .updates .update-item:hover { transform: translateX(-5px); }
 
@@ -394,42 +360,73 @@ table tbody tr:hover td {
     color: white;
 }
 .updates p { font-size: 0.85rem; line-height: 1.4; color: var(--dark); margin: 0; }
-.updates p b { color: var(--dark); }
 .updates small { color: var(--info-dark) !important; }
 
 /* ==========================================================================
-   8. RESPONSIVE MOBILE & TABLET
+   9. MAPPA LEAFLET & DARK MODE AVANZATA
+   ========================================================================== */
+#map {
+    z-index: 1; border-radius: 8px; background-color: #ddd;
+}
+
+/* Filtri Mappa Dark Mode */
+.dark-theme-variables #map .leaflet-tile {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+.dark-theme-variables #map { background-color: #181a1e; }
+.dark-theme-variables .leaflet-control-zoom a {
+    background-color: #202528 !important; color: #fff !important; border-bottom: 1px solid #444 !important;
+}
+.dark-theme-variables .leaflet-control-zoom { border: 2px solid #444 !important; }
+.dark-theme-variables .leaflet-popup-content-wrapper,
+.dark-theme-variables .leaflet-popup-tip {
+    background-color: #202528 !important; color: #fff !important; box-shadow: 0 3px 14px rgba(0,0,0,0.6);
+}
+.dark-theme-variables .leaflet-container .leaflet-control-attribution {
+    background: rgba(32, 37, 40, 0.8) !important; color: #a3a3a3 !important;
+}
+
+/* ==========================================================================
+   10. MEDIA QUERIES (TABLET & MOBILE)
    ========================================================================== */
 @media screen and (max-width: 1200px) {
-    .container-fluid { width: 100%; padding: 0; }
+    /* TABLET: Nascondi sidebar fissa, ripristina margini */
+    .sidebar-container { display: none; }
     
-    .sidebar-container { display: none; } /* Nasconde Sidebar Desktop */
+    .main-wrapper {
+        margin-left: 0;
+        width: 100%;
+        padding: 1rem;
+    }
     
-    .main-content { grid-column: 1 / -1; padding: 1rem; }
-    .right-section { grid-column: 1 / -1; width: 100%; padding: 1rem; border-left: none; }
+    .right-section {
+        width: 100%;
+        padding-left: 0;
+        margin-top: 2rem;
+    }
     
-    /* Layout a colonna singola */
+    /* Layout griglia */
     .row.g-0 { display: flex; flex-direction: column; }
-    .col-lg-2, .col-lg-7, .col-lg-3 { width: 100%; }
+    .col-lg-8, .col-lg-4 { width: 100%; }
 }
 
 @media screen and (max-width: 768px) {
-    html { font-size: 14px; }
+    /* MOBILE: Ottimizzazioni Tabelle */
+    html { font-size: 13px; }
     
     .mobile-header { display: flex !important; justify-content: space-between; align-items: center; }
     
-    /* Tabelle Responsive */
-    .recent-orders { width: 100%; overflow-x: auto; }
-    .recent-orders table { min-width: 400px; }
+    /* Nascondi colonne meno importanti per guadagnare spazio */
+    .recent-orders { width: 100%; overflow-x: hidden; }
+    .recent-orders table th:first-child,
+    .recent-orders table td:first-child { display: none; } /* Nascondi ID */
     
-    /* Colonne tabella da nascondere su mobile stretto */
-    .recent-orders table th:nth-child(2),
-    .recent-orders table td:nth-child(2) { display: none; }
+    /* Forza il wrap del testo se necessario */
+    .recent-orders table td { white-space: normal; }
 }
-    .profile-photo-sm { width: 6rem; height: 6rem; border-radius: 50%; overflow: hidden; border: 2px solid var(--info-light); }
 
 /* ==========================================================================
-   9. SIDEBAR MOBILE (OFFCANVAS)
+   11. SIDEBAR MOBILE (OFFCANVAS ANIMATA)
    ========================================================================== */
 .mobile-sidebar-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -449,7 +446,7 @@ table tbody tr:hover td {
 .mobile-sidebar .top {
     display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;
 }
-.mobile-sidebar .logo h2 { font-size: 1.4rem; color: var(--dark); }
+.mobile-sidebar .logo h2 { font-size: 1.4rem; color: var(--dark); margin: 0; }
 .mobile-sidebar .close { cursor: pointer; font-size: 2rem; color: var(--dark); }
 
 .mobile-sidebar .sidebar-links { display: flex; flex-direction: column; gap: 1.5rem; }
@@ -463,5 +460,6 @@ table tbody tr:hover td {
 .mobile-sidebar .sidebar-links a:hover {
     color: var(--primary); transform: translateX(10px);
 }
+.mobile-sidebar .sidebar-links a h3 { margin: 0; }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

@@ -1,252 +1,273 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<div class="container-fluid dashboard-container" [class.dark-theme-variables]="isDarkMode">
-  
-  <div class="row g-0">
+<div class="container-fluid dashboard-container p-0" [class.dark-theme-variables]="isDarkMode">
 
-    <div class="col-lg-2 d-none d-lg-block sidebar-container">
-      <div class="sidebar-logo">
-        <img src="https://cdn-icons-png.flaticon.com/512/1065/1065646.png" alt="Logo">
-        <h2>SOCC<span class="danger">ORSO</span></h2>
-      </div>
-
-      <div class="sidebar-menu">
-        <a routerLink="/dashboard" class="active">
-          <span class="material-icons-sharp">grid_view</span>
-          <h3>Dashboard</h3>
-        </a>
-        <a routerLink="/richieste">
-          <span class="material-icons-sharp">campaign</span>
-          <h3>Richieste <span class="badge bg-danger ms-2" *ngIf="requests.length">{{requests.length}}</span></h3>
-        </a>
-        <a routerLink="/flotta">
-          <span class="material-icons-sharp">local_shipping</span>
-          <h3>Flotta</h3>
-        </a>
-        <a routerLink="/analytics">
-          <span class="material-icons-sharp">insights</span>
-          <h3>Analytics</h3>
-        </a>
-        <a routerLink="/settings">
-          <span class="material-icons-sharp">settings</span>
-          <h3>Impostazioni</h3>
-        </a>
-        <a (click)="logout()" class="mt-auto logout-btn">
-          <span class="material-icons-sharp">logout</span>
-          <h3>Logout</h3>
-        </a>
-      </div>
+  <aside class="sidebar-container d-none d-lg-flex">
+    <div class="sidebar-logo">
+      <img src="https://cdn-icons-png.flaticon.com/512/1065/1065646.png" alt="Logo">
+      <h2>SOCC<span class="danger">ORSO</span></h2>
     </div>
 
-    <main class="col-12 col-lg-7 main-content p-4">
-      
-      <div class="d-flex justify-content-between align-items-center d-lg-none mb-4 mobile-header">
-        <div class="d-flex align-items-center gap-2">
-           <button class="btn " (click)="openMenu()"><span class="material-icons-sharp">menu</span></button>
-           <h2 class="m-0 text-primary">Soccorso</h2>
-        </div>
-        <div class="profile-photo-sm">
-           <img src="https://i.pravatar.cc/150?img=12" alt="Profile">
-        </div>
-      </div>
-
-      <div class="header-section mb-4">
-        <h1>Dashboard Operativa</h1>
-        <p class="text">Benvenuto, {{workshopName}}</p>
-        
-        <div class="status-card mt-3" [class.active]="acceptingSoccorsi">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <h5 class="mb-0">Stato Operativo</h5>
-              <small>{{ acceptingSoccorsi ? 'Online - Ricezione chiamate' : 'Offline - Non disponibile' }}</small>
-            </div>
-            <div class="form-check form-switch">
-              <input class="form-check-input fs-3" type="checkbox" [checked]="acceptingSoccorsi" (change)="toggleSoccorsi()">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row g-3 mb-4">
-        <div class="col-12 col-md-4">
-          <div class="kpi-card bg-primary-light">
-            <span class="material-icons-sharp icon">sos</span>
-            <div class="details">
-              <h3>{{requests.length}}</h3>
-              <p>Richieste Attive</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-12 col-md-4">
-           <div class="kpi-card bg-success-light">
-             <span class="material-icons-sharp icon">check_circle</span>
-             <div class="details">
-               <h3>12</h3>
-               <p>Completati Oggi</p>
-             </div>
-           </div>
-         </div>
-         <div class="col-12 col-md-4">
-           <div class="kpi-card bg-warning-light">
-             <span class="material-icons-sharp icon">schedule</span>
-             <div class="details">
-               <h3>14m</h3>
-               <p>Tempo Medio</p>
-             </div>
-           </div>
-         </div>
-      </div>
-
-      <div class="recent-orders">
-        <h2>Richieste in Coda</h2>
-        <div class="table-responsive bg-white rounded-4 shadow-sm p-3 mt-2" *ngIf="requests.length > 0; else noReq">
-          <table class="table table-hover align-middle mb-0">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Veicolo</th>
-                <th>Posizione</th>
-                <th>Stato</th>
-                <th>Azioni</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let req of requests" [class.table-active]="selectedRequest?.id === req.id" (click)="selectRequest(req)">
-                <td>{{req.id}}</td>
-                <td>{{req.vehicleType}}</td>
-                <td><span class="text-primary cursor-pointer"><span class="material-icons-sharp fs-6 align-middle">place</span> Vedi Mappa</span></td>
-                <td>
-                  <span class="badge" 
-                    [class.bg-warning]="!req.status" 
-                    [class.bg-success]="req.status === 'accepted'"
-                    [class.bg-secondary]="req.status === 'handled'">
-                    {{ req.status ? req.status : 'In Attesa' }}
-                  </span>
-                </td>
-                <td>
-                  <button class="btn btn-sm btn-outline-primary" *ngIf="!req.status" (click)="acceptRequest(req); $event.stopPropagation()">Accetta</button>
-                  <button class="btn btn-sm btn-success" *ngIf="req.status === 'accepted'" (click)="markHandled(req); $event.stopPropagation()">Completa</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <ng-template #noReq>
-          <div class="text-center p-5 bg-white rounded-4 shadow-sm">
-            <span class="material-icons-sharp fs-1 text-muted">thumb_up</span>
-            <p class="mt-2 text-muted">Nessuna richiesta attiva al momento.</p>
-          </div>
-        </ng-template>
-      </div>
-    </main>
-
-    <div class="col-12 col-lg-3 right-section p-4 ">
-      
-      <div class="nav d-flex justify-content-end align-items-center gap-4 mb-4">
-        <div class="dark-mode-toggle" (click)="toggleDarkMode()">
-          <span class="material-icons-sharp" [class.active]="!isDarkMode">light_mode</span>
-          <span class="material-icons-sharp" [class.active]="isDarkMode">dark_mode</span>
-        </div>
-        <div class="profile d-flex gap-3 text-end align-items-center">
-           <div class="d-none d-md-block">
-             <p class="mb-0">Ciao, <b>Admin</b></p>
-             <small class="text">Capo Officina</small>
-           </div>
-           <div class="profile-photo">
-             <img src="https://i.pravatar.cc/150?img=12" alt="Admin">
-           </div>
-        </div>
-      </div>
-
-      <div class="request-detail-card mt-4" *ngIf="selectedRequest">
-        <h3 class="mb-3">Dettaglio Intervento</h3>
-        <div class="card border-0 shadow-sm p-3">
-          <div class="d-flex justify-content-between mb-2">
-             <span class="text-muted">ID:</span>
-             <strong>{{selectedRequest.id}}</strong>
-          </div>
-          <div class="d-flex justify-content-between mb-2">
-             <span class="text-muted">Cliente:</span>
-             <strong>{{selectedRequest.contact}}</strong>
-          </div>
-           <div class="map-placeholder my-3 rounded">
-             <span><span class="material-icons-sharp">map</span> Mappa Live</span>
-           </div>
-           <div class="d-grid gap-2">
-             <button class="btn btn-primary" (click)="acceptRequest(selectedRequest)" [disabled]="selectedRequest.status">
-               {{ selectedRequest.status ? 'Intervento in corso' : 'Prendi in Carico' }}
-             </button>
-             <button class="btn btn-outline-danger" (click)="declineRequest(selectedRequest)" *ngIf="!selectedRequest.status">Rifiuta</button>
-           </div>
-        </div>
-      </div>
-
-      <div class="updates mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h3 class="m-0">Notizie Traffico Live</h3>
-          <button class="btn btn-sm btn-light" (click)="loadRealTraffic()">
-            <span class="material-icons-sharp fs-6" [class.spin]="isLoadingTraffic">sync</span>
-          </button>
-        </div>
-      
-        <div class="traffic-list" style="max-height: 500px; overflow-y: auto;">
-          
-          <div *ngIf="trafficNews.length === 0 && !isLoadingTraffic" class="text-center p-3">
-            <span class="material-icons-sharp text-muted">feed</span>
-            <p class="text-muted small">Nessuna notizia rilevante trovata.</p>
-          </div>
-      
-          <a *ngFor="let news of trafficNews" [href]="news.link" target="_blank" class="text-decoration-none">
-            <div class="update-item d-flex gap-3 mb-3 p-3 rounded shadow-sm bg-white hover-effect">
-              
-              <div class="icon-box text-white rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" 
-                   [class.bg-danger]="getIconByText(news.title) === 'car_crash'"
-                   [class.bg-warning]="getIconByText(news.title) === 'traffic'"
-                   [class.bg-secondary]="getIconByText(news.title) === 'campaign'"
-                   style="width:40px; height:40px">
-                <span class="material-icons-sharp fs-5">{{ getIconByText(news.title) }}</span>
-              </div>
-              
-              <div class="w-100 overflow-hidden">
-                <p class="mb-1 fw-bold text-dark small text-truncate">{{ news.title }}</p>
-                <div class="d-flex justify-content-between align-items-center">
-                   <small class="text-primary">{{ news.source }}</small>
-                   <small class="text-muted" style="font-size: 0.7rem">{{ news.pubDate | date:'HH:mm' }}</small>
-                </div>
-              </div>
-      
-            </div>
-          </a>
-      
-        </div>
-      </div>
-
-    </div>
-
-  </div>
-
-  <div class="mobile-sidebar-overlay" [class.show]="isSidebarOpen" (click)="closeMenu()"></div>
-  <aside class="mobile-sidebar" [class.open]="isSidebarOpen">
-    <div class="top">
-       <div class="logo">
-         <h2>SOCC<span class="danger">ORSO</span></h2>
-       </div>
-       <div class="close" (click)="closeMenu()">
-         <span class="material-icons-sharp">close</span>
-       </div>
-    </div>
-    <div class="sidebar-links">
-        <a routerLink="/dashboard" class="active" (click)="closeMenu()"><span class="material-icons-sharp">grid_view</span> Dashboard</a>
-        <a routerLink="/richieste" (click)="closeMenu()"><span class="material-icons-sharp">campaign</span> Richieste</a>
-        <a (click)="logout()"><span class="material-icons-sharp">logout</span> Logout</a>
+    <div class="sidebar-menu" style="font-size: 20px;">
+      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <span class="material-icons-sharp">grid_view</span>
+        <h3>Dashboard</h3>
+      </a>
+      <a routerLink="/richieste" routerLinkActive="active">
+        <span class="material-icons-sharp">campaign</span>
+        <h3>Richieste</h3>
+        <span class="message-count" *ngIf="requests.length">{{requests.length}}</span>
+      </a>
+      <a routerLink="/flotta" routerLinkActive="active">
+        <span class="material-icons-sharp">local_shipping</span>
+        <h3>Flotta</h3>
+      </a>
+      <a routerLink="/analytics" routerLinkActive="active">
+        <span class="material-icons-sharp">insights</span>
+        <h3>Analytics</h3>
+      </a>
+      <a routerLink="/settings" routerLinkActive="active">
+        <span class="material-icons-sharp">settings</span>
+        <h3>Impostazioni</h3>
+      </a>
+      <a (click)="logout()" class="logout-btn">
+        <span class="material-icons-sharp">logout</span>
+        <h3>Logout</h3>
+      </a>
     </div>
   </aside>
 
-</div>
+  <div class="main-wrapper">
+    
+    <div class="mobile-header d-flex justify-content-between align-items-center mb-4 d-lg-none">
+      <div class="d-flex align-items-center gap-2">
+         <button class="btn p-0 border-0 bg-transparent text-dark" (click)="openMenu()">
+            <span class="material-icons-sharp fs-1">menu</span>
+         </button>
+         <h2 class="m-0 text-primary fw-bold">Soccorso</h2>
+      </div>
+      <div class="profile-photo-sm">
+         <img src="https://i.pravatar.cc/150?img=12" alt="Profile" style="width: 2.5rem; height: 2.5rem; border-radius: 50%;">
+      </div>
+    </div>
 
-<style>
-  .hover-effect:hover { background-color: #f1f2f6 !important; transform: translateX(5px); transition: all 0.2s; }
-  .spin { animation: rotation 1s infinite linear; }
-  @keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(359deg); } }
-</style>
+    <div class="row g-0">
+      
+      <main class="col-12 col-lg-8 pe-lg-4">
+        
+        <div class="header-section mb-4">
+          <h1>Dashboard Operativa</h1>
+          <p class="text">Benvenuto, {{workshopName}}</p>
+          
+          <div class="status-card mt-3" [class.active]="acceptingSoccorsi">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h5 class="mb-0">Stato Operativo</h5>
+                <small class="text">{{ acceptingSoccorsi ? 'Online - Ricezione chiamate' : 'Offline - Non disponibile' }}</small>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input fs-3" type="checkbox" [checked]="acceptingSoccorsi" (change)="toggleSoccorsi()">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-4">
+            <div class="kpi-card bg-primary-light">
+              <span class="material-icons-sharp icon">sos</span>
+              <div class="details">
+                <h3>{{requests.length}}</h3>
+                <p>Richieste Attive</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+             <div class="kpi-card bg-success-light">
+               <span class="material-icons-sharp icon">check_circle</span>
+               <div class="details">
+                 <h3>12</h3>
+                 <p>Completati Oggi</p>
+               </div>
+             </div>
+           </div>
+           <div class="col-12 col-md-4">
+             <div class="kpi-card bg-warning-light">
+               <span class="material-icons-sharp icon">schedule</span>
+               <div class="details">
+                 <h3>14m</h3>
+                 <p>Tempo Medio</p>
+               </div>
+             </div>
+           </div>
+        </div>
+
+        <div class="recent-orders">
+          <h2>Richieste in Coda</h2>
+          <div class="table-responsive mt-3" *ngIf="requests.length > 0; else noReq">
+            <table class="table mb-0">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Veicolo</th>
+                  <th>Posizione</th>
+                  <th>Stato</th>
+                  <th>Azioni</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let req of requests" [class.table-active]="selectedRequest?.id === req.id" (click)="selectRequest(req)" style="cursor: pointer;">
+                  <td>{{req.id}}</td>
+                  <td>{{req.vehicleType}}</td>
+                  <td>
+                    <span class="text-primary d-flex align-items-center gap-1">
+                      <span class="material-icons-sharp fs-6">place</span> Mappa
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" 
+                      [class.bg-warning]="!req.status" 
+                      [class.bg-success]="req.status === 'accepted'"
+                      [class.bg-secondary]="req.status === 'handled'">
+                      {{ req.status ? req.status : 'In Attesa' }}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" *ngIf="!req.status" (click)="acceptRequest(req); $event.stopPropagation()">Accetta</button>
+                    <button class="btn btn-sm btn-success text-white" *ngIf="req.status === 'accepted'" (click)="markHandled(req); $event.stopPropagation()">Completa</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #noReq>
+            <div class="text-center p-5 bg-white rounded-4 shadow-sm">
+              <span class="material-icons-sharp fs-1 text-muted">thumb_up</span>
+              <p class="mt-2 text-muted">Nessuna richiesta attiva al momento.</p>
+            </div>
+          </ng-template>
+        </div>
+      </main>
+
+      <div class="col-12 col-lg-4 right-section">
+        
+        <div class="nav d-flex justify-content-end align-items-center gap-4 mb-4">
+          <div class="dark-mode-toggle" (click)="toggleDarkMode()">
+            <span class="material-icons-sharp" [class.active]="!isDarkMode">light_mode</span>
+            <span class="material-icons-sharp" [class.active]="isDarkMode">dark_mode</span>
+          </div>
+          <div class="profile d-flex gap-3 text-end align-items-center">
+             <div class="d-none d-md-block">
+               <p class="mb-0">Ciao, <b>Admin</b></p>
+               <small class="text">Capo Officina</small>
+             </div>
+             <div class="profile-photo">
+               <img src="https://i.pravatar.cc/150?img=12" alt="Admin">
+             </div>
+          </div>
+        </div>
+
+        <div class="request-detail-card mt-4" *ngIf="selectedRequest">
+          <h3 class="mb-3">Dettaglio Intervento</h3>
+          <div class="card border-0 shadow-sm">
+            <div class="d-flex justify-content-between mb-2">
+               <span class="text-muted">ID:</span>
+               <strong>{{selectedRequest.id}}</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+               <span class="text-muted">Cliente:</span>
+               <strong>{{selectedRequest.contact}}</strong>
+            </div>
+             
+             <div class="my-3 rounded overflow-hidden" style="height: 250px; position: relative; z-index: 1;">
+                <div id="map" style="width: 100%; height: 100%; background: #ddd;"></div>
+             </div>
+             
+             <div class="d-grid gap-2">
+               <button class="btn btn-primary" (click)="acceptRequest(selectedRequest)" [disabled]="selectedRequest.status">
+                 {{ selectedRequest.status ? 'Intervento in corso' : 'Prendi in Carico' }}
+               </button>
+               <button class="btn btn-outline-danger" (click)="declineRequest(selectedRequest)" *ngIf="!selectedRequest.status">Rifiuta</button>
+             </div>
+          </div>
+        </div>
+
+        <div class="updates mt-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="m-0">Traffico Live</h3>
+            <button class="btn btn-sm" (click)="loadRealTraffic()">
+              <span class="material-icons-sharp fs-6" [class.spin]="isLoadingTraffic">sync</span>
+            </button>
+          </div>
+        
+          <div class="traffic-list" style="max-height: 500px; overflow-y: auto;">
+            <div *ngIf="trafficNews.length === 0 && !isLoadingTraffic" class="text-center p-3">
+              <span class="material-icons-sharp text">feed</span>
+              <p class="text small">Nessuna notizia rilevante.</p>
+            </div>
+        
+            <a *ngFor="let news of trafficNews" [href]="news.link" target="_blank" class="text-decoration-none">
+              <div class="update-item d-flex gap-3" style="margin: 15px;">
+                <div class="icon-box text-white rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" 
+                     [class.bg-danger]="getIconByText(news.title) === 'car_crash'"
+                     [class.bg-warning]="getIconByText(news.title) === 'traffic'"
+                     [class.bg-secondary]="getIconByText(news.title) === 'campaign'"
+                     style="width:40px; height:40px">
+                  <span class="material-icons-sharp fs-5">{{ getIconByText(news.title) }}</span>
+                </div>
+                
+                <div class="w-100 overflow-hidden">
+                  <p class="mb-1 fw-bold  small text-truncate">{{ news.title }}</p>
+                  <div class="d-flex justify-content-between align-items-center">
+                     <small class="text-primary">{{ news.source }}</small>
+                     <small class="text" style="font-size: 0.7rem">{{ news.pubDate | date:'HH:mm' }}</small>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+
+      </div> </div> </div> <div class="mobile-sidebar-overlay" [class.show]="isSidebarOpen" (click)="closeMenu()"></div>
+  
+  <div class="mobile-sidebar" [class.open]="isSidebarOpen">
+    <div class="top d-flex justify-content-between align-items-center mb-4">
+      <div class="logo d-flex align-items-center gap-2">
+         <img src="https://cdn-icons-png.flaticon.com/512/1065/1065646.png" style="width:2rem" alt="Logo">
+         <h2 class="m-0">SOCCORSO</h2>
+      </div>
+      <div class="close" (click)="closeMenu()">
+         <span class="material-icons-sharp">close</span>
+      </div>
+    </div>
+
+    <div class="sidebar-links d-flex flex-column gap-3">
+      <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMenu()">
+        <span class="material-icons-sharp">grid_view</span>
+        <h3>Dashboard</h3>
+      </a>
+      <a routerLink="/richieste" routerLinkActive="active" (click)="closeMenu()">
+        <span class="material-icons-sharp">campaign</span>
+        <h3>Richieste</h3>
+      </a>
+      <a routerLink="/flotta" routerLinkActive="active" (click)="closeMenu()">
+        <span class="material-icons-sharp">local_shipping</span>
+        <h3>Flotta</h3>
+      </a>
+      <a routerLink="/analytics" routerLinkActive="active" (click)="closeMenu()">
+        <span class="material-icons-sharp">insights</span>
+        <h3>Analytics</h3>
+      </a>
+      <a routerLink="/settings" routerLinkActive="active" (click)="closeMenu()">
+        <span class="material-icons-sharp">settings</span>
+        <h3>Impostazioni</h3>
+      </a>
+      <a (click)="logout()" class="text-danger mt-4">
+        <span class="material-icons-sharp">logout</span>
+        <h3>Logout</h3>
+      </a>
+    </div>
+  </div>
+
+</div>
