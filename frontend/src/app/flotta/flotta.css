@@ -1,0 +1,340 @@
+/* ==========================================================================
+   1. CONFIGURAZIONE & VARIABILI (THEMING ENGINE)
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+:host {
+    display: block;
+    width: 100%;
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    background: var(--light);
+    color: var(--dark);
+    
+    /* PALETTE COLORI (Identica alla Dashboard) */
+    --primary: #7380ec;
+    --primary-variant: #111e88;
+    --danger: #ff7782;
+    --success: #41f1b6;
+    --warning: #ffbb55;
+    --white: #ffffff;
+    --light: #f6f6f9;
+    --dark: #363949;
+    --info-dark: #7d8da1;
+    --info-light: #dce1eb;
+    
+    /* SPAZIATURE E DIMENSIONI */
+    --card-border-radius: 1.6rem;
+    --card-padding: 1.6rem;
+    --sidebar-width: 17rem;
+    --box-shadow: 0 1.5rem 2rem rgba(132, 139, 200, 0.18);
+    --transition: all 300ms ease;
+}
+
+/* DARK MODE OVERRIDES */
+:host-context(.dark-theme-variables), .dark-theme-variables {
+    --light: #0d1117;
+    --white: #161b22;
+    --dark: #edeffd;
+    --info-dark: #a0aec0;
+    --info-light: #21262d; 
+    --box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.4);
+}
+
+/* GLOBAL RESET */
+h1, h2, h3, h4, h5, h6 { font-weight: 600; color: var(--dark); margin: 0; }
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; padding: 0; margin: 0; }
+
+/* ==========================================================================
+   2. SIDEBAR NAVIGATION (FISSA A SINISTRA)
+   ========================================================================== */
+.container-fluid {
+    display: flex;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-container {
+    position: fixed;
+    top: 0; 
+    left: 0;
+    height: 100vh;
+    width: var(--sidebar-width);
+    background: var(--white);
+    display: flex;
+    flex-direction: column;
+    padding-top: 1rem;
+    box-shadow: 1rem 0 2rem rgba(0, 0, 0, 0.05);
+    z-index: 999;
+    transition: var(--transition);
+}
+
+/* LOGO */
+.sidebar-logo {
+    display: flex; 
+    gap: 0.8rem; 
+    align-items: center; 
+    justify-content: center;
+    margin-bottom: 2rem; 
+    margin-top: 1rem;
+}
+
+.sidebar-logo img { 
+    width: 2rem; 
+    height: 2rem; 
+    object-fit: contain; 
+}
+
+.sidebar-logo h2 { 
+    font-size: 1.4rem; 
+    font-weight: 800; 
+    color: var(--dark); 
+    letter-spacing: -0.5px;
+}
+
+.sidebar-logo .danger { color: var(--danger); }
+
+/* MENU ITEMS */
+.sidebar-menu { 
+    display: flex; 
+    flex-direction: column; 
+    height: 86vh; 
+    position: relative; 
+    top: 1rem; 
+}
+
+.sidebar-menu a {
+    display: flex; 
+    align-items: center; 
+    gap: 1rem;
+    color: var(--info-dark); 
+    margin-left: 2rem; 
+    height: 3.7rem;
+    text-decoration: none; 
+    transition: var(--transition); 
+    position: relative;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.sidebar-menu a span { 
+    font-size: 1.6rem; 
+    transition: var(--transition); 
+}
+
+.sidebar-menu a h3 { 
+    font-size: 0.9rem; 
+    font-weight: 500; 
+    margin: 0; 
+    transition: var(--transition); 
+}
+
+/* HOVER & ACTIVE STATE */
+.sidebar-menu a:hover, 
+.sidebar-menu a.active {
+    color: var(--primary); 
+    background: var(--light);
+    margin-left: 0; 
+    padding-left: 2rem;
+}
+
+.sidebar-menu a:hover span,
+.sidebar-menu a.active span {
+    transform: translateX(3px);
+}
+
+.sidebar-menu a.active::before {
+    content: ''; 
+    width: 6px; 
+    height: 100%; 
+    background: var(--primary);
+    position: absolute; 
+    left: 0; 
+    top: 0;
+}
+
+/* ==========================================================================
+   3. MAIN CONTENT WRAPPER
+   ========================================================================== */
+.main-wrapper {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    padding: 2.5rem;
+    transition: var(--transition);
+}
+
+/* Header Section */
+.header-section { margin-bottom: 2.5rem; }
+.header-section h1 { font-weight: 800; font-size: 1.8rem; color: var(--dark); margin-bottom: 0.5rem; }
+.header-section p { color: var(--info-dark); font-size: 0.95rem; }
+
+/* ==========================================================================
+   4. FLEET CARDS (CARD DESIGN AVANZATO)
+   ========================================================================== */
+.fleet-card {
+    background: var(--white);
+    border-radius: var(--card-border-radius);
+    padding: var(--card-padding);
+    box-shadow: var(--box-shadow);
+    transition: all 400ms ease;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Hover Effect: Lift Up & Glow */
+.fleet-card:hover {
+    box-shadow: 0 2rem 3rem rgba(132, 139, 200, 0.25);
+    transform: translateY(-8px);
+    border-color: rgba(115, 128, 236, 0.3);
+}
+
+/* ICONA CIRCOLARE */
+.icon-bg {
+    width: 65px; 
+    height: 65px;
+    border-radius: 50%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.fleet-card:hover .icon-bg { 
+    transform: scale(1.1) rotate(5deg); 
+}
+
+/* Stati Colore Icona */
+.bg-success-light { background: rgba(65, 241, 182, 0.15); }
+.bg-danger-light { background: rgba(255, 119, 130, 0.15); }
+.bg-secondary-light { background: var(--info-light); }
+
+.text-success { color: var(--success) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-muted { color: var(--info-dark) !important; }
+
+/* BADGES DI STATO */
+.badge {
+    padding: 0.5rem 1rem; 
+    border-radius: 2rem;
+    font-size: 0.75rem; 
+    font-weight: 600; 
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.bg-available { 
+    background: var(--success); color: #fff; 
+    box-shadow: 0 4px 10px rgba(65, 241, 182, 0.4); 
+}
+.bg-busy { 
+    background: var(--danger); color: #fff; 
+    box-shadow: 0 4px 10px rgba(255, 119, 130, 0.4); 
+}
+.bg-maintenance { 
+    background: var(--info-dark); color: #fff; 
+}
+
+/* TYPOGRAPHY CARD */
+.fleet-card h3 { 
+    font-size: 1.25rem; 
+    font-weight: 700; 
+    color: var(--dark); 
+    margin-top: 1rem; 
+}
+.fleet-card p.small { 
+    font-size: 0.85rem; 
+    color: var(--info-dark); 
+}
+.fleet-card hr { 
+    border-top: 1px solid var(--info-light); 
+    margin: 1.5rem 0; 
+    opacity: 0.5; 
+}
+
+/* DETTAGLI LISTA */
+.details .d-flex { margin-bottom: 0.8rem; }
+.details .material-icons-sharp { font-size: 1.2rem; margin-right: 0.6rem; }
+.details .text-primary { color: var(--primary) !important; }
+.details .fw-medium { font-weight: 500; color: var(--dark); }
+
+/* BOTTONI (PILL STYLE) */
+.btn-outline-primary {
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+    border-radius: 2rem; /* Pillola */
+    padding: 0.7rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 0.5rem;
+    margin-top: auto; 
+}
+
+.btn-outline-primary:hover:not(:disabled) {
+    background: var(--primary);
+    color: var(--white);
+    box-shadow: 0 8px 15px rgba(115, 128, 236, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-outline-primary:disabled {
+    border-color: var(--info-light);
+    color: var(--info-dark);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* ==========================================================================
+   5. RESPONSIVE MEDIA QUERIES
+   ========================================================================== */
+@media screen and (max-width: 1200px) {
+    .sidebar-container { 
+        display: none !important; /* Sidebar Off su Tablet */
+    }
+    
+    .main-wrapper { 
+        margin-left: 0; 
+        width: 100%; 
+        padding: 1.5rem; 
+    }
+    
+    .fleet-card { margin-bottom: 1rem; }
+}
+
+@media screen and (max-width: 768px) {
+    .header-section h1 { font-size: 1.5rem; }
+    
+    .row > div { width: 100%; } /* Stack Cards su Mobile */
+    
+    .fleet-card:hover { transform: none; } /* No Hover su Touch */
+}
+
+/* ==========================================================================
+   6. ANIMAZIONI (Fade In & Stagger)
+   ========================================================================== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fleet-card { 
+    animation: fadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; 
+}
+
+/* Effetto cascata (Ritardo animazione per ogni card) */
+.col-12:nth-child(1) .fleet-card { animation-delay: 0.1s; }
+.col-12:nth-child(2) .fleet-card { animation-delay: 0.2s; }
+.col-12:nth-child(3) .fleet-card { animation-delay: 0.3s; }
+.col-12:nth-child(4) .fleet-card { animation-delay: 0.4s; }
+.col-12:nth-child(5) .fleet-card { animation-delay: 0.5s; }
+.col-12:nth-child(6) .fleet-card { animation-delay: 0.6s; }

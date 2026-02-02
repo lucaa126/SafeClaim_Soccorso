@@ -12,7 +12,7 @@ import { HttpClientModule } from '@angular/common/http';
   styleUrl: './settings.css',
   encapsulation: ViewEncapsulation.None
 })
-export class SettingsComponent implements OnInit {
+export class Settings implements OnInit {
 
   // UI State
   isSidebarOpen: boolean = false;

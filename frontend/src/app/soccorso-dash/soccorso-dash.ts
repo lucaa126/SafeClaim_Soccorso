@@ -39,7 +39,7 @@ export class SoccorsoDash implements OnInit, AfterViewInit {
   constructor(
     private renderer: Renderer2,
     private trafficService: TrafficService,
-    private cdr: ChangeDetectorRef // <--- AGGIUNTO QUESTO PER ERRORE NG0100
+    private cdr: ChangeDetectorRef 
   ) {}
 
   ngOnInit(): void {
@@ -52,7 +52,6 @@ export class SoccorsoDash implements OnInit, AfterViewInit {
     // Caricamento Dati
     this.loadRequests();
     
-    // Avvolgiamo in setTimeout per evitare errore NG0100
     setTimeout(() => {
         this.loadRealTraffic();
     }, 0);
@@ -61,29 +60,22 @@ export class SoccorsoDash implements OnInit, AfterViewInit {
   // --- MAP LOGIC (LEAFLET) ---
   
   ngAfterViewInit(): void {
-    // IMPORTANTE: setTimeout(..., 0) sposta l'esecuzione alla fine della coda
-    // Dando tempo ad Angular di disegnare il <div id="map"> creato dall'*ngIf
     setTimeout(() => {
       this.initMap();
     }, 100); 
   }
 
   private initMap(): void {
-    // 1. Controllo di sicurezza: Se il div non esiste ancora, esci senza errori
     const mapContainer = document.getElementById('map');
     if (!mapContainer) {
-        console.warn("Map container non trovato ancora, riprovo al click...");
         return;
     }
 
-    // 2. Se la mappa esiste già, non ricrearla
     if (this.map) return;
 
-    // Se non c'è una richiesta selezionata all'avvio, usiamo coordinate default (Milano)
     const startLat = this.selectedRequest ? this.selectedRequest.lat : 45.4642;
     const startLng = this.selectedRequest ? this.selectedRequest.lng : 9.1900;
 
-    // Crea la mappa
     this.map = L.map('map').setView([startLat, startLng], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -91,24 +83,19 @@ export class SoccorsoDash implements OnInit, AfterViewInit {
       attribution: '© OpenStreetMap'
     }).addTo(this.map);
 
-    // Se c'è già una richiesta, metti subito il marker
     if (this.selectedRequest) {
       this.updateMapMarker(startLat, startLng);
     }
   }
 
   private updateMapMarker(lat: number, lng: number): void {
-    // Se la mappa non è stata inizializzata (magari perché il div non c'era), provaci ora
     if (!this.map) {
         this.initMap();
-        // Se ancora non c'è (caso raro), esci
         if (!this.map) return;
     }
 
-    // Sposta la visuale
     this.map.setView([lat, lng], 14);
 
-    // Gestione Marker
     if (this.marker) {
       this.marker.setLatLng([lat, lng]); 
     } else {
@@ -117,25 +104,24 @@ export class SoccorsoDash implements OnInit, AfterViewInit {
 
     this.marker.bindPopup("<b>Veicolo Fermo</b><br>Intervento Richiesto").openPopup();
     
-    // Fix rendering: a volte la mappa appare grigia se inizializzata nascosta
     setTimeout(() => { this.map?.invalidateSize(); }, 200);
   }
 
   // --- TRAFFIC LOGIC ---
   loadRealTraffic(): void {
     this.isLoadingTraffic = true;
-    this.cdr.detectChanges(); // Forza aggiornamento vista
+    this.cdr.detectChanges(); 
 
     this.trafficService.getRealTimeTraffic('Milano').subscribe({
       next: (data) => {
         this.trafficNews = data;
         this.isLoadingTraffic = false;
-        this.cdr.detectChanges(); // Aggiorna UI
+        this.cdr.detectChanges(); 
       },
       error: (e) => {
         console.error('Errore traffico', e);
         this.isLoadingTraffic = false;
-        this.cdr.detectChanges(); // Aggiorna UI
+        this.cdr.detectChanges(); 
       }
     });
   }
@@ -173,7 +159,7 @@ export class SoccorsoDash implements OnInit, AfterViewInit {
       { id: 'SOS-2492', time: new Date(Date.now() - 1000 * 60 * 15), vehicleType: 'BMW X3 (SUV)', contact: '+39 338 9876543', status: 'accepted', lat: 45.4780, lng: 9.1240 }, 
       { id: 'SOS-2488', time: new Date(Date.now() - 1000 * 60 * 120), vehicleType: 'Smart ForTwo', contact: '+39 339 0000000', status: 'handled', lat: 45.4500, lng: 9.2000 }
     ];
-    // Ritardo l'assegnazione per permettere all'HTML di costruirsi
+    
     if (this.requests.length > 0) {
         this.selectedRequest = this.requests[0];
     }
@@ -182,7 +168,6 @@ export class SoccorsoDash implements OnInit, AfterViewInit {
   selectRequest(req: any): void { 
     this.selectedRequest = req; 
     
-    // Aggiorna la mappa con un leggero ritardo per dare tempo all'*ngIf di mostrare il div
     if (req.lat && req.lng) {
       setTimeout(() => {
         this.updateMapMarker(req.lat, req.lng);
@@ -190,7 +175,19 @@ export class SoccorsoDash implements OnInit, AfterViewInit {
     }
   }
 
-  acceptRequest(req: any): void { req.status = 'accepted'; }
+  // NUOVA FUNZIONE PER APRIRE MAPS
+  openNavigation(req: any): void {
+    if (!req || !req.lat || !req.lng) return;
+    // URL universale per aprire navigazione su qualsiasi dispositivo
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${req.lat},${req.lng}&travelmode=driving`;
+    window.open(url, '_blank');
+  }
+
+  // MODIFICATA: Accetta e apre Maps
+  acceptRequest(req: any): void { 
+    req.status = 'accepted'; 
+    this.openNavigation(req);
+  }
 
   declineRequest(req: any): void {
     this.requests = this.requests.filter(x => x.id !== req.id);

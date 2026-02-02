@@ -140,7 +140,10 @@
                   </td>
                   <td>
                     <button class="btn btn-sm btn-outline-primary" *ngIf="!req.status" (click)="acceptRequest(req); $event.stopPropagation()">Accetta</button>
-                    <button class="btn btn-sm btn-success text-white" *ngIf="req.status === 'accepted'" (click)="markHandled(req); $event.stopPropagation()">Completa</button>
+                    <button class="btn btn-sm btn-outline-primary" *ngIf="req.status === 'accepted'" (click)="openNavigation(req); $event.stopPropagation()">
+                        <span class="material-icons-sharp fs-6">near_me</span>
+                    </button>
+                    <button class="btn btn-sm btn-success text-white ms-1" *ngIf="req.status === 'accepted'" (click)="markHandled(req); $event.stopPropagation()">Completa</button>
                   </td>
                 </tr>
               </tbody>
@@ -190,9 +193,23 @@
              </div>
              
              <div class="d-grid gap-2">
-               <button class="btn btn-primary" (click)="acceptRequest(selectedRequest)" [disabled]="selectedRequest.status">
-                 {{ selectedRequest.status ? 'Intervento in corso' : 'Prendi in Carico' }}
+                <button class="btn btn-primary" (click)="acceptRequest(selectedRequest)" *ngIf="!selectedRequest.status">
+                 Prendi in Carico & Naviga
                </button>
+
+               <button class="btn btn-primary d-flex align-items-center justify-content-center gap-2" 
+                    *ngIf="selectedRequest.status === 'accepted'" 
+                    (click)="openNavigation(selectedRequest)">
+                    <span class="material-icons-sharp">near_me</span>
+                    Avvia Navigazione
+               </button>
+
+               <button class="btn btn-success text-white" 
+                    *ngIf="selectedRequest.status === 'accepted'" 
+                    (click)="markHandled(selectedRequest)">
+                    Segna come Completato
+               </button>
+               
                <button class="btn btn-outline-danger" (click)="declineRequest(selectedRequest)" *ngIf="!selectedRequest.status">Rifiuta</button>
              </div>
           </div>
@@ -215,18 +232,18 @@
             <a *ngFor="let news of trafficNews" [href]="news.link" target="_blank" class="text-decoration-none">
               <div class="update-item d-flex gap-3" style="margin: 15px;">
                 <div class="icon-box text-white rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" 
-                     [class.bg-danger]="getIconByText(news.title) === 'car_crash'"
-                     [class.bg-warning]="getIconByText(news.title) === 'traffic'"
-                     [class.bg-secondary]="getIconByText(news.title) === 'campaign'"
-                     style="width:40px; height:40px">
+                      [class.bg-danger]="getIconByText(news.title) === 'car_crash'"
+                      [class.bg-warning]="getIconByText(news.title) === 'traffic'"
+                      [class.bg-secondary]="getIconByText(news.title) === 'campaign'"
+                      style="width:40px; height:40px">
                   <span class="material-icons-sharp fs-5">{{ getIconByText(news.title) }}</span>
                 </div>
                 
                 <div class="w-100 overflow-hidden">
                   <p class="mb-1 fw-bold  small text-truncate">{{ news.title }}</p>
                   <div class="d-flex justify-content-between align-items-center">
-                     <small class="text-primary">{{ news.source }}</small>
-                     <small class="text" style="font-size: 0.7rem">{{ news.pubDate | date:'HH:mm' }}</small>
+                      <small class="text-primary">{{ news.source }}</small>
+                      <small class="text" style="font-size: 0.7rem">{{ news.pubDate | date:'HH:mm' }}</small>
                   </div>
                 </div>
               </div>

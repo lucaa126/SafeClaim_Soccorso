@@ -41,7 +41,7 @@
     --card-padding: 1.6rem;
     
     /* Configurazione Layout Sidebar */
-    --sidebar-width: 16rem; 
+    --sidebar-width: 17rem; 
     
     /* Effetti Visivi */
     --box-shadow: 0 1.5rem 2rem rgba(132, 139, 200, 0.18);
@@ -377,8 +377,14 @@ table tbody tr:hover td { background: var(--light); color: var(--dark); cursor: 
 /* ==========================================================================
    9. MAPPA LEAFLET & DARK MODE AVANZATA
    ========================================================================== */
+/* src/app/soccorso-dash/soccorso-dash.css */
+
+/* Specifico solo per la dashboard: altezza mappa */
 #map {
-    z-index: 1; border-radius: 8px; background-color: #ddd;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--card-border-radius);
+    z-index: 1;
 }
 
 /* Filtri Mappa Dark Mode */

@@ -1,0 +1,99 @@
+<div class="container-fluid dashboard-container p-0">
+
+  <aside class="sidebar-container d-none d-lg-flex">
+    <div class="sidebar-logo">
+      <img src="https://cdn-icons-png.flaticon.com/512/1065/1065646.png" alt="Logo">
+      <h2>SOCC<span class="danger">ORSO</span></h2>
+    </div>
+
+    <div class="sidebar-menu">
+      <a routerLink="/dashboard">
+        <span class="material-icons-sharp">grid_view</span>
+        <h3>Dashboard</h3>
+      </a>
+      <a routerLink="/richieste">
+        <span class="material-icons-sharp">campaign</span>
+        <h3>Richieste</h3>
+      </a>
+      <a routerLink="/flotta" class="active">
+        <span class="material-icons-sharp">local_shipping</span>
+        <h3>Flotta</h3>
+      </a>
+      <a routerLink="/analytics">
+        <span class="material-icons-sharp">insights</span>
+        <h3>Analytics</h3>
+      </a>
+      <a routerLink="/settings">
+        <span class="material-icons-sharp">settings</span>
+        <h3>Impostazioni</h3>
+      </a>
+    </div>
+  </aside>
+
+  <div class="main-wrapper">
+    
+    <div class="header-section">
+      <h1>Gestione Flotta</h1>
+      <p class="text-muted">Monitoraggio in tempo reale stato mezzi e autisti.</p>
+    </div>
+
+    <div class="row g-4">
+      
+      <div class="col-12 col-md-6 col-xl-4" *ngFor="let vehicle of fleet">
+        <div class="fleet-card">
+          
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="icon-bg"
+                 [class.bg-success-light]="vehicle.status === 'available'"
+                 [class.bg-danger-light]="vehicle.status === 'busy'"
+                 [class.bg-secondary-light]="vehicle.status === 'maintenance'">
+                 
+              <span class="material-icons-sharp fs-3"
+                    [class.text-success]="vehicle.status === 'available'"
+                    [class.text-danger]="vehicle.status === 'busy'"
+                    [class.text-muted]="vehicle.status === 'maintenance'">
+                local_shipping
+              </span>
+            </div>
+
+            <span class="badge" [ngClass]="'bg-' + getStatusColor(vehicle.status)">
+              {{ getStatusLabel(vehicle.status) }}
+            </span>
+          </div>
+
+          <h3 class="fw-bold mb-1">{{ vehicle.name }}</h3>
+          <p class="small">Targa: <strong>{{ vehicle.plate }}</strong></p>
+
+          <hr>
+
+          <div class="details d-flex flex-column">
+            
+            <div class="d-flex align-items-center">
+              <span class="material-icons-sharp text-primary">person</span>
+              <span class="fw-medium">{{ vehicle.driver }}</span>
+            </div>
+
+            <div class="d-flex align-items-center" *ngIf="vehicle.status === 'busy'">
+                <span class="material-icons-sharp text-warning">warning</span>
+                <span class="small">In intervento su: <strong>{{ vehicle.currentTask }}</strong></span>
+            </div>
+
+            <div class="d-flex align-items-center">
+              <span class="material-icons-sharp text-muted">near_me</span>
+              <span class="text-muted small">Pos: {{ vehicle.lat }}, {{ vehicle.lng }}</span>
+            </div>
+            
+          </div>
+
+          <button class="btn btn-outline-primary" 
+                  [disabled]="vehicle.status === 'maintenance'"
+                  (click)="contactDriver(vehicle.driver)">
+            <span class="material-icons-sharp fs-6">call</span>
+            Contatta
+          </button>
+
+        </div>
+      </div>
+      </div> 
+  </div> 
+</div>

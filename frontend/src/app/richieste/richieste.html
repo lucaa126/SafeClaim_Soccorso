@@ -1,0 +1,142 @@
+<div class="container-fluid dashboard-container p-0">
+
+  <aside class="sidebar-container d-none d-lg-flex">
+    <div class="sidebar-logo">
+      <img src="https://cdn-icons-png.flaticon.com/512/1065/1065646.png" alt="Logo">
+      <h2>SOCC<span class="danger">ORSO</span></h2>
+    </div>
+
+    <div class="sidebar-menu">
+      <a routerLink="/dashboard">
+        <span class="material-icons-sharp">grid_view</span>
+        <h3>Dashboard</h3>
+      </a>
+      <a routerLink="/richieste" class="active">
+        <span class="material-icons-sharp">campaign</span>
+        <h3>Richieste</h3>
+      </a>
+      <a routerLink="/flotta">
+        <span class="material-icons-sharp">local_shipping</span>
+        <h3>Flotta</h3>
+      </a>
+      <a routerLink="/analytics">
+        <span class="material-icons-sharp">insights</span>
+        <h3>Analytics</h3>
+      </a>
+      <a routerLink="/settings">
+        <span class="material-icons-sharp">settings</span>
+        <h3>Impostazioni</h3>
+      </a>
+    </div>
+  </aside>
+
+  <div class="main-wrapper">
+    
+    <div class="header-section">
+      <h1>Gestione Richieste</h1>
+      <p>Storico e gestione operativa degli interventi in entrata.</p>
+    </div>
+
+    <div class="filter-bar">
+      <button class="btn" 
+              [class.btn-primary]="filterStatus === 'all'" 
+              [class.btn-light]="filterStatus !== 'all'" 
+              (click)="setFilter('all')">
+        <span class="material-icons-sharp fs-6">list</span>
+        Tutte
+      </button>
+      
+      <button class="btn" 
+              [class.btn-warning]="filterStatus === 'pending'" 
+              [class.btn-light]="filterStatus !== 'pending'" 
+              (click)="setFilter('pending')">
+        <span class="material-icons-sharp fs-6">warning</span>
+        Da Gestire
+      </button>
+      
+      <button class="btn" 
+              [class.btn-info]="filterStatus === 'accepted'" 
+              [class.btn-light]="filterStatus !== 'accepted'" 
+              (click)="setFilter('accepted')">
+        <span class="material-icons-sharp fs-6">directions_car</span>
+        In Corso
+      </button>
+      
+      <button class="btn" 
+              [class.btn-success]="filterStatus === 'handled'" 
+              [class.btn-light]="filterStatus !== 'handled'" 
+              (click)="setFilter('handled')">
+        <span class="material-icons-sharp fs-6">check_circle</span>
+        Completate
+      </button>
+    </div>
+
+    <div class="table-container">
+      <div class="table-responsive">
+        <table class="table align-middle">
+          
+          <thead>
+            <tr>
+              <th>ID Intervento</th>
+              <th>Data/Ora</th>
+              <th>Veicolo Richiesto</th>
+              <th class="d-none-mobile">Contatto</th>
+              <th class="d-none-mobile">Driver</th>
+              <th>Stato</th>
+              <th class="text-end">Azioni</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let req of filteredRequests">
+              
+              <td class="id-col">#{{req.id}}</td>
+              <td>{{req.time | date:'dd/MM HH:mm'}}</td>
+              <td class="fw-bold">{{req.vehicleType}}</td>
+              <td class="d-none-mobile">{{req.contact}}</td>
+              <td class="d-none-mobile text-muted">
+                 {{ req.assignedDriver ? req.assignedDriver : '--' }}
+              </td>
+              
+              <td>
+                <span class="badge" 
+                      [class.badge-warning]="!req.status || req.status === 'pending'"
+                      [class.badge-info]="req.status === 'accepted'"
+                      [class.badge-success]="req.status === 'handled'">
+                  {{ req.status ? req.status : 'PENDING' }}
+                </span>
+              </td>
+
+              <td class="text-end">
+                <button *ngIf="!req.status || req.status === 'pending'" 
+                        class="btn-action btn-manage me-2" 
+                        (click)="accept(req)">
+                    Gestisci
+                </button>
+                
+                <button *ngIf="req.status === 'accepted'" 
+                        class="btn-action btn-close-req me-2" 
+                        (click)="complete(req)">
+                    Chiudi
+                </button>
+                
+                <button class="btn-delete" (click)="delete(req)">
+                    <span class="material-icons-sharp" style="font-size: 1.2rem;">delete</span>
+                </button>
+              </td>
+            </tr>
+
+            <tr *ngIf="filteredRequests.length === 0">
+                <td colspan="7" class="text-center py-5 text-muted">
+                    <span class="material-icons-sharp fs-1 d-block mb-3 opacity-25">inbox</span>
+                    Nessuna richiesta trovata per questo filtro.
+                </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
