@@ -1,11 +1,10 @@
 import { Component, signal } from '@angular/core';
-import { SoccorsoDash } from './soccorso-dash/soccorso-dash';
-
+import { RouterOutlet } from '@angular/router';
 
 
 @Component({
   selector: 'app-root',
-  imports: [SoccorsoDash],
+  imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

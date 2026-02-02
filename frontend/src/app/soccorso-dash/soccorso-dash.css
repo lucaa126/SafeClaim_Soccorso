@@ -131,12 +131,24 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
 }
 
 .sidebar-logo {
-    display: flex; gap: 0.8rem; align-items: center; justify-content: center;
-    margin-bottom: 2rem; margin-top: 1rem;
+    display: flex; gap: 0.8rem; align-items: center; justify-content: space-between;
+    margin-bottom: 2rem; margin-top: 1rem; padding: 0 0.5rem;
 }
 .sidebar-logo img { width: 2rem; height: 2rem; }
 .sidebar-logo h2 { margin-bottom: 0; font-size: 1.4rem; }
 .sidebar-logo .danger { color: var(--danger) !important; }
+
+.theme-toggle {
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--info-dark) !important;
+}
+
+.theme-toggle:hover {
+    color: var(--primary) !important;
+    transform: rotate(20deg);
+}
 
 .sidebar-menu {
     display: flex; flex-direction: column; height: 80vh; position: relative; top: 1rem;

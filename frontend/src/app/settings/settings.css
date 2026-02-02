@@ -1,0 +1,701 @@
+/* ==========================================================================
+   1. IMPORTS & FONTS
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+/* ==========================================================================
+   2. CONFIGURAZIONE VARIABILI & TEMI (THEMING ENGINE)
+   ========================================================================== */
+:host {
+    display: block;
+    width: 100%;
+}
+
+/* --- LIGHT MODE (DEFAULT) --- */
+.dashboard-container {
+    /* Palette Colori Principali */
+    --primary: #7380ec;
+    --primary-variant: #111e88;
+    --danger: #ff7782;
+    --success: #41f1b6;
+    --warning: #ffbb55;
+    
+    /* Sfondi e Testi Light */
+    --white: #ffffff;
+    --light: #f6f6f9;
+    --dark: #363949;
+    --info-dark: #7d8da1;
+    --info-light: #dce1eb;
+    
+    /* Varianti Trasparenti */
+    --primary-light: rgba(115, 128, 236, 0.18);
+    --success-light: rgba(65, 241, 182, 0.18);
+    --warning-light: rgba(255, 187, 85, 0.18);
+    --danger-light: rgba(255, 119, 130, 0.18);
+    
+    /* Dimensioni e Spaziature */
+    --card-border-radius: 1.6rem;
+    --border-radius-1: 0.4rem;
+    --border-radius-2: 0.8rem;
+    --border-radius-3: 1.2rem;
+    --card-padding: 1.6rem;
+    
+    /* Configurazione Layout Sidebar */
+    --sidebar-width: 16rem; 
+    
+    /* Effetti Visivi */
+    --box-shadow: 0 1.5rem 2rem rgba(132, 139, 200, 0.18);
+    --card-border: 1px solid transparent; 
+    --transition: all 300ms ease;
+
+    /* Impostazioni Container */
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.88rem;
+    background: var(--light);
+    color: var(--dark);
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* --- DARK MODE OVERRIDE --- */
+.dashboard-container.dark-theme-variables {
+    --light: #0d1117;        /* GitHub Dark Background */
+    --white: #161b22;        /* Card Dark */
+    --dark: #edeffd;         /* Testo Chiaro */
+    --info-dark: #a0aec0;
+    --info-light: #21262d;
+    --box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.4);
+    --card-border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ==========================================================================
+   3. RESET GLOBALE & OVERRIDES DI BOOTSTRAP
+   ========================================================================== */
+* {
+    margin: 0; padding: 0; outline: 0; appearance: none;
+    border: 0; text-decoration: none; list-style: none; box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6 { color: var(--dark) !important; font-weight: 600; }
+h1 { font-size: 1.8rem; font-weight: 800; }
+h2 { font-size: 1.4rem; }
+h3 { font-size: 0.87rem; }
+h5 { font-size: 1rem; }
+h6 { font-size: 0.9rem; }
+p, span, div, li { color: var(--dark); }
+
+/* Utility Override */
+.text-muted { color: var(--info-dark) !important; }
+.text-primary { color: var(--primary) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-success { color: var(--success) !important; }
+.text-warning { color: var(--warning) !important; }
+
+/* Bootstrap Card Override */
+.card, .bg-white {
+    background-color: var(--white) !important;
+    color: var(--dark) !important;
+    border: var(--card-border);
+}
+
+img { display: block; width: 100%; }
+
+/* ==========================================================================
+   4. SIDEBAR
+   ========================================================================== */
+.sidebar-container {
+    background: var(--white);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    padding: var(--card-padding);
+    box-shadow: var(--box-shadow);
+    z-index: 3;
+    overflow-y: auto;
+    transition: var(--transition);
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+    justify-content: space-between;
+}
+
+.sidebar-logo > div {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.sidebar-logo img {
+    width: 2rem;
+    height: 2rem;
+}
+
+.sidebar-logo h2 {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.sidebar-logo h2 .danger {
+    color: var(--danger);
+}
+
+.sidebar-logo .theme-toggle {
+    margin: 0;
+    padding: 0.3rem !important;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: all 300ms ease;
+    color: var(--info-dark) !important;
+    flex-shrink: 0;
+}
+
+.sidebar-logo .theme-toggle:hover {
+    color: var(--primary) !important;
+    transform: rotate(20deg);
+}
+
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-menu a {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--info-dark);
+    padding: 0.8rem 1rem;
+    border-radius: var(--border-radius-2);
+    margin-bottom: 0.5rem;
+    transition: var(--transition);
+    position: relative;
+}
+
+.sidebar-menu a:hover {
+    background: var(--light);
+    color: var(--primary);
+}
+
+.sidebar-menu a.active {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.sidebar-menu a.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--primary);
+    border-radius: 0 var(--border-radius-2) var(--border-radius-2) 0;
+}
+
+.sidebar-menu a h3 {
+    margin: 0;
+}
+
+.sidebar-menu a span.material-icons-sharp {
+    font-size: 1.3rem;
+}
+
+.sidebar-menu .logout-btn {
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   5. MAIN WRAPPER E LAYOUT
+   ========================================================================== */
+.main-wrapper {
+    margin-left: var(--sidebar-width);
+    padding: var(--card-padding);
+    position: relative;
+}
+
+.mobile-header {
+    display: none;
+}
+
+.profile-photo {
+    border-radius: 50%;
+    overflow: hidden;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-photo-sm {
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   6. HEADER SECTION
+   ========================================================================== */
+.header-section {
+    margin-bottom: 2rem;
+}
+
+.header-section h1 {
+    margin-bottom: 0.5rem;
+}
+
+.header-section p.text {
+    color: var(--info-dark);
+}
+
+.text {
+    color: var(--info-dark);
+}
+
+/* ==========================================================================
+   7. SETTINGS CARDS
+   ========================================================================== */
+.settings-card {
+    background: var(--white);
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--box-shadow);
+    border: var(--card-border);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.settings-card:hover {
+    box-shadow: 0 2rem 3rem rgba(132, 139, 200, 0.25);
+}
+
+.settings-card .card-header {
+    background: var(--primary-light);
+    padding: var(--card-padding);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: var(--card-border);
+}
+
+.settings-card .card-header span.material-icons-sharp {
+    color: var(--primary);
+    font-size: 1.5rem;
+}
+
+.settings-card .card-header h5 {
+    margin: 0;
+    color: var(--dark);
+}
+
+.settings-card .card-body {
+    padding: var(--card-padding);
+}
+
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+}
+
+.setting-info h6 {
+    margin: 0 0 0.3rem 0;
+}
+
+.setting-info small {
+    font-size: 0.75rem;
+}
+
+.notification-options {
+    padding-top: 0.5rem;
+}
+
+.notification-disabled {
+    padding: 0.5rem 0;
+}
+
+.notification-disabled .alert {
+    background: var(--primary-light);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 0.7rem 1rem;
+    border-radius: var(--border-radius-2);
+    display: flex;
+    align-items: center;
+}
+
+.form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+}
+
+.form-control {
+    background: var(--light);
+    border: 1px solid var(--info-light);
+    border-radius: var(--border-radius-2);
+    padding: 0.6rem 1rem;
+    color: var(--dark);
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    background: var(--light);
+    border-color: var(--primary);
+    color: var(--dark);
+    box-shadow: 0 0 0 0.2rem var(--primary-light);
+}
+
+.form-check-input {
+    width: 2.5rem;
+    height: 1.5rem;
+    border-radius: 1rem;
+    background: var(--info-light);
+    border: 0;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.form-check-input:checked {
+    background: var(--success);
+    border-color: var(--success);
+}
+
+.btn {
+    border-radius: var(--border-radius-2);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    border: 0;
+}
+
+.btn-primary:hover {
+    background: var(--primary-variant);
+    color: white;
+}
+
+.btn-outline-danger {
+    color: var(--danger);
+    border: 2px solid var(--danger);
+    background: transparent;
+}
+
+.btn-outline-danger:hover {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+.btn-lg {
+    padding: 0.7rem 1.5rem;
+    font-size: 0.95rem;
+}
+
+.btn-sm {
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+}
+
+.btn span.material-icons-sharp {
+    font-size: 1.2rem;
+}
+
+/* ==========================================================================
+   8. PROFILE CARD
+   ========================================================================== */
+.profile-card {
+    background: var(--white);
+    border-radius: var(--card-border-radius);
+    padding: var(--card-padding);
+    box-shadow: var(--box-shadow);
+    border: var(--card-border);
+    text-align: center;
+    transition: var(--transition);
+}
+
+.profile-card:hover {
+    box-shadow: 0 2rem 3rem rgba(132, 139, 200, 0.25);
+}
+
+.profile-card .profile-photo {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto 1rem;
+}
+
+.profile-card h5 {
+    margin-bottom: 0.3rem;
+}
+
+.profile-card p {
+    margin-bottom: 1rem;
+}
+
+/* ==========================================================================
+   9. INFO CARD
+   ========================================================================== */
+.info-card {
+    background: var(--white);
+    border-radius: var(--card-border-radius);
+    padding: var(--card-padding);
+    box-shadow: var(--box-shadow);
+    border: var(--card-border);
+    transition: var(--transition);
+}
+
+.info-card:hover {
+    box-shadow: 0 2rem 3rem rgba(132, 139, 200, 0.25);
+}
+
+.info-row {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--info-light);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row span.material-icons-sharp {
+    color: var(--primary);
+    font-size: 1.5rem;
+    min-width: 1.5rem;
+}
+
+.info-row p {
+    margin: 0;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.info-row small {
+    display: block;
+    color: var(--info-dark);
+}
+
+/* ==========================================================================
+   10. MODAL PROFILO
+   ========================================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: var(--card-border-radius);
+    box-shadow: 0 5rem 10rem rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 90%;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    background: var(--primary-light);
+    padding: var(--card-padding);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: var(--card-border);
+}
+
+.modal-header h4 {
+    margin: 0;
+    color: var(--dark);
+}
+
+.modal-header .btn-close {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--info-dark);
+    transition: var(--transition);
+}
+
+.modal-header .btn-close:hover {
+    color: var(--primary);
+    transform: rotate(90deg);
+}
+
+.modal-header .btn-close span {
+    font-size: 1.3rem;
+}
+
+.modal-body {
+    padding: var(--card-padding);
+}
+
+.modal-body .form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+}
+
+.modal-body .form-control {
+    background: var(--light);
+    border: 1px solid var(--info-light);
+    border-radius: var(--border-radius-2);
+    padding: 0.6rem 1rem;
+    color: var(--dark);
+    transition: var(--transition);
+}
+
+.modal-body .form-control:focus {
+    background: var(--light);
+    border-color: var(--primary);
+    color: var(--dark);
+    box-shadow: 0 0 0 0.2rem var(--primary-light);
+}
+
+.modal-footer {
+    padding: var(--card-padding);
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    border-top: var(--card-border);
+}
+
+.modal-footer .btn {
+    padding: 0.7rem 1.5rem;
+}
+
+.btn-outline-secondary {
+    color: var(--info-dark);
+    border: 2px solid var(--info-dark);
+    background: transparent;
+}
+
+.btn-outline-secondary:hover {
+    background: var(--info-light);
+    color: var(--info-dark);
+}
+
+/* ==========================================================================
+   11. RESPONSIVE DESIGN
+   ========================================================================== */
+@media (max-width: 1024px) {
+    .sidebar-container {
+        display: none;
+    }
+
+    .main-wrapper {
+        margin-left: 0;
+        padding: 1rem;
+    }
+
+    .mobile-header {
+        display: flex;
+    }
+
+    .mobile-header .profile-photo-sm {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    :host {
+        --sidebar-width: 0;
+        --card-padding: 1rem;
+    }
+
+    .main-wrapper {
+        padding: 1rem 0.5rem;
+    }
+
+    .settings-card .card-body {
+        padding: 1rem;
+    }
+
+    .btn-lg {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .col-md-6 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+@media (max-width: 576px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    .settings-card {
+        margin-bottom: 1rem;
+    }
+
+    .header-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .row > .col-12 {
+        margin-bottom: 1rem;
+    }
+
+    .modal-content {
+        width: 95%;
+    }
+
+    .modal-body .mb-3 {
+        margin-bottom: 1rem;
+    }
+}

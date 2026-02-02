@@ -1,0 +1,257 @@
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container-fluid dashboard-container p-0" [class.dark-theme-variables]="isDarkMode">
+
+  <aside class="sidebar-container d-none d-lg-flex">
+    <div class="sidebar-logo d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <img src="https://cdn-icons-png.flaticon.com/512/1065/1065646.png" alt="Logo">
+        <h2>SOCC<span class="danger">ORSO</span></h2>
+      </div>
+      <button class="btn p-0 border-0 bg-transparent text-dark theme-toggle" (click)="toggleDarkMode()" title="Cambia tema">
+        <span class="material-icons-sharp">{{ isDarkMode ? 'light_mode' : 'dark_mode' }}</span>
+      </button>
+    </div>
+
+    <div class="sidebar-menu" style="font-size: 20px;">
+      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <span class="material-icons-sharp">grid_view</span>
+        <h3>Dashboard</h3>
+      </a>
+      <a routerLink="/richieste" routerLinkActive="active">
+        <span class="material-icons-sharp">campaign</span>
+        <h3>Richieste</h3>
+      </a>
+      <a routerLink="/flotta" routerLinkActive="active">
+        <span class="material-icons-sharp">local_shipping</span>
+        <h3>Flotta</h3>
+      </a>
+      <a routerLink="/analytics" routerLinkActive="active">
+        <span class="material-icons-sharp">insights</span>
+        <h3>Analytics</h3>
+      </a>
+      <a routerLink="/settings" routerLinkActive="active">
+        <span class="material-icons-sharp">settings</span>
+        <h3>Impostazioni</h3>
+      </a>
+      <a (click)="logout()" class="logout-btn">
+        <span class="material-icons-sharp">logout</span>
+        <h3>Logout</h3>
+      </a>
+    </div>
+  </aside>
+
+  <div class="main-wrapper">
+    
+    <div class="mobile-header d-flex justify-content-between align-items-center mb-4 d-lg-none">
+      <div class="d-flex align-items-center gap-2">
+         <button class="btn p-0 border-0 bg-transparent text-dark" (click)="openMenu()">
+            <span class="material-icons-sharp fs-1">menu</span>
+         </button>
+         <h2 class="m-0 text-primary fw-bold">Impostazioni</h2>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn p-0 border-0 bg-transparent text-dark theme-toggle" (click)="toggleDarkMode()" title="Cambia tema">
+          <span class="material-icons-sharp">{{ isDarkMode ? 'light_mode' : 'dark_mode' }}</span>
+        </button>
+        <div class="profile-photo-sm">
+           <img src="https://i.pravatar.cc/150?img=12" alt="Profile" style="width: 2.5rem; height: 2.5rem; border-radius: 50%;">
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-0">
+      
+      <main class="col-12 col-lg-8 pe-lg-4">
+        
+        <div class="header-section mb-4">
+          <h1>Impostazioni</h1>
+          <p class="text">Configura i parametri della tua officina</p>
+        </div>
+
+        <!-- INFO OFFICINA CARD -->
+        <div class="settings-card mb-4">
+          <div class="card-header">
+            <span class="material-icons-sharp">info</span>
+            <h5>Informazioni Officina</h5>
+          </div>
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Nome Officina</label>
+                <input type="text" class="form-control" [(ngModel)]="workshopName" placeholder="Inserisci nome officina">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" [(ngModel)]="workshopEmail" placeholder="Inserisci email">
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Telefono</label>
+                <input type="tel" class="form-control" [(ngModel)]="workshopPhone" placeholder="Inserisci telefono">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Indirizzo</label>
+                <input type="text" class="form-control" [(ngModel)]="workshopAddress" placeholder="Inserisci indirizzo">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOTIFICHE CARD -->
+        <div class="settings-card mb-4">
+          <div class="card-header">
+            <span class="material-icons-sharp">notifications_active</span>
+            <h5>Notifiche</h5>
+          </div>
+          <div class="card-body">
+            <div class="setting-row">
+              <div class="setting-info">
+                <h6>Abilita Notifiche</h6>
+                <small class="text-muted">Attiva/disattiva tutte le notifiche</small>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input fs-3" type="checkbox" [(ngModel)]="notificationsEnabled" id="notificationsEnabledSwitch">
+              </div>
+            </div>
+
+            <div class="notification-options" *ngIf="notificationsEnabled">
+              <hr class="my-2">
+              
+              <div class="setting-row">
+                <div class="setting-info">
+                  <h6>Email</h6>
+                  <small class="text-muted">Ricevi notifiche via email</small>
+                </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input fs-3" type="checkbox" [(ngModel)]="emailNotifications" id="emailNotificationsSwitch">
+                </div>
+              </div>
+
+              <div class="setting-row">
+                <div class="setting-info">
+                  <h6>SMS</h6>
+                  <small class="text-muted">Ricevi notifiche via SMS</small>
+                </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input fs-3" type="checkbox" [(ngModel)]="smsNotifications" id="smsNotificationsSwitch">
+                </div>
+              </div>
+            </div>
+
+            <div class="notification-disabled" *ngIf="!notificationsEnabled">
+              <div class="alert alert-info mb-0" style="margin-top: 0.5rem;">
+                <span class="material-icons-sharp" style="font-size: 1rem; vertical-align: middle; margin-right: 0.5rem;">info</span>
+                Le notifiche sono disabilitate
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPERATIVI CARD -->
+        <div class="settings-card mb-4">
+          <div class="card-header">
+            <span class="material-icons-sharp">access_time</span>
+            <h5>Parametri Operativi</h5>
+          </div>
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Orario di Lavoro</label>
+                <input type="text" class="form-control" [(ngModel)]="workingHours" placeholder="Es: 08:00-20:00">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Richieste Massime Contemporanee</label>
+                <input type="number" class="form-control" [(ngModel)]="maxRequests" min="1" max="50">
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <h6>Accettazione Automatica</h6>
+                <small class="text-muted">Accetta automaticamente le richieste entro i parametri</small>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input fs-3" type="checkbox" [(ngModel)]="autoAcceptRequests">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AZIONI CARD -->
+        <div class="settings-card mb-4">
+          <div class="card-header">
+            <span class="material-icons-sharp">tune</span>
+            <h5>Azioni</h5>
+          </div>
+          <div class="card-body">
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary btn-lg" (click)="saveSettings()">
+                <span class="material-icons-sharp">save</span>
+                Salva Impostazioni
+              </button>
+              <button class="btn btn-outline-danger btn-lg" (click)="resetSettings()">
+                <span class="material-icons-sharp">refresh</span>
+                Reimposta
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </main>
+
+      <aside class="col-12 col-lg-4">
+        
+        <div class="row g-3">
+          
+          <!-- PROFILO CARD -->
+          <div class="col-12">
+            <div class="profile-card">
+              <div class="profile-photo">
+                <img src="https://i.pravatar.cc/150?img=12" alt="Profile">
+              </div>
+              <h5>{{workshopName}}</h5>
+              <p class="text-muted">Amministratore</p>
+              <button class="btn btn-primary btn-sm w-100">Modifica Profilo</button>
+            </div>
+          </div>
+
+          <!-- INFO RAPIDA CARD -->
+          <div class="col-12">
+            <div class="info-card">
+              <h6 class="mb-3">Informazioni Rapide</h6>
+              <div class="info-row">
+                <span class="material-icons-sharp">email</span>
+                <div>
+                  <p class="mb-0">Email</p>
+                  <small class="text-muted">{{workshopEmail}}</small>
+                </div>
+              </div>
+              <div class="info-row">
+                <span class="material-icons-sharp">phone</span>
+                <div>
+                  <p class="mb-0">Telefono</p>
+                  <small class="text-muted">{{workshopPhone}}</small>
+                </div>
+              </div>
+              <div class="info-row">
+                <span class="material-icons-sharp">location_on</span>
+                <div>
+                  <p class="mb-0">Indirizzo</p>
+                  <small class="text-muted">{{workshopAddress}}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </aside>
+
+    </div>
+
+  </div>
+
+</div>
