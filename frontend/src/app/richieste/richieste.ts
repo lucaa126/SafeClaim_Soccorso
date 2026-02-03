@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SoccorsoData, Request } from '../soccorso-data';
@@ -9,15 +9,16 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './richieste.html',
-  styleUrls: ['../soccorso-dash/soccorso-dash.css'] // Riutilizziamo lo stile della dashboard
+  styleUrls: ['../soccorso-dash/soccorso-dash.css', './richieste.css']
 })
 export class Richieste implements OnInit {
   
   allRequests: Request[] = [];
   filteredRequests: Request[] = [];
   filterStatus: string = 'all'; // 'all', 'pending', 'accepted', 'handled'
+  isDarkMode: boolean = false;
 
-  constructor(private dataService: SoccorsoData) {}
+  constructor(private dataService: SoccorsoData, private renderer: Renderer2) {}
 
   ngOnInit() {
     this.dataService.requests$.subscribe(data => {
@@ -53,6 +54,16 @@ export class Richieste implements OnInit {
   delete(req: Request) {
     if(confirm('Eliminare la richiesta ' + req.id + '?')) {
       this.dataService.deleteRequest(req.id);
+    }
+  }
+
+  toggleDarkMode(): void {
+    this.isDarkMode = !this.isDarkMode;
+    const body = document.body;
+    if (this.isDarkMode) {
+      this.renderer.addClass(body, 'dark-theme-variables');
+    } else {
+      this.renderer.removeClass(body, 'dark-theme-variables');
     }
   }
 }

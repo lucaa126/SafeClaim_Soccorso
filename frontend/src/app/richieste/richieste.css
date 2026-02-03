@@ -31,8 +31,10 @@
     --transition: all 300ms ease;
 }
 
-/* DARK MODE OVERRIDES */
-:host-context(.dark-theme-variables), .dark-theme-variables {
+/* DARK MODE - Applica a :host quando la classe dark-theme-variables è presente */
+:host(.dark-theme-variables),
+:host-context(.dark-theme-variables),
+.dark-theme-variables {
     --light: #0d1117; 
     --white: #161b22; 
     --dark: #edeffd;
@@ -61,12 +63,51 @@ a { text-decoration: none; color: inherit; }
 }
 
 .sidebar-logo {
-    display: flex; gap: 0.8rem; align-items: center; justify-content: center;
+    display: flex; gap: 0.8rem; align-items: center; justify-content: space-between;
     margin-bottom: 2rem; margin-top: 1rem;
 }
 .sidebar-logo img { width: 2rem; height: 2rem; object-fit: contain; }
 .sidebar-logo h2 { font-size: 1.4rem; font-weight: 800; color: var(--dark); margin: 0; }
 .sidebar-logo .danger { color: var(--danger); }
+
+.theme-toggle {
+    background: var(--primary);
+    color: white !important;
+    padding: 0.6rem 0.6rem;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    box-shadow: 0 2px 8px rgba(115, 128, 236, 0.3);
+    flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+    background: var(--primary-variant);
+    transform: rotate(20deg) scale(1.1);
+    box-shadow: 0 4px 12px rgba(115, 128, 236, 0.5);
+}
+
+.theme-toggle:active {
+    transform: rotate(20deg) scale(0.95);
+}
+
+.dark-theme-variables .theme-toggle {
+    background: var(--primary);
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(115, 128, 236, 0.5);
+}
+
+.dark-theme-variables .theme-toggle:hover {
+    background: #5a67d8;
+    box-shadow: 0 4px 12px rgba(115, 128, 236, 0.7);
+}
 
 .sidebar-menu { display: flex; flex-direction: column; height: 86vh; top: 1rem; position: relative; }
 .sidebar-menu a {
@@ -160,8 +201,17 @@ a { text-decoration: none; color: inherit; }
     box-shadow: var(--box-shadow);
     transition: all 300ms ease;
     overflow: hidden; 
+    border: 1px solid transparent;
 }
 .table-container:hover { box-shadow: 0 2rem 3rem rgba(132, 139, 200, 0.15); }
+
+.dark-theme-variables .table-container {
+    background: var(--white);
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.3);
+}
+.dark-theme-variables .table-container:hover {
+    box-shadow: 0 2rem 3rem rgba(0, 0, 0, 0.4);
+}
 
 table.table { 
     width: 100%; 
@@ -179,6 +229,12 @@ thead th {
     font-size: 0.95rem;
     border-bottom: 2px solid var(--light);
     white-space: nowrap;
+    background: var(--white);
+}
+
+.dark-theme-variables thead th {
+    color: var(--dark);
+    border-bottom: 2px solid var(--info-light);
 }
 
 /* Body */
@@ -189,6 +245,11 @@ tbody td {
     vertical-align: middle;
     font-size: 0.9rem;
     transition: all 0.3s ease;
+}
+
+.dark-theme-variables tbody td {
+    border-bottom: 1px solid var(--info-light);
+    color: var(--dark);
 }
 
 /* ID Colonna */
@@ -206,6 +267,12 @@ tbody tr:hover td {
     color: var(--dark);
     cursor: default;
 }
+
+.dark-theme-variables tbody tr:hover td {
+    background-color: var(--info-light);
+    color: var(--dark);
+}
+
 tbody tr:last-child td { border: none; }
 
 /* ==========================================================================
@@ -226,54 +293,123 @@ tbody tr:last-child td { border: none; }
 .badge-info { background: rgba(115, 128, 236, 0.18) !important; color: var(--primary) !important; }
 .badge-success { background: rgba(65, 241, 182, 0.18) !important; color: var(--success) !important; }
 
-/* Azioni */
-td .btn-action {
-    padding: 0.5rem 1.2rem;
-    border-radius: 1.5rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;
-    transition: all 0.2s;
-    border: none;
+.dark-theme-variables .badge-warning { 
+    background: rgba(255, 187, 85, 0.25) !important; 
+    color: #ffbb55 !important; 
+}
+.dark-theme-variables .badge-info { 
+    background: rgba(115, 128, 236, 0.25) !important; 
+    color: #7380ec !important; 
+}
+.dark-theme-variables .badge-success { 
+    background: rgba(65, 241, 182, 0.25) !important; 
+    color: #41f1b6 !important; 
+}
+
+/* Colonna Azioni */
+.action-column {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.8rem;
+}
+
+/* Bottoni Azione con Icone */
+.btn-action-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
     cursor: pointer;
-    text-decoration: none;
+    position: relative;
+    overflow: hidden;
 }
 
-/* Bottone GESTISCI */
-td .btn-manage {
-    background: var(--primary); color: white;
+.btn-action-icon span {
+    font-size: 1.3rem;
+    transition: all 0.3s ease;
 }
-td .btn-manage:hover {
-    background: var(--primary-variant); 
-    box-shadow: 0 4px 8px rgba(115, 128, 236, 0.4);
+
+/* Bottone GESTISCI (ASSEGNAZIONE) */
+.btn-manage {
+    background: rgba(115, 128, 236, 0.1);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-manage:hover {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(115, 128, 236, 0.4);
     transform: translateY(-2px);
 }
 
-/* Bottone CHIUDI */
-td .btn-close-req {
-    background: var(--success); color: #fff;
+.dark-theme-variables .btn-manage {
+    background: rgba(115, 128, 236, 0.15);
+    color: #7380ec;
+    border-color: #7380ec;
 }
-td .btn-close-req:hover {
-    background: #2ecc71; 
-    box-shadow: 0 4px 8px rgba(65, 241, 182, 0.4);
+
+.dark-theme-variables .btn-manage:hover {
+    background: #7380ec;
+    color: white;
+    box-shadow: 0 4px 12px rgba(115, 128, 236, 0.5);
+}
+
+/* Bottone CHIUDI (COMPLETAMENTO) */
+.btn-close-req {
+    background: rgba(65, 241, 182, 0.1);
+    color: var(--success);
+    border-color: var(--success);
+}
+
+.btn-close-req:hover {
+    background: var(--success);
+    color: white;
+    box-shadow: 0 4px 12px rgba(65, 241, 182, 0.4);
     transform: translateY(-2px);
+}
+
+.dark-theme-variables .btn-close-req {
+    background: rgba(65, 241, 182, 0.15);
+    color: #41f1b6;
+    border-color: #41f1b6;
+}
+
+.dark-theme-variables .btn-close-req:hover {
+    background: #41f1b6;
+    color: #0d1117;
+    box-shadow: 0 4px 12px rgba(65, 241, 182, 0.5);
 }
 
 /* Bottone DELETE */
-td .btn-delete {
-    width: 35px; height: 35px;
-    padding: 0;
-    border-radius: 50%;
-    border: 1px solid var(--danger);
+.btn-delete {
+    background: rgba(255, 119, 130, 0.1);
     color: var(--danger);
-    background: transparent;
-    display: inline-flex; align-items: center; justify-content: center;
-    transition: all 0.3s ease;
+    border-color: var(--danger);
 }
-td .btn-delete:hover {
-    background: var(--danger); 
-    color: white; 
-    transform: rotate(90deg);
+
+.btn-delete:hover {
+    background: var(--danger);
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 119, 130, 0.4);
+    transform: scale(1.1);
+}
+
+.dark-theme-variables .btn-delete {
+    background: rgba(255, 119, 130, 0.15);
+    color: #ff7782;
+    border-color: #ff7782;
+}
+
+.dark-theme-variables .btn-delete:hover {
+    background: #ff7782;
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 119, 130, 0.5);
 }
 
 /* ==========================================================================
