@@ -41,7 +41,7 @@
     --card-padding: 1.6rem;
     
     /* Configurazione Layout Sidebar */
-    --sidebar-width: 16rem; 
+    --sidebar-width: 17rem; 
     
     /* Effetti Visivi */
     --box-shadow: 0 1.5rem 2rem rgba(132, 139, 200, 0.18);
@@ -360,18 +360,62 @@ img { display: block; width: 100%; }
 }
 
 .form-check-input {
-    width: 2.5rem;
-    height: 1.5rem;
-    border-radius: 1rem;
-    background: var(--info-light);
-    border: 0;
+    /* Dimensioni dello switch */
+    width: 3.2rem;
+    height: 1.7rem;
+    
+    /* Stile base (Spento) */
+    background-color: #cbd5e1; /* Grigio quando spento */
+    border: none;
+    border-radius: 2rem; /* Arrotondamento completo */
+    position: relative;
     cursor: pointer;
-    transition: var(--transition);
+    appearance: none; /* Rimuove lo stile standard del browser */
+    
+    /* Rimuoviamo l'immagine che causava il doppio cerchio */
+    background-image: none !important; 
+    
+    /* Transizione colore sfondo */
+    transition: background-color 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); /* Leggera ombra interna per profondità */
 }
 
+/* Creazione del Pallino (Knob) via CSS */
+.form-check-input::after {
+    content: '';
+    position: absolute;
+    top: 3px;     /* Spaziatura dall'alto */
+    left: 3px;    /* Posizione iniziale a sinistra */
+    width: calc(1.7rem - 6px);  /* Altezza meno i margini */
+    height: calc(1.7rem - 6px);
+    
+    background-color: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Ombra del pallino */
+    
+    /* Animazione fluida (effetto rimbalzo) */
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* STATO ATTIVO (ACCESO) */
 .form-check-input:checked {
-    background: var(--success);
-    border-color: var(--success);
+    background-color: var(--primary); /* Diventa viola/blu */
+    border-color: transparent;
+}
+
+/* Movimento del pallino quando attivo */
+.form-check-input:checked::after {
+    /* Sposta il pallino a destra */
+    /* 3.2rem (width) - 1.7rem (height) + correzioni fini */
+    transform: translateX(1.5rem); 
+}
+
+/* Hover effect */
+.form-check-input:hover {
+    background-color: #b0bec5;
+}
+.form-check-input:checked:hover {
+    background-color: var(--primary-glow);
 }
 
 .btn {
