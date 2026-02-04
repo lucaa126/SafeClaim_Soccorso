@@ -127,10 +127,6 @@ export class Analytics implements OnInit {
   selectCategory(cat: string) { this.selectedCategory = cat; }
   applyFilters() { this.refreshData(); }
 
-  toggleDarkMode(): void {
-    this.themeService.toggleDarkMode();
-  }
-
   get isDarkMode(): boolean {
     return this.themeService.isDarkMode;
   }

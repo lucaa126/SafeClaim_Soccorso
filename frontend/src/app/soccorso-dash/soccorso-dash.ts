@@ -137,10 +137,6 @@ export class SoccorsoDash implements OnInit, AfterViewInit {
   openMenu(): void { this.isSidebarOpen = true; }
   closeMenu(): void { this.isSidebarOpen = false; }
 
-  toggleDarkMode(): void {
-    this.themeService.toggleDarkMode();
-  }
-
   get isDarkMode(): boolean {
     return this.themeService.isDarkMode;
   }

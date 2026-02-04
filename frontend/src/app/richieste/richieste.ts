@@ -57,10 +57,6 @@ export class Richieste implements OnInit {
     }
   }
 
-  toggleDarkMode(): void {
-    this.themeService.toggleDarkMode();
-  }
-
   get isDarkMode(): boolean {
     return this.themeService.isDarkMode;
   }

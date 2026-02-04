@@ -49,10 +49,6 @@ export class Flotta implements OnInit {
     alert(`Chiamata in corso a: ${driverName}...`);
   }
 
-  toggleDarkMode(): void {
-    this.themeService.toggleDarkMode();
-  }
-
   get isDarkMode(): boolean {
     return this.themeService.isDarkMode;
   }
