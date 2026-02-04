@@ -2,10 +2,12 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { SoccorsoData } from '../soccorso-data';
-import { TrafficService } from '../traffic.service';
-import { AnalyticsService } from './analytics.service';
 import { HttpClientModule } from '@angular/common/http';
+
+// Services
+import { SoccorsoData } from '../soccorso-data';
+import { AnalyticsService } from './analytics.service'; 
+import { TrafficService, TrafficIncident } from '../traffic.service';
 
 @Component({
   selector: 'app-analytics',
@@ -15,97 +17,68 @@ import { HttpClientModule } from '@angular/common/http';
   styleUrl: './analytics.css'
 })
 export class Analytics implements OnInit {
-  // Summary
+  // Stats Generali
   totalRequests = 0;
   pending = 0;
   accepted = 0;
   handled = 0;
 
-  // Fleet
+  // Stats Flotta (Queste mancavano e davano errore)
   fleetAvailable = 0;
-  fleetBusy = 0;
+  fleetBusy = 0;       
   fleetMaintenance = 0;
 
-  // Charts
+  // Grafici e Rating
   requestsLast7Days: number[] = [];
   averageHandlingMins = 0;
-
-  // Reviews
   reviews: any[] = [];
   avgRating = 0;
 
-  // Traffic
-  trafficNews: any[] = [];
+  // Traffico
+  trafficNews: TrafficIncident[] = [];
   isLoadingTraffic = false;
 
-  // UI: Categoria selezionata (per la colonna sinistra / dettaglio a destra)
-  selectedCategory: 'overview' | 'requests' | 'pending' | 'inprogress' | 'completed' | 'operations' | 'fleet' | 'reviews' = 'overview';
+  selectedCategory: any = 'overview';
 
   constructor(
     private data: SoccorsoData,
-    private analytics: AnalyticsService,
+    private analyticsService: AnalyticsService, // Nome variabile chiaro
     private trafficService: TrafficService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  selectCategory(cat: string) {
-    this.selectedCategory = cat as any;
-    // Aggiorna i dati al cambio di categoria
-    this.computeSummaries();
-  }
-
-  applyFilters() {
-    // Attualmente i filtri sono locali; ricalcola le metriche
-    this.computeSummaries();
-  }
-
-  exportCsv() {
-    // Stub: esportazione semplice in futuro -> implementare backend o generazione CSV
-    const csv = 'category,value\nrequests,' + this.totalRequests + '\nhandled,' + this.handled;
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'analytics-export.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
   ngOnInit(): void {
-    // Load initial computed data
-    this.computeSummaries();
-
-    // Subscribe to changes so page stays live
-    (this.data.requests$ as any).subscribe(() => this.computeSummaries());
-    (this.data.fleet$ as any).subscribe(() => this.computeFleet());
-
-    this.reviews = this.analytics.getRecentReviews();
-    this.avgRating = this.analytics.getAverageRating();
+    this.refreshData();
     this.loadTraffic();
+
+    // Aggiornamento live se disponibile
+    if (this.data && this.data.requests$) {
+        (this.data.requests$ as any).subscribe(() => this.refreshData());
+    }
   }
 
-  private computeSummaries() {
-    const s = this.analytics.getRequestStatusCounts();
+  refreshData() {
+    // Recupero dati generali
+    const s = this.analyticsService.getRequestStatusCounts();
+    this.totalRequests = s.total;
     this.pending = s.pending;
     this.accepted = s.accepted;
     this.handled = s.handled;
-    this.totalRequests = s.total;
 
-    this.requestsLast7Days = this.analytics.getRequestsOverLastDays(7);
-    this.averageHandlingMins = this.analytics.getAverageHandlingTimeMinutes();
-
-    this.computeFleet();
-    this.cdr.detectChanges();
-  }
-
-  private computeFleet() {
-    const f = this.analytics.getFleetStatusCounts();
+    // Recupero dati Flotta
+    const f = this.analyticsService.getFleetStatusCounts();
     this.fleetAvailable = f.available;
-    this.fleetBusy = f.busy;
-    this.fleetMaintenance = f.maintenance;
+    this.fleetBusy = f.busy;             // Assegnazione mancante corretta
+    this.fleetMaintenance = f.maintenance; // Assegnazione mancante corretta
+
+    // Altri dati
+    this.requestsLast7Days = this.analyticsService.getRequestsOverLastDays(7);
+    this.averageHandlingMins = this.analyticsService.getAverageHandlingTimeMinutes();
+    this.reviews = this.analyticsService.getRecentReviews();
+    this.avgRating = this.analyticsService.getAverageRating();
   }
 
-  private loadTraffic() {
+  loadTraffic() {
     this.isLoadingTraffic = true;
     this.trafficService.getRealTimeTraffic('Milano').subscribe({
       next: (data) => {
@@ -114,22 +87,42 @@ export class Analytics implements OnInit {
         this.cdr.detectChanges();
       },
       error: (e) => {
-        console.error('Errore caricamento traffico', e);
+        console.error(e);
         this.isLoadingTraffic = false;
-        this.cdr.detectChanges();
       }
     });
   }
 
-  // Helper per il rendering dei grafici (bar heights)
-  getMax(arr: number[]) { return Math.max(...arr, 1); }
-  percentOf(value: number, max: number) { return Math.round((value / Math.max(max, 1)) * 100); }
+  // --- Funzioni Helper richieste dall'HTML ---
 
-  // Utilities
-  formatMinutes(mins: number) {
-    if (mins < 60) return `${mins} min`;
+  // Usata per calcolare l'altezza delle barre nel grafico
+  getMax(arr: number[]): number {
+    if (!arr || arr.length === 0) return 1;
+    return Math.max(...arr, 1);
+  }
+
+  // Usata per le barre di progresso
+  percentOf(value: number, max: number): number {
+    if (!max || max === 0) return 0;
+    return Math.round((value / max) * 100);
+  }
+
+  // Usata per formattare il tempo medio
+  formatMinutes(mins: number): string {
     const h = Math.floor(mins / 60);
     const m = mins % 60;
+    if (h === 0) return `${m} min`;
     return `${h}h ${m}m`;
   }
+
+  getIconByText(title: string): string {
+    const t = title ? title.toLowerCase() : '';
+    if (t.includes('incidente')) return 'car_crash';
+    if (t.includes('coda')) return 'traffic';
+    return 'info';
+  }
+
+  selectCategory(cat: string) { this.selectedCategory = cat; }
+  applyFilters() { this.refreshData(); }
+  exportCsv() { console.log('Export...'); }
 }

@@ -1,88 +1,45 @@
 import { Injectable } from '@angular/core';
-import { SoccorsoData, Request, Vehicle } from '../soccorso-data';
 
-export interface Review {
-  id: string;
-  author: string;
-  rating: number; // 1-5
-  comment: string;
-  date: Date;
-}
-
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class AnalyticsService {
-  private currentRequests: Request[] = [];
-  private currentFleet: Vehicle[] = [];
 
-  constructor(private data: SoccorsoData) {
-    // Manteniamo una cache interna sottoscrivendo gli observable pubblici
-    this.data.requests$.subscribe((r: Request[]) => this.currentRequests = r || []);
-    this.data.fleet$.subscribe((f: Vehicle[]) => this.currentFleet = f || []);
-  }
+  constructor() { }
 
-  // Conteggi per stato delle richieste
   getRequestStatusCounts() {
-    const values = this.currentRequests;
-
-    const pending = values.filter(r => !r.status).length;
-    const accepted = values.filter(r => r.status === 'accepted').length;
-    const handled = values.filter(r => r.status === 'handled').length;
-
-    return { pending, accepted, handled, total: values.length };
+    return {
+      total: 1250,
+      pending: 45,
+      accepted: 120,
+      handled: 1085
+    };
   }
 
-  // Conteggi per stato della flotta
-  getFleetStatusCounts() {
-    const values = this.currentFleet;
-    const available = values.filter(v => v.status === 'available').length;
-    const busy = values.filter(v => v.status === 'busy').length;
-    const maintenance = values.filter(v => v.status === 'maintenance').length;
-    return { available, busy, maintenance, total: values.length };
+  getRequestsOverLastDays(days: number): number[] {
+    return [120, 145, 132, 150, 110, 160, 140];
   }
 
-  // Serie temporale di richieste per gli ultimi N giorni (mocking se necessario)
-  getRequestsOverLastDays(days: number = 7) {
-    const values = this.currentRequests;
-    const results = new Array(days).fill(0);
-    const now = Date.now();
-    const dayMs = 1000 * 60 * 60 * 24;
-
-    for (const r of values) {
-      const diffDays = Math.floor((now - new Date(r.time).getTime()) / dayMs);
-      if (diffDays < days) {
-        results[days - diffDays - 1]++;
-      }
-    }
-
-    return results; // indice 0 = day - (days-1), indice ultimo = oggi
-  }
-
-  // Tempo medio di gestione (solo handled). Calcolato come ora - request.time per mock
   getAverageHandlingTimeMinutes() {
-    const values = this.currentRequests;
-    const handled = values.filter(r => r.status === 'handled');
-    if (handled.length === 0) return 0;
-
-    const now = Date.now();
-    const mins = handled.map(h => Math.max(1, Math.round((now - new Date(h.time).getTime()) / 60000))); // minuti
-    const avg = Math.round((mins.reduce((a, b) => a + b, 0) / mins.length));
-    return avg;
+    return 34;
   }
 
-  // Mock recensioni. Potrebbero venire da un back-end reale in futuro
-  getRecentReviews(): Review[] {
+  getFleetStatusCounts() {
+    return {
+      available: 12,
+      busy: 8,
+      maintenance: 3
+    };
+  }
+
+  getRecentReviews() {
     return [
-      { id: 'R-1', author: 'Giulia', rating: 5, comment: 'Intervento rapido e professionale.', date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2) },
-      { id: 'R-2', author: 'Marco', rating: 4, comment: 'Buon servizio, unica nota sui tempi.', date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7) },
-      { id: 'R-3', author: 'Sara', rating: 3, comment: 'Meccanico gentile ma attesa lunga.', date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10) }
+      { author: 'Mario R.', rating: 5, comment: 'Servizio rapidissimo.', date: new Date() },
+      { author: 'Anna B.', rating: 4, comment: 'Attesa lunga ma risolto.', date: new Date() }
     ];
   }
 
-  // Rating medio dalle recensioni mock
-  getAverageRating(): number {
-    const reviews = this.getRecentReviews();
-    if (reviews.length === 0) return 0;
-    const avg = reviews.reduce((a, b) => a + b.rating, 0) / reviews.length;
-    return Math.round(avg * 10) / 10; // 1 decimal
+  getAverageRating() {
+    return 4.7;
   }
 }

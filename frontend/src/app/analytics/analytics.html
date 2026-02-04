@@ -15,7 +15,7 @@
     </div>
 
     <div class="sidebar-menu" style="font-size: 20px;">
-      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+      <a routerLink="/dashboard" routerLinkActive="active">
         <span class="material-icons-sharp">grid_view</span>
         <h3>Dashboard</h3>
       </a>
@@ -27,7 +27,7 @@
         <span class="material-icons-sharp">local_shipping</span>
         <h3>Flotta</h3>
       </a>
-      <a routerLink="/analytics" routerLinkActive="active">
+      <a routerLink="/analytics" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
         <span class="material-icons-sharp">insights</span>
         <h3>Analytics</h3>
       </a>
@@ -95,7 +95,6 @@
               <div class="status-row"><span>In corso</span><div class="bar-bg"><div class="bar-fill accepted" [style.width]="percentOf(accepted, totalRequests) + '%'">{{ accepted }}</div></div></div>
               <div class="status-row"><span>Completate</span><div class="bar-bg"><div class="bar-fill handled" [style.width]="percentOf(handled, totalRequests) + '%'">{{ handled }}</div></div></div>
             </div>
-
             <div class="meta">
               <div>Tempo medio gestione: <strong>{{ formatMinutes(averageHandlingMins) }}</strong></div>
             </div>
@@ -125,14 +124,45 @@
           </div>
 
           <div class="card traffic">
-            <h3>Notizie Traffico</h3>
-            <div *ngIf="isLoadingTraffic">Caricamento in corso...</div>
-            <ul *ngIf="!isLoadingTraffic">
-              <li *ngFor="let t of trafficNews | slice:0:5">
-                <div class="t-title">{{ t.title }}</div>
-                <div class="t-source">{{ t.source }} — {{ t.pubDate | date:'short' }}</div>
-              </li>
-            </ul>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+               <h3 class="m-0">Traffico Live</h3>
+               <button class="btn btn-sm btn-light rounded-circle p-1" (click)="loadTraffic()" title="Aggiorna ora">
+                 <span class="material-icons-sharp fs-6" [class.spin]="isLoadingTraffic">sync</span>
+               </button>
+            </div>
+            
+            <div *ngIf="isLoadingTraffic && trafficNews.length === 0" class="text-center p-4">
+              <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+              <p class="small text-muted mt-2 mb-0">Ricerca notizie in corso...</p>
+            </div>
+
+            <div *ngIf="!isLoadingTraffic && trafficNews.length === 0" class="text-center p-4">
+              <span class="material-icons-sharp text-success fs-1">check_circle</span>
+              <p class="small text-muted mt-2">Nessuna criticità rilevata.</p>
+            </div>
+
+            <div class="traffic-list custom-scroll" style="max-height: 400px; overflow-y: auto;" *ngIf="trafficNews.length > 0">
+              <a *ngFor="let news of trafficNews" [href]="news.link" target="_blank" class="text-decoration-none text-dark">
+                <div class="traffic-item d-flex gap-3 mb-3 p-2 rounded hover-bg">
+                  
+                  <div class="icon-box rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0 text-white" 
+                        [class.bg-danger]="getIconByText(news.title) === 'car_crash'"
+                        [class.bg-warning]="getIconByText(news.title) === 'traffic'"
+                        [class.bg-info]="getIconByText(news.title) === 'info'"
+                        style="width:40px; height:40px">
+                    <span class="material-icons-sharp fs-5">{{ getIconByText(news.title) }}</span>
+                  </div>
+                  
+                  <div class="w-100 overflow-hidden">
+                    <p class="mb-1 fw-bold small text-truncate-2">{{ news.title }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-primary fw-bold" style="font-size: 0.7rem;">{{ news.source }}</small>
+                        <small class="text-muted" style="font-size: 0.7rem">{{ news.pubDate | date:'HH:mm' }}</small>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </div>
           </div>
         </section>
       </main>
@@ -181,9 +211,24 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
-
 </div>
+
+<style>
+  .spin { animation: rotation 1s infinite linear; }
+  @keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(359deg); } }
+  
+  .text-truncate-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      white-space: normal;
+  }
+  .hover-bg:hover { background-color: rgba(0,0,0,0.04); transition: 0.2s; cursor: pointer; }
+  .custom-scroll::-webkit-scrollbar { width: 4px; }
+  .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+  .custom-scroll::-webkit-scrollbar-thumb { background: #bbb; border-radius: 4px; }
+</style>
