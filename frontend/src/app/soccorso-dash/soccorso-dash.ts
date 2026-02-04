@@ -1,9 +1,10 @@
-import { Component, OnInit, Renderer2, ViewEncapsulation, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { TrafficService, TrafficIncident } from '../traffic.service';
+import { ThemeService } from '../theme.service';
 
 // Importiamo Leaflet
 import * as L from 'leaflet';
@@ -20,7 +21,6 @@ export class SoccorsoDash implements OnInit, AfterViewInit {
 
   // UI State
   isSidebarOpen: boolean = false;
-  isDarkMode: boolean = false;
   acceptingSoccorsi: boolean = true;
   workshopName: string = 'Officina Centrale';
   
@@ -37,17 +37,15 @@ export class SoccorsoDash implements OnInit, AfterViewInit {
   private marker: L.Marker | undefined;
 
   constructor(
-    private renderer: Renderer2,
     private trafficService: TrafficService,
+    private themeService: ThemeService,
     private cdr: ChangeDetectorRef 
   ) {}
 
   ngOnInit(): void {
     this.fixLeafletIcons();
 
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-       // this.toggleDarkMode(); 
-    }
+    // Tema gestito dal servizio
     
     // Caricamento Dati
     this.loadRequests();
@@ -140,13 +138,11 @@ export class SoccorsoDash implements OnInit, AfterViewInit {
   closeMenu(): void { this.isSidebarOpen = false; }
 
   toggleDarkMode(): void {
-    this.isDarkMode = !this.isDarkMode;
-    const body = document.body;
-    if (this.isDarkMode) {
-      this.renderer.addClass(body, 'dark-theme-variables');
-    } else {
-      this.renderer.removeClass(body, 'dark-theme-variables');
-    }
+    this.themeService.toggleDarkMode();
+  }
+
+  get isDarkMode(): boolean {
+    return this.themeService.isDarkMode;
   }
 
   logout(): void { console.log("Logout triggered"); }

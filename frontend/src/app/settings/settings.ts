@@ -1,8 +1,9 @@
-import { Component, OnInit, Renderer2, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
+import { ThemeService } from '../theme.service';
 
 @Component({
   selector: 'app-settings',
@@ -16,7 +17,6 @@ export class Settings implements OnInit {
 
   // UI State
   isSidebarOpen: boolean = false;
-  isDarkMode: boolean = false;
   workshopName: string = 'Officina Centrale';
   
   // Settings State
@@ -30,16 +30,18 @@ export class Settings implements OnInit {
   workingHours: string = '08:00-20:00';
   autoAcceptRequests: boolean = false;
 
-  constructor(private renderer: Renderer2) {}
+  constructor(private themeService: ThemeService) {}
 
   ngOnInit(): void {
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      // this.toggleDarkMode(); 
-    }
+    // Tema gestito dal servizio
   }
 
   toggleDarkMode(): void {
-    this.isDarkMode = !this.isDarkMode;
+    this.themeService.toggleDarkMode();
+  }
+
+  get isDarkMode(): boolean {
+    return this.themeService.isDarkMode;
   }
 
   openMenu(): void {

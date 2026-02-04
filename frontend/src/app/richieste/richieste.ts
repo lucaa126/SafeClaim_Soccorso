@@ -1,8 +1,9 @@
-import { Component, OnInit, Renderer2 } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SoccorsoData, Request } from '../soccorso-data';
 import { FormsModule } from '@angular/forms';
+import { ThemeService } from '../theme.service';
 
 @Component({
   selector: 'app-richieste',
@@ -16,9 +17,8 @@ export class Richieste implements OnInit {
   allRequests: Request[] = [];
   filteredRequests: Request[] = [];
   filterStatus: string = 'all'; // 'all', 'pending', 'accepted', 'handled'
-  isDarkMode: boolean = false;
 
-  constructor(private dataService: SoccorsoData, private renderer: Renderer2) {}
+  constructor(private dataService: SoccorsoData, private themeService: ThemeService) {}
 
   ngOnInit() {
     this.dataService.requests$.subscribe(data => {
@@ -58,12 +58,10 @@ export class Richieste implements OnInit {
   }
 
   toggleDarkMode(): void {
-    this.isDarkMode = !this.isDarkMode;
-    const body = document.body;
-    if (this.isDarkMode) {
-      this.renderer.addClass(body, 'dark-theme-variables');
-    } else {
-      this.renderer.removeClass(body, 'dark-theme-variables');
-    }
+    this.themeService.toggleDarkMode();
+  }
+
+  get isDarkMode(): boolean {
+    return this.themeService.isDarkMode;
   }
 }

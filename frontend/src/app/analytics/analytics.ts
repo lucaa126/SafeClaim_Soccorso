@@ -8,6 +8,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { SoccorsoData } from '../soccorso-data';
 import { AnalyticsService } from './analytics.service'; 
 import { TrafficService, TrafficIncident } from '../traffic.service';
+import { ThemeService } from '../theme.service';
 
 @Component({
   selector: 'app-analytics',
@@ -44,6 +45,7 @@ export class Analytics implements OnInit {
     private data: SoccorsoData,
     private analyticsService: AnalyticsService, // Nome variabile chiaro
     private trafficService: TrafficService,
+    private themeService: ThemeService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -124,5 +126,14 @@ export class Analytics implements OnInit {
 
   selectCategory(cat: string) { this.selectedCategory = cat; }
   applyFilters() { this.refreshData(); }
+
+  toggleDarkMode(): void {
+    this.themeService.toggleDarkMode();
+  }
+
+  get isDarkMode(): boolean {
+    return this.themeService.isDarkMode;
+  }
+
   exportCsv() { console.log('Export...'); }
 }

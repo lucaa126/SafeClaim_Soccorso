@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SoccorsoData, Vehicle } from '../soccorso-data'; // Assicurati che il percorso sia corretto
+import { ThemeService } from '../theme.service';
 
 @Component({
   selector: 'app-flotta',
@@ -14,7 +15,7 @@ export class Flotta implements OnInit {
   
   fleet: Vehicle[] = [];
 
-  constructor(private dataService: SoccorsoData) {}
+  constructor(private dataService: SoccorsoData, private themeService: ThemeService) {}
 
   ngOnInit(): void {
     // Ci iscriviamo al service: se cambia qualcosa nella flotta, aggiorniamo la vista
@@ -46,5 +47,13 @@ export class Flotta implements OnInit {
   // Azione simulata per contattare l'autista
   contactDriver(driverName: string) {
     alert(`Chiamata in corso a: ${driverName}...`);
+  }
+
+  toggleDarkMode(): void {
+    this.themeService.toggleDarkMode();
+  }
+
+  get isDarkMode(): boolean {
+    return this.themeService.isDarkMode;
   }
 }
