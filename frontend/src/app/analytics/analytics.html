@@ -1,0 +1,189 @@
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container-fluid dashboard-container p-0 analytics-page">
+
+  <aside class="sidebar-container d-none d-lg-flex">
+    <div class="sidebar-logo d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <img src="https://cdn-icons-png.flaticon.com/512/1065/1065646.png" alt="Logo">
+        <h2>SOCC<span class="danger">ORSO</span></h2>
+      </div>
+      <button class="btn p-0 border-0 bg-transparent text-dark theme-toggle" title="Cambia tema">
+        <span class="material-icons-sharp">light_mode</span>
+      </button>
+    </div>
+
+    <div class="sidebar-menu" style="font-size: 20px;">
+      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <span class="material-icons-sharp">grid_view</span>
+        <h3>Dashboard</h3>
+      </a>
+      <a routerLink="/richieste" routerLinkActive="active">
+        <span class="material-icons-sharp">campaign</span>
+        <h3>Richieste</h3>
+      </a>
+      <a routerLink="/flotta" routerLinkActive="active">
+        <span class="material-icons-sharp">local_shipping</span>
+        <h3>Flotta</h3>
+      </a>
+      <a routerLink="/analytics" routerLinkActive="active">
+        <span class="material-icons-sharp">insights</span>
+        <h3>Analytics</h3>
+      </a>
+      <a routerLink="/settings" routerLinkActive="active">
+        <span class="material-icons-sharp">settings</span>
+        <h3>Impostazioni</h3>
+      </a>
+    </div>
+  </aside>
+
+  <div class="main-wrapper">
+    <div class="mobile-header d-flex justify-content-between align-items-center mb-4 d-lg-none">
+      <div class="d-flex align-items-center gap-2">
+         <button class="btn p-0 border-0 bg-transparent text-dark" title="Menu">
+            <span class="material-icons-sharp fs-1">menu</span>
+         </button>
+         <h2 class="m-0 text-primary fw-bold">Analytics</h2>
+      </div>
+    </div>
+
+    <div class="row g-0">
+      <main class="col-12 col-lg-8 pe-lg-4">
+        <div class="header-section mb-4">
+          <h1>Analytics</h1>
+          <p class="text">Panoramica e metriche operative</p>
+        </div>
+
+        <div class="summary-grid">
+          <div class="card" (click)="selectCategory('requests')" [class.active]="selectedCategory === 'requests'" style="cursor:pointer;">
+            <div class="label">Richieste totali</div>
+            <div class="value">{{ totalRequests }}</div>
+          </div>
+
+          <div class="card" (click)="selectCategory('pending')" [class.active]="selectedCategory === 'pending'" style="cursor:pointer;">
+            <div class="label">In attesa</div>
+            <div class="value pending">{{ pending }}</div>
+          </div>
+
+          <div class="card" (click)="selectCategory('inprogress')" [class.active]="selectedCategory === 'inprogress'" style="cursor:pointer;">
+            <div class="label">In corso</div>
+            <div class="value accepted">{{ accepted }}</div>
+          </div>
+
+          <div class="card" (click)="selectCategory('completed')" [class.active]="selectedCategory === 'completed'" style="cursor:pointer;">
+            <div class="label">Completate</div>
+            <div class="value handled">{{ handled }}</div>
+          </div>
+        </div>
+
+        <section class="charts">
+          <div class="chart card" *ngIf="selectedCategory === 'overview' || selectedCategory === 'requests'">
+            <h3>Richieste ultimi 7 giorni</h3>
+            <div class="bar-chart">
+              <div class="bar" *ngFor="let v of requestsLast7Days; let i = index" [title]="v + ' richieste'">
+                <div class="bar-fill" [style.height]="percentOf(v, getMax(requestsLast7Days)) + '%'"></div>
+                <div class="bar-label">{{ i === requestsLast7Days.length -1 ? 'oggi' : '-' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart card" *ngIf="selectedCategory === 'overview' || selectedCategory === 'operations'">
+            <h3>Stato operazioni</h3>
+            <div class="status-bars">
+              <div class="status-row"><span>In attesa</span><div class="bar-bg"><div class="bar-fill pending" [style.width]="percentOf(pending, totalRequests) + '%'">{{ pending }}</div></div></div>
+              <div class="status-row"><span>In corso</span><div class="bar-bg"><div class="bar-fill accepted" [style.width]="percentOf(accepted, totalRequests) + '%'">{{ accepted }}</div></div></div>
+              <div class="status-row"><span>Completate</span><div class="bar-bg"><div class="bar-fill handled" [style.width]="percentOf(handled, totalRequests) + '%'">{{ handled }}</div></div></div>
+            </div>
+
+            <div class="meta">
+              <div>Tempo medio gestione: <strong>{{ formatMinutes(averageHandlingMins) }}</strong></div>
+            </div>
+          </div>
+
+          <div class="chart card" *ngIf="selectedCategory === 'overview' || selectedCategory === 'fleet'">
+            <h3>Stato flotta</h3>
+            <ul class="fleet-list">
+              <li>Disponibili: <strong>{{ fleetAvailable }}</strong></li>
+              <li>Impegnati: <strong>{{ fleetBusy }}</strong></li>
+              <li>Manutenzione: <strong>{{ fleetMaintenance }}</strong></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="reviews-traffic" *ngIf="selectedCategory === 'overview' || selectedCategory === 'reviews'">
+          <div class="card reviews">
+            <h3>Recensioni (ultime)</h3>
+            <div class="avg-rating">Valutazione media: <strong>{{ avgRating }}/5</strong></div>
+            <ul>
+              <li *ngFor="let r of reviews">
+                <div class="r-header"><strong>{{ r.author }}</strong> — <span class="rating">{{ r.rating }} ⭐</span></div>
+                <div class="r-comment">{{ r.comment }}</div>
+                <div class="r-date">{{ r.date | date:'shortDate' }}</div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="card traffic">
+            <h3>Notizie Traffico</h3>
+            <div *ngIf="isLoadingTraffic">Caricamento in corso...</div>
+            <ul *ngIf="!isLoadingTraffic">
+              <li *ngFor="let t of trafficNews | slice:0:5">
+                <div class="t-title">{{ t.title }}</div>
+                <div class="t-source">{{ t.source }} — {{ t.pubDate | date:'short' }}</div>
+              </li>
+            </ul>
+          </div>
+        </section>
+      </main>
+
+      <div class="col-12 col-lg-4 right-section">
+        <div class="nav d-flex justify-content-end align-items-center gap-4 mb-4">
+          <div class="profile d-flex gap-3 text-end align-items-center">
+             <div class="d-none d-md-block">
+               <p class="mb-0">Analytics</p>
+               <small class="text">Dettagli</small>
+             </div>
+             <div class="profile-photo">
+               <img src="https://i.pravatar.cc/150?img=12" alt="Admin">
+             </div>
+          </div>
+        </div>
+
+        <div class="request-detail-card mt-4">
+          <h3 class="mb-3">Pannello Analytics</h3>
+          <div class="card border-0 shadow-sm p-3">
+            <div class="mb-3">
+              <label class="form-label">Categoria</label>
+              <select class="form-select" [(ngModel)]="selectedCategory">
+                <option value="overview">Panoramica</option>
+                <option value="requests">Richieste</option>
+                <option value="operations">Operazioni</option>
+                <option value="fleet">Flotta</option>
+                <option value="reviews">Recensioni</option>
+              </select>
+            </div>
+
+            <div class="mb-3 d-flex gap-2">
+              <div class="flex-grow-1">
+                <label class="form-label">Da</label>
+                <input class="form-control" type="date" />
+              </div>
+              <div class="flex-grow-1">
+                <label class="form-label">A</label>
+                <input class="form-control" type="date" />
+              </div>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button class="btn btn-primary" (click)="applyFilters()">Aggiorna</button>
+              <button class="btn btn-outline-secondary" (click)="exportCsv()">Esporta CSV</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
