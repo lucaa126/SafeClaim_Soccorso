@@ -10,8 +10,8 @@ export class AnalyticsService {
   getRequestStatusCounts() {
     return {
       total: 1250,
-      pending: 45,
-      accepted: 120,
+      pending: 325,
+      accepted: 350,
       handled: 1085
     };
   }
