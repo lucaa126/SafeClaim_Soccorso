@@ -9,9 +9,6 @@
         <img src="https://cdn-icons-png.flaticon.com/512/1065/1065646.png" alt="Logo">
         <h2>SOCC<span class="danger">ORSO</span></h2>
       </div>
-      <button class="btn p-0 border-0 bg-transparent text-dark theme-toggle" (click)="toggleDarkMode()" title="Cambia tema">
-        <span class="material-icons-sharp">{{ isDarkMode ? 'light_mode' : 'dark_mode' }}</span>
-      </button>
     </div>
 
     <div class="sidebar-menu" style="font-size: 20px;">
@@ -68,6 +65,14 @@
         <div class="header-section mb-4">
           <h1>Impostazioni</h1>
           <p class="text">Configura i parametri della tua officina</p>
+          <div class="d-flex align-items-center gap-2 mt-2">
+            <button class="btn btn-light" title="Tema chiaro" (click)="isDarkMode && toggleDarkMode()">
+              <span class="material-icons-sharp">light_mode</span>
+            </button>
+            <button class="btn btn-dark text-white" title="Tema scuro" (click)="!isDarkMode && toggleDarkMode()">
+              <span class="material-icons-sharp">dark_mode</span>
+            </button>
+          </div>
         </div>
 
         <!-- INFO OFFICINA CARD -->

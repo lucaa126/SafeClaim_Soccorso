@@ -540,6 +540,52 @@ img { display: block; width: 100%; }
     min-width: 1.5rem;
 }
 
+/* Migliora contrasto: sfondi circolari per le icone chiave */
+.info-row span.material-icons-sharp,
+.settings-card .card-header span.material-icons-sharp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 0.6rem;
+    background: var(--primary);
+    color: #ffffff !important;
+    box-shadow: 0 6px 14px rgba(115,128,236,0.12);
+}
+
+/* Sidebar: evidenzia l'icona nella voce attiva per miglior contrasto */
+.sidebar-menu a.active span.material-icons-sharp {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    padding: 0.3rem;
+    border-radius: 0.5rem;
+}
+
+/* Pulsanti tema nella header: chiaro/scuro distinti e visibili */
+.header-section .btn.btn-light {
+    background: var(--primary-light);
+    color: var(--primary);
+    border: 0;
+    padding: 0.45rem 0.6rem;
+    border-radius: 0.5rem;
+}
+.header-section .btn.btn-dark {
+    background: var(--info-light);
+    color: var(--dark);
+    border: 0;
+    padding: 0.45rem 0.6rem;
+    border-radius: 0.5rem;
+}
+
+/* Focus accessibile */
+.header-section .btn:focus,
+.sidebar-menu a:focus,
+.info-row span.material-icons-sharp:focus {
+    outline: 3px solid rgba(115,128,236,0.18);
+    outline-offset: 2px;
+}
+
 .info-row p {
     margin: 0;
     font-weight: 600;
