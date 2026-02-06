@@ -1,3 +1,124 @@
 /* You can add global styles to this file, and also import other style files */
 /* src/styles.css */
 @import "leaflet/dist/leaflet.css";
+/* ==========================================================================
+   2. CONFIGURAZIONE VARIABILI & TEMI (THEMING ENGINE GLOBALE)
+   ========================================================================== */
+:host {
+    display: block;
+    width: 100%;
+    min-height: 100vh; /* FORZA L'ALTEZZA A TUTTO SCHERMO */
+    
+    /* Palette Colori Principali */
+    --primary: #7380ec;
+    --primary-variant: #111e88;
+    --danger: #ff7782;
+    --success: #41f1b6;
+    --warning: #ffbb55;
+    
+    /* Sfondi e Testi Light (Default) */
+    --white: #ffffff;
+    --light: #f6f6f9;
+    --dark: #363949;
+    --info-dark: #7d8da1;
+    --info-light: #dce1eb;
+    
+    /* Varianti Trasparenti */
+    --primary-light: rgba(115, 128, 236, 0.18);
+    --success-light: rgba(65, 241, 182, 0.18);
+    --warning-light: rgba(255, 187, 85, 0.18);
+    --danger-light: rgba(255, 119, 130, 0.18);
+    
+    /* Dimensioni e Spaziature */
+    --card-border-radius: 1.6rem;
+    --border-radius-1: 0.4rem;
+    --border-radius-2: 0.8rem;
+    --border-radius-3: 1.2rem;
+    --card-padding: 1.6rem;
+    
+    --sidebar-width: 17rem; 
+    
+    --box-shadow: 0 1.5rem 2rem rgba(132, 139, 200, 0.18);
+    --card-border: 1px solid transparent; 
+    --transition: all 300ms ease;
+
+    /* APPLICAZIONE SFONDO GLOBALE */
+    /* Qui applichiamo lo sfondo all'intero componente, non solo al container */
+    background-color: var(--light);
+    color: var(--dark);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.88rem;
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* --- DARK MODE OVERRIDE --- */
+/* :host-context controlla se la classe .dark-theme-variables è presente 
+   sul componente O su un genitore (es. body), rendendolo molto più robusto */
+:host-context(.dark-theme-variables) {
+    --light: #0d1117;        /* Sfondo GitHub Dark */
+    --white: #161b22;        /* Card Dark */
+    --dark: #edeffd;         /* Testo Chiaro */
+    --info-dark: #a0aec0;
+    --info-light: #30363d;
+    --box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.4);
+    --card-border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Se applichi la classe direttamente all'host (alternativa) */
+:host.dark-theme-variables {
+    --light: #0d1117;
+    --white: #161b22;
+    --dark: #edeffd;
+    --info-dark: #a0aec0;
+    --info-light: #30363d;
+    --box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.4);
+    --card-border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ==========================================================================
+   3. RESET GLOBALE & OVERRIDES
+   ========================================================================== */
+* {
+    margin: 0; padding: 0; outline: 0; appearance: none;
+    border: 0; text-decoration: none; list-style: none; box-sizing: border-box;
+}
+
+/* Rimuoviamo stili specifici dal container interno perché ora gestisce tutto l'HOST */
+.dashboard-container {
+    width: 100%;
+    /* Non serve più background qui, lo eredita dall'host */
+}
+
+h1, h2, h3, h4, h5, h6 { color: var(--dark) !important; font-weight: 600; }
+h1 { font-size: 1.8rem; font-weight: 800; }
+h2 { font-size: 1.4rem; }
+h3 { font-size: 0.87rem; }
+p, span, div, li { color: var(--dark); }
+
+/* Utility Override */
+.text-muted { color: var(--info-dark) !important; }
+.text-primary { color: var(--primary) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-success { color: var(--success) !important; }
+.text-warning { color: var(--warning) !important; }
+
+/* Bootstrap Card Override */
+.card, .bg-white {
+    background-color: var(--white) !important;
+    color: var(--dark) !important;
+    border: var(--card-border);
+}
+
+img { display: block; width: 100%; }
+a { color: inherit; cursor: pointer; text-decoration: none; }
+
+/* Scrollbar Custom */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--light); }
+::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary-variant); }
+
+/* Animazioni */
+.spin { animation: rotation 1s infinite linear; }
+@keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(359deg); } }

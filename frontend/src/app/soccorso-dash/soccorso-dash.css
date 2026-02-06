@@ -60,11 +60,11 @@
 
 /* --- DARK MODE OVERRIDE --- */
 .dashboard-container.dark-theme-variables {
-    --light: #0d1117;        /* GitHub Dark Background */
-    --white: #161b22;        /* Card Dark */
-    --dark: #edeffd;         /* Testo Chiaro */
-    --info-dark: #a0aec0;
-    --info-light: #21262d;
+    --light: #0d1117;        /* Sfondo Generale Scuro (GitHub Dark) */
+    --white: #161b22;        /* Sfondo Card Scuro */
+    --dark: #edeffd;         /* Testo Principale Chiaro */
+    --info-dark: #a0aec0;    /* Testo Secondario */
+    --info-light: #30363d;   /* Bordi e Separatori */
     --box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.4);
     --card-border: 1px solid rgba(255, 255, 255, 0.12);
 }
@@ -90,7 +90,7 @@ p, span, div, li { color: var(--dark); }
 .text-success { color: var(--success) !important; }
 .text-warning { color: var(--warning) !important; }
 
-/* Bootstrap Card Override */
+/* Bootstrap Card Override: Forza il colore della card in base al tema */
 .card, .bg-white {
     background-color: var(--white) !important;
     color: var(--dark) !important;
@@ -115,7 +115,7 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
    4. SIDEBAR DESKTOP (FISSA A SINISTRA)
    ========================================================================== */
 .sidebar-container {
-    position: fixed; /* Fissa rispetto alla finestra */
+    position: fixed; 
     top: 0;
     left: 0;
     height: 100vh;
@@ -182,7 +182,6 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
     position: absolute; left: 0; top: 0;
 }
 
-/* Badge contatore messaggi */
 .sidebar-menu .message-count {
     background: var(--danger); color: white; padding: 2px 10px;
     font-size: 11px; border-radius: var(--border-radius-1);
@@ -192,20 +191,18 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
 .sidebar-menu .logout-btn { position: absolute; bottom: 2rem; width: 100%; cursor: pointer; }
 
 /* ==========================================================================
-   5. WRAPPER PRINCIPALE (GESTIONE SPAZI)
+   5. WRAPPER PRINCIPALE
    ========================================================================== */
-/* Questo container sposta tutto il contenuto a destra della sidebar fissa */
 .main-wrapper {
-    margin-left: var(--sidebar-width); /* Lascia spazio alla sidebar */
+    margin-left: var(--sidebar-width);
     width: calc(100% - var(--sidebar-width));
     transition: var(--transition);
     padding: 1.5rem;
 }
 
 /* ==========================================================================
-   6. CONTENUTO CENTRALE (DASHBOARD)
+   6. CONTENUTO DASHBOARD (CARDS)
    ========================================================================== */
-/* Header Mobile (Visibile solo se < LG) */
 .mobile-header {
     background: var(--white);
     padding: 0.8rem 1rem;
@@ -215,7 +212,6 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
     margin-bottom: 1.5rem;
 }
 
-/* Status Card */
 .status-card {
     background: var(--white);
     padding: 1.2rem;
@@ -227,7 +223,6 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
 .status-card h5 { margin: 0; font-size: 1rem; color: var(--dark) !important; }
 .status-card.active { border-left: 5px solid var(--success); }
 
-/* KPI Cards */
 .kpi-card {
     background: var(--white);
     padding: var(--card-padding);
@@ -252,38 +247,78 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
 .kpi-card .details h3 { margin: 0; font-size: 1.8rem; font-weight: 700; }
 .kpi-card .details p { margin: 0; font-size: 0.85rem; color: var(--info-dark); }
 
-/* Colori Icone KPI */
 .bg-primary-light .icon { background: var(--primary); }
 .bg-success-light .icon { background: var(--success); }
 .bg-warning-light .icon { background: var(--warning); }
 
 /* ==========================================================================
-   7. TABELLE
+   7. TABELLE (FIX AGGRESSIVO DARK MODE)
    ========================================================================== */
-.recent-orders { margin-top: 2rem; }
-.recent-orders h2 { margin-bottom: 1rem; }
+.recent-orders { 
+    margin-top: 2rem; 
+}
+.recent-orders h2 { 
+    margin-bottom: 1rem; 
+}
 
+/* Container della tabella */
 .recent-orders .table-responsive {
-    background: var(--white);
+    background-color: var(--white) !important;
     padding: var(--card-padding);
     border-radius: var(--card-border-radius);
     box-shadow: var(--box-shadow);
     border: var(--card-border);
+    transition: var(--transition);
 }
 
-table { width: 100%; border-collapse: collapse; }
-table thead th {
-    padding-bottom: 1rem;
+/* Reset totale per la tabella */
+.recent-orders table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    background-color: transparent !important;
+    color: var(--dark) !important;
+}
+
+/* Forza lo sfondo delle celle (TH e TD) ad usare la variabile corretta */
+.recent-orders table thead th,
+.recent-orders table tbody td {
+    background-color: var(--white) !important; /* Fix Dark Mode */
+    color: var(--dark) !important;
+    border-bottom: 1px solid var(--info-light) !important;
+    padding: 1rem 0.5rem;
+    vertical-align: middle;
+}
+
+/* Stile Header */
+.recent-orders table thead th {
+    font-weight: 600;
+    text-align: left;
+    font-size: 0.9rem;
     color: var(--info-dark) !important;
-    font-weight: 600; text-align: left; font-size: 0.9rem;
 }
-table tbody td {
-    padding: 1rem 0;
-    border-bottom: 1px solid var(--info-light);
-    color: var(--dark); font-size: 0.9rem; vertical-align: middle;
+
+/* Hover Effect: cambia colore ma rimanere scuro in dark mode */
+.recent-orders table tbody tr:hover td { 
+    background-color: var(--light) !important;
+    color: var(--primary) !important; 
+    cursor: pointer; 
+    transition: all 0.3s ease;
 }
-table tbody tr:last-child td { border: none; }
-table tbody tr:hover td { background: var(--light); color: var(--dark); cursor: pointer; }
+
+/* Rimuovi bordo dall'ultima riga */
+.recent-orders table tbody tr:last-child td { 
+    border: none !important; 
+}
+
+/* Override variabili Bootstrap Table */
+.table {
+    --bs-table-bg: transparent !important;
+    --bs-table-accent-bg: transparent !important;
+    --bs-table-hover-bg: var(--light) !important;
+    --bs-table-hover-color: var(--dark) !important;
+    color: var(--dark) !important;
+    border-color: var(--info-light) !important;
+}
 
 /* Badges */
 .badge {
@@ -298,14 +333,13 @@ table tbody tr:hover td { background: var(--light); color: var(--dark); cursor: 
 .badge.bg-primary { background: var(--primary-light) !important; color: var(--primary) !important; }
 
 /* ==========================================================================
-   8. SEZIONE DESTRA
+   8. SEZIONE DESTRA & UTILITIES
    ========================================================================== */
 .right-section {
     padding-left: 2rem;
     transition: var(--transition);
 }
 
-/* Dark Mode Toggle */
 .dark-mode-toggle {
     background: var(--info-light);
     display: flex; justify-content: space-between; align-items: center;
@@ -320,16 +354,14 @@ table tbody tr:hover td { background: var(--light); color: var(--dark); cursor: 
     background: var(--primary); color: white !important; border-radius: var(--border-radius-1);
 }
 
-/* Profilo */
 .profile { text-align: right; }
 .profile p { margin: 0; color: var(--dark); font-weight: 500; }
 .profile small { display: block; color: var(--info-dark); }
 .profile-photo { width: 3rem; height: 3rem; border-radius: 50%; overflow: hidden; border: 2px solid var(--info-light); }
 
-/* --- CARD DETTAGLIO INTERVENTO --- */
+/* Card Dettaglio */
 .request-detail-card { margin-top: 2rem; }
 .request-detail-card h3 { margin-bottom: 1rem; }
-
 .request-detail-card .card {
     background: var(--white) !important;
     border-radius: var(--card-border-radius);
@@ -337,13 +369,8 @@ table tbody tr:hover td { background: var(--light); color: var(--dark); cursor: 
     box-shadow: var(--box-shadow);
     border: var(--card-border);
 }
-
-.request-detail-card .text-muted {
-    color: var(--info-dark) !important; font-weight: 500; font-size: 0.9rem;
-}
-.request-detail-card strong {
-    color: var(--dark) !important; font-weight: 700; font-size: 1rem; display: block;
-}
+.request-detail-card .text-muted { color: var(--info-dark) !important; font-weight: 500; font-size: 0.9rem; }
+.request-detail-card strong { color: var(--dark) !important; font-weight: 700; font-size: 1rem; display: block; }
 
 .d-grid .btn { padding: 0.8rem; border-radius: var(--border-radius-1); font-weight: 600; }
 .btn-primary { background: var(--primary) !important; border: none; }
@@ -351,10 +378,9 @@ table tbody tr:hover td { background: var(--light); color: var(--dark); cursor: 
 .btn-outline-danger { color: var(--danger); border-color: var(--danger); }
 .btn-outline-danger:hover { background: var(--danger); color: white; }
 
-/* Updates / Notifiche */
+/* Updates */
 .updates { margin-top: 2rem; }
 .updates h3 { margin-bottom: 1rem; }
-
 .updates .update-item {
     background: var(--white);
     padding: 1.2rem;
@@ -365,7 +391,6 @@ table tbody tr:hover td { background: var(--light); color: var(--dark); cursor: 
     transition: var(--transition);
 }
 .updates .update-item:hover { transform: translateX(-5px); }
-
 .updates .icon-box {
     width: 40px; height: 40px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
@@ -377,17 +402,12 @@ table tbody tr:hover td { background: var(--light); color: var(--dark); cursor: 
 /* ==========================================================================
    9. MAPPA LEAFLET & DARK MODE AVANZATA
    ========================================================================== */
-/* src/app/soccorso-dash/soccorso-dash.css */
-
-/* Specifico solo per la dashboard: altezza mappa */
 #map {
-    width: 100%;
-    height: 100%;
-    border-radius: var(--card-border-radius);
-    z-index: 1;
+    width: 100%; height: 100%;
+    border-radius: var(--card-border-radius); z-index: 1;
 }
 
-/* Filtri Mappa Dark Mode */
+/* Filtri Mappa per Dark Mode */
 .dark-theme-variables #map .leaflet-tile {
     filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
@@ -405,46 +425,27 @@ table tbody tr:hover td { background: var(--light); color: var(--dark); cursor: 
 }
 
 /* ==========================================================================
-   10. MEDIA QUERIES (TABLET & MOBILE)
+   10. MEDIA QUERIES (RESPONSIVE)
    ========================================================================== */
 @media screen and (max-width: 1200px) {
-    /* TABLET: Nascondi sidebar fissa, ripristina margini */
     .sidebar-container { display: none; }
-    
-    .main-wrapper {
-        margin-left: 0;
-        width: 100%;
-        padding: 1rem;
-    }
-    
-    .right-section {
-        width: 100%;
-        padding-left: 0;
-        margin-top: 2rem;
-    }
-    
-    /* Layout griglia */
+    .main-wrapper { margin-left: 0; width: 100%; padding: 1rem; }
+    .right-section { width: 100%; padding-left: 0; margin-top: 2rem; }
     .row.g-0 { display: flex; flex-direction: column; }
     .col-lg-8, .col-lg-4 { width: 100%; }
 }
 
 @media screen and (max-width: 768px) {
-    /* MOBILE: Ottimizzazioni Tabelle */
     html { font-size: 13px; }
-    
     .mobile-header { display: flex !important; justify-content: space-between; align-items: center; }
-    
-    /* Nascondi colonne meno importanti per guadagnare spazio */
     .recent-orders { width: 100%; overflow-x: hidden; }
     .recent-orders table th:first-child,
-    .recent-orders table td:first-child { display: none; } /* Nascondi ID */
-    
-    /* Forza il wrap del testo se necessario */
+    .recent-orders table td:first-child { display: none; } 
     .recent-orders table td { white-space: normal; }
 }
 
 /* ==========================================================================
-   11. SIDEBAR MOBILE (OFFCANVAS ANIMATA)
+   11. SIDEBAR MOBILE (ANIMATA)
    ========================================================================== */
 .mobile-sidebar-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -468,7 +469,6 @@ table tbody tr:hover td { background: var(--light); color: var(--dark); cursor: 
 .mobile-sidebar .close { cursor: pointer; font-size: 2rem; color: var(--dark); }
 
 .mobile-sidebar .sidebar-links { display: flex; flex-direction: column; gap: 1.5rem; }
-
 .mobile-sidebar .sidebar-links a {
     display: flex; align-items: center; gap: 1.2rem;
     color: var(--info-dark); font-size: 1.1rem; font-weight: 500;

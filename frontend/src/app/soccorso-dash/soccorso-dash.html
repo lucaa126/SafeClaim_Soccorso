@@ -106,51 +106,68 @@
         </div>
 
         <div class="recent-orders">
-          <h2>Richieste in Coda</h2>
-          <div class="table-responsive mt-3" *ngIf="requests.length > 0; else noReq">
-            <table class="table mb-0">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Veicolo</th>
-                  <th>Posizione</th>
-                  <th>Stato</th>
-                  <th>Azioni</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let req of requests" [class.table-active]="selectedRequest?.id === req.id" (click)="selectRequest(req)" style="cursor: pointer;">
-                  <td>{{req.id}}</td>
-                  <td>{{req.vehicleType}}</td>
-                  <td>
-                    <span class="text-primary d-flex align-items-center gap-1">
-                      <span class="material-icons-sharp fs-6">place</span> Mappa
-                    </span>
-                  </td>
-                  <td>
-                    <span class="badge" 
-                      [class.bg-warning]="!req.status" 
-                      [class.bg-success]="req.status === 'accepted'"
-                      [class.bg-secondary]="req.status === 'handled'">
-                      {{ req.status ? req.status : 'In Attesa' }}
-                    </span>
-                  </td>
-                  <td>
-                    <button class="btn btn-sm btn-outline-primary" *ngIf="!req.status" (click)="acceptRequest(req); $event.stopPropagation()">Accetta</button>
-                    
-                    <button class="btn btn-sm btn-success text-white ms-1" *ngIf="req.status === 'accepted'" (click)="markHandled(req); $event.stopPropagation()">Completa</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <ng-template #noReq>
-            <div class="text-center p-5 bg-white rounded-4 shadow-sm">
-              <span class="material-icons-sharp fs-1 text-muted">thumb_up</span>
-              <p class="mt-2 text-muted">Nessuna richiesta attiva al momento.</p>
-            </div>
-          </ng-template>
-        </div>
+  <h2>Richieste in Coda</h2>
+
+  <div class="table-responsive mt-3" *ngIf="requests.length > 0; else noReq">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Veicolo</th>
+          <th>Posizione</th>
+          <th>Stato</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let req of requests" 
+            [class.table-active]="selectedRequest?.id === req.id" 
+            (click)="selectRequest(req)" 
+            style="cursor: pointer;">
+          
+          <td>{{req.id}}</td>
+          <td>{{req.vehicleType}}</td>
+          
+          <td>
+            <span class="text-primary d-flex align-items-center gap-1">
+              <span class="material-icons-sharp fs-6">place</span> Mappa
+            </span>
+          </td>
+          
+          <td>
+            <span class="badge" 
+                  [class.bg-warning]="!req.status" 
+                  [class.bg-success]="req.status === 'accepted'"
+                  [class.bg-secondary]="req.status === 'handled'">
+              {{ req.status ? req.status : 'In Attesa' }}
+            </span>
+          </td>
+          
+          <td>
+            <button class="btn btn-sm btn-outline-primary" 
+                    *ngIf="!req.status" 
+                    (click)="acceptRequest(req); $event.stopPropagation()">
+              Accetta
+            </button>
+            
+            <button class="btn btn-sm btn-success text-white ms-1" 
+                    *ngIf="req.status === 'accepted'" 
+                    (click)="markHandled(req); $event.stopPropagation()">
+              Completa
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #noReq>
+    <div class="text-center p-5 card rounded-4 shadow-sm border-0">
+      <span class="material-icons-sharp fs-1 text-muted">thumb_up</span>
+      <p class="mt-2 text-muted">Nessuna richiesta attiva al momento.</p>
+    </div>
+  </ng-template>
+</div>
       </main>
 
       <div class="col-12 col-lg-4 right-section">
