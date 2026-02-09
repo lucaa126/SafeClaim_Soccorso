@@ -34,8 +34,8 @@
 /* DARK MODE OVERRIDES */
 :host-context(.dark-theme-variables), .dark-theme-variables {
     --light: #0d1117;
-    --white: #161b22;
-    --dark: #edeffd;
+    --white: #0d1117;   /* ← stessa tinta dello sfondo */
+    --dark: #bababa;
     --info-dark: #a0aec0;
     --info-light: #21262d; 
     --box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.4);
@@ -669,7 +669,13 @@ ul { list-style: none; padding: 0; margin: 0; }
 
 /* Layout specific styles to match other sections */
 .dashboard-container.analytics-page { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
-.sidebar-container { width: 240px; background: #fff; border-right: 1px solid #f1f1f1; padding: 16px 12px; }
+.sidebar-container { 
+    width: 240px; 
+    background: var(--white); 
+    border-right: 1px solid var(--info-light); 
+    padding: 16px 12px; 
+}
+
 .main-wrapper { padding: 18px; }
 .right-section { padding-left: 16px; }
 .request-detail-card h3 { margin-bottom: 8px; }
