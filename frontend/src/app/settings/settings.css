@@ -39,7 +39,7 @@
     --border-radius-1: 0.4rem;
     --border-radius-2: 0.8rem;
     --border-radius-3: 1.2rem;
-    --card-padding: 1.6rem;
+    --card-padding: 1.6rem; 
     
     /* Configurazione Layout Sidebar */
     --sidebar-width: 17rem; 
@@ -103,7 +103,7 @@ p, span, div, li { color: var(--dark); }
 img { display: block; width: 100%; }
 
 /* ==========================================================================
-   4. SIDEBAR
+   4. SIDEBAR (STILE ANALYTICS)
    ========================================================================== */
 .sidebar-container {
     background: var(--white);
@@ -114,8 +114,8 @@ img { display: block; width: 100%; }
     top: 0;
     width: var(--sidebar-width);
     height: 100vh;
-    padding: var(--card-padding);
-    box-shadow: var(--box-shadow);
+    padding-top: 1rem;
+    box-shadow: 1rem 0 2rem rgba(0, 0, 0, 0.05);
     z-index: 3;
     overflow-y: auto;
     transition: var(--transition);
@@ -123,10 +123,11 @@ img { display: block; width: 100%; }
 
 .sidebar-logo {
     display: flex;
-    align-items: center;
     gap: 0.8rem;
+    align-items: center;
+    justify-content: center;
     margin-bottom: 2rem;
-    justify-content: space-between;
+    margin-top: 1rem;
 }
 
 .sidebar-logo > div {
@@ -138,10 +139,13 @@ img { display: block; width: 100%; }
 .sidebar-logo img {
     width: 2rem;
     height: 2rem;
+    object-fit: contain;
 }
 
 .sidebar-logo h2 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
     margin: 0;
 }
 
@@ -167,42 +171,59 @@ img { display: block; width: 100%; }
 .sidebar-menu {
     display: flex;
     flex-direction: column;
+    height: 86vh;
+    position: relative;
+    top: 1rem;
 }
 
 .sidebar-menu a {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
+    gap: 1rem;
     color: var(--info-dark);
-    padding: 0.8rem 1rem;
-    border-radius: var(--border-radius-2);
-    margin-bottom: 0.5rem;
+    margin-left: 2rem;
+    height: 3.7rem;
+    text-decoration: none;
     transition: var(--transition);
     position: relative;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
 }
 
-.sidebar-menu a:hover {
-    background: var(--light);
-    color: var(--primary);
+.sidebar-menu a span {
+    font-size: 1.6rem;
+    transition: var(--transition);
 }
 
+.sidebar-menu a h3 {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 0;
+    transition: var(--transition);
+}
+
+/* HOVER & ACTIVE STATE */
+.sidebar-menu a:hover,
 .sidebar-menu a.active {
-    background: var(--primary-light);
     color: var(--primary);
+    background: var(--light);
+    margin-left: 0;
+    padding-left: 2rem;
+}
+
+.sidebar-menu a:hover span,
+.sidebar-menu a.active span {
+    transform: translateX(3px);
 }
 
 .sidebar-menu a.active::before {
     content: '';
-    position: absolute;
-    left: 0;
-    width: 4px;
+    width: 6px;
     height: 100%;
     background: var(--primary);
-    border-radius: 0 var(--border-radius-2) var(--border-radius-2) 0;
-}
-
-.sidebar-menu a h3 {
-    margin: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
 }
 
 .sidebar-menu a span.material-icons-sharp {
@@ -556,10 +577,10 @@ img { display: block; width: 100%; }
 
 /* Sidebar: evidenzia l'icona nella voce attiva per miglior contrasto */
 .sidebar-menu a.active span.material-icons-sharp {
-    background: var(--primary) !important;
-    color: #ffffff !important;
-    padding: 0.3rem;
-    border-radius: 0.5rem;
+    background: transparent !important;
+    color: var(--primary) !important;
+    padding: 0;
+    border-radius: 0;
 }
 
 /* Pulsanti tema nella header: chiaro/scuro distinti e visibili */
