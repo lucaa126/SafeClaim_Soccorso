@@ -23,10 +23,11 @@
     
     /* Sfondi e Testi Light */
     --white: #ffffff;
-    --light: #f6f6f9;
+    --light: #dcdcdf;
     --dark: #363949;
     --info-dark: #7d8da1;
-    --info-light: #dce1eb;
+    --info-light: #c4c8d1;
+    --checker-light: rgb(181, 184, 189);
     
     /* Varianti Trasparenti */
     --primary-light: rgba(115, 128, 236, 0.18);
@@ -68,6 +69,7 @@
     --info-light: #21262d;
     --box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.4);
     --card-border: 1px solid rgba(255, 255, 255, 0.12);
+    --checker-light: rgb(20, 20, 20);
 }
 
 /* ==========================================================================
@@ -387,8 +389,8 @@ img { display: block; width: 100%; }
 .form-check-input {
     /* --- Dimensioni e Reset --- */
     width: 3.2rem;
-    height: 1.7rem;
-    background-color: #cbd5e1; /* Grigio base */
+    height: 1.8rem;
+    background-color: var(--checker-light)!important; /* Grigio base */
     border: none;
     border-radius: 2rem;
     position: relative;
@@ -409,8 +411,8 @@ img { display: block; width: 100%; }
     left: 3px;
     
     /* Dimensioni Pallino */
-    width: calc(1.7rem - 6px);
-    height: calc(1.7rem - 6px);
+    width: calc(1.7rem - 8px);
+    height: calc(1.7rem - 8px);
     
     /* Stile Pallino - BIANCO PURO per contrasto */
     background-color: #ffffff; 
@@ -438,8 +440,8 @@ img { display: block; width: 100%; }
 }
 
 /* Hover quando attivo */
-.form-check-input:checked:hover {
-    background-color: var(--primary-hover, #4338ca);
+.form-check-input:checked{
+    background-color: var(--primary-hover, #4338ca)!important;
 }
 
 /* Focus per accessibilità */

@@ -18,10 +18,11 @@
     --success: #41f1b6;
     --warning: #ffbb55;
     --white: #ffffff;
-    --light: #f6f6f9;
+    --light: #dcdcdf;
     --dark: #363949;
     --info-dark: #7d8da1;
     --info-light: #dce1eb;
+    --ligth-dark: #dcdcdf;
     
     /* SPAZIATURE E DIMENSIONI */
     --card-border-radius: 1.6rem;
@@ -33,9 +34,10 @@
 
 /* DARK MODE OVERRIDES */
 :host-context(.dark-theme-variables), .dark-theme-variables {
-    --light: #0d1117;
+    --light: #1c1d1f;
     --white: #0d1117;   /* ← stessa tinta dello sfondo */
     --dark: #bababa;
+    --ligth-dark: #21262d;
     --info-dark: #a0aec0;
     --info-light: #21262d; 
     --box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.4);
@@ -105,6 +107,7 @@ ul { list-style: none; padding: 0; margin: 0; }
     top: 1rem; 
 }
 
+
 .sidebar-menu a {
     display: flex; 
     align-items: center; 
@@ -135,7 +138,7 @@ ul { list-style: none; padding: 0; margin: 0; }
 .sidebar-menu a:hover, 
 .sidebar-menu a.active {
     color: var(--primary); 
-    background: var(--light);
+    background-color: var(--info-light) !important;
     margin-left: 0; 
     padding-left: 2rem;
 }
