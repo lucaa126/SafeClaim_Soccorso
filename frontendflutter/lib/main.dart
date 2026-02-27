@@ -28,7 +28,7 @@ class _SoccorsoAppState extends State<SoccorsoApp> {
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
-        colorSchemeSeed: Colors.indigo,
+        colorSchemeSeed: Colors.blue,
         scaffoldBackgroundColor: const Color(0xFFF1F3F9),
         appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFFF1F3F9),
@@ -39,7 +39,7 @@ class _SoccorsoAppState extends State<SoccorsoApp> {
       darkTheme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        colorSchemeSeed: Colors.indigo,
+        colorSchemeSeed: Colors.blue,
         scaffoldBackgroundColor: const Color(0xFF121212),
         appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFF121212),
@@ -74,9 +74,9 @@ class _SettingsPageState extends State<SettingsPage> {
   bool smsEnabled = false;
   bool autoAccept = false;
 
-  // Dati Profilo
+  // Dati Profilo modificabili
   String nomeProfilo = "Officina Centrale";
-  String ruoloProfilo = "Amministratore";
+  String contattiProfilo = "officina@example.com - 02 1234567";
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +94,11 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(width: 16),
         ],
       ),
-      drawer: _buildDrawer(isDark),
+      // Il Drawer è stato avvolto in un SizedBox per occupare tutto lo schermo
+      drawer: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        child: _buildFullScreenDrawer(isDark, context),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Column(
@@ -107,8 +111,6 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildNotificheCard(isDark),
             const SizedBox(height: 24),
             _buildParametriOperativiCard(isDark),
-            const SizedBox(height: 24),
-            _buildQuickInfoCard(isDark),
             const SizedBox(height: 32),
             _buildActionButtons(),
             const SizedBox(height: 40),
@@ -118,38 +120,74 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // --- WIDGET MENU DI NAVIGAZIONE (DRAWER) ---
-  Widget _buildDrawer(bool isDark) {
+  // --- MENU DI NAVIGAZIONE FULL-SCREEN ---
+  Widget _buildFullScreenDrawer(bool isDark, BuildContext context) {
     return Drawer(
       backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       child: SafeArea(
         child: Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Text("SOCCORSO", style: TextStyle(color: Color(0xFFE57373), fontSize: 24, fontWeight: FontWeight.bold)),
+            // Header con Logo e bottone di chiusura
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Text("SOCCORSO", style: TextStyle(color: Color(0xFFE57373), fontSize: 24, fontWeight: FontWeight.bold)),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      icon: const Icon(Icons.close, size: 30),
+                      onPressed: () => Navigator.pop(context), // Chiude il menu
+                    ),
+                  ),
+                ],
+              ),
             ),
-            _sidebarItem(Icons.grid_view_rounded, "Dashboard", isDark),
-            _sidebarItem(Icons.campaign_outlined, "Richieste", isDark),
-            _sidebarItem(Icons.local_shipping_outlined, "Flotta", isDark),
-            _sidebarItem(Icons.analytics_outlined, "Analytics", isDark),
-            _sidebarItem(Icons.settings, "Impostazioni", isDark, isSelected: true),
+            const SizedBox(height: 20),
+            _fullScreenSidebarItem(Icons.grid_view_rounded, "Dashboard", isDark),
+            _fullScreenSidebarItem(Icons.campaign_outlined, "Richieste", isDark),
+            _fullScreenSidebarItem(Icons.local_shipping_outlined, "Flotta", isDark),
+            _fullScreenSidebarItem(Icons.analytics_outlined, "Analytics", isDark),
+            _fullScreenSidebarItem(Icons.settings, "Impostazioni", isDark, isSelected: true),
             const Spacer(),
             const Divider(),
-            _sidebarItem(Icons.logout, "Logout", isDark),
-            const SizedBox(height: 16),
+            _fullScreenSidebarItem(Icons.logout, "Logout", isDark),
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
-  Widget _sidebarItem(IconData icon, String label, bool isDark, {bool isSelected = false}) {
-    return ListTile(
-      leading: Icon(icon, color: isSelected ? Colors.indigo : Colors.grey),
-      title: Text(label, style: TextStyle(color: isSelected ? Colors.indigo : (isDark ? Colors.white70 : Colors.black87), fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-      tileColor: isSelected ? Colors.indigo.withOpacity(0.1) : Colors.transparent,
+  // Voce di menu con testo centrale e icona a sinistra
+  Widget _fullScreenSidebarItem(IconData icon, String label, bool isDark, {bool isSelected = false}) {
+    return InkWell(
       onTap: () {},
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.transparent,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Icona bloccata a sinistra
+            Positioned(
+              left: 32,
+              child: Icon(icon, color: isSelected ? Colors.blue : Colors.grey, size: 28),
+            ),
+            // Testo centrato
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 20,
+                color: isSelected ? Colors.blue : (isDark ? Colors.white70 : Colors.black87),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -161,11 +199,93 @@ class _SettingsPageState extends State<SettingsPage> {
       borderRadius: BorderRadius.circular(8),
       constraints: const BoxConstraints(minHeight: 32, minWidth: 36),
       selectedColor: Colors.white,
-      fillColor: Colors.indigo,
+      fillColor: Colors.blue,
       children: const [
         Icon(Icons.wb_sunny_outlined, size: 18),
         Icon(Icons.nightlight_round, size: 18)
       ],
+    );
+  }
+
+  // --- PROFILO E MODALE DI MODIFICA ---
+  Widget _buildProfileCard(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [if(!isDark) BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+      ),
+      child: Column(
+        children: [
+          const CircleAvatar(radius: 45, backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11')),
+          const SizedBox(height: 16),
+          Text(nomeProfilo, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(contattiProfilo, style: const TextStyle(color: Colors.grey, fontSize: 14)), // Ora mostra i contatti
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () => _mostraModaleModificaProfilo(isDark),
+            icon: const Icon(Icons.edit, size: 18),
+            label: const Text("Modifica Profilo"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue, // Tasto blu
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 50),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void _mostraModaleModificaProfilo(bool isDark) {
+    TextEditingController nomeController = TextEditingController(text: nomeProfilo);
+    TextEditingController contattiController = TextEditingController(text: contattiProfilo); // Cambiato da Ruolo a Contatti
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 24, right: 24, top: 32,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Modifica i tuoi dati", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 24),
+              _customTextField("Nome Completo / Officina", "", isDark, controller: nomeController),
+              const SizedBox(height: 16),
+              _customTextField("Contatti (Email/Telefono)", "", isDark, controller: contattiController), // Campo Contatti
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    nomeProfilo = nomeController.text;
+                    contattiProfilo = contattiController.text; // Salva i contatti
+                  });
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 55),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text("Salva Modifiche", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -185,8 +305,8 @@ class _SettingsPageState extends State<SettingsPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.indigo.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                child: Icon(icon, color: Colors.indigo, size: 22),
+                decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                child: Icon(icon, color: Colors.blue, size: 22),
               ),
               const SizedBox(width: 12),
               Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -196,89 +316,6 @@ class _SettingsPageState extends State<SettingsPage> {
           Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
         ],
       ),
-    );
-  }
-
-  // --- PROFILO E MODALE DI MODIFICA ---
-  Widget _buildProfileCard(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [if(!isDark) BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
-      ),
-      child: Column(
-        children: [
-          const CircleAvatar(radius: 45, backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11')),
-          const SizedBox(height: 16),
-          Text(nomeProfilo, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          Text(ruoloProfilo, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: () => _mostraModaleModificaProfilo(isDark),
-            icon: const Icon(Icons.edit, size: 18),
-            label: const Text("Modifica Profilo"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2979FF),
-              foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  void _mostraModaleModificaProfilo(bool isDark) {
-    // Controller temporanei per i campi del form
-    TextEditingController nomeController = TextEditingController(text: nomeProfilo);
-    TextEditingController ruoloController = TextEditingController(text: ruoloProfilo);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true, // Permette al modale di salire se si apre la tastiera
-      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom, // Gestisce l'altezza della tastiera
-            left: 24, right: 24, top: 32,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("Modifica i tuoi dati", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 24),
-              _customTextField("Nome Completo / Officina", "", isDark, controller: nomeController),
-              const SizedBox(height: 16),
-              _customTextField("Ruolo", "", isDark, controller: ruoloController),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    nomeProfilo = nomeController.text;
-                    ruoloProfilo = ruoloController.text;
-                  });
-                  Navigator.pop(context); // Chiude il modale
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.indigo,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 55),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: const Text("Salva Modifiche", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        );
-      },
     );
   }
 
@@ -342,30 +379,7 @@ class _SettingsPageState extends State<SettingsPage> {
     ],
   );
 
-  Widget _buildQuickInfoCard(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [if(!isDark) BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text("Assistenza", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-          const SizedBox(height: 16),
-          _quickInfoRow(Icons.headset_mic_outlined, "Supporto Tecnico", "supporto@soccorso.it"),
-          const Divider(height: 24),
-          _quickInfoRow(Icons.description_outlined, "Termini e Condizioni", "Leggi il documento"),
-        ],
-      ),
-    );
-  }
-
-  // --- WIDGETS GRAFICI MIGLIORATI ---
-  
-  // Campo di testo migliorato
+  // --- WIDGETS GRAFICI ---
   Widget _customTextField(String label, String hint, bool isDark, {TextEditingController? controller}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -387,7 +401,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // Switch Interattivo ridisegnato (Stile "Tile" moderna)
   Widget _enhancedSwitchRow({
     required String title, required String subtitle, required IconData icon,
     required bool value, required bool isDark, required Function(bool) onChanged
@@ -404,8 +417,8 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: Colors.indigo.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: Colors.indigo, size: 20),
+            decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: Colors.blue, size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -418,33 +431,16 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
           ),
-          Switch.adaptive( // Adaptive usa lo stile di iOS su iPhone e Material su Android
+          Switch( 
             value: value, 
             onChanged: onChanged, 
-            activeColor: Colors.white,
-            activeTrackColor: Colors.green,
+            activeColor: Colors.white, // Pallino bianco
+            activeTrackColor: Colors.blue, // Sfondo blu quando acceso
+            inactiveThumbColor: isDark ? Colors.grey[400] : Colors.grey[600],
+            inactiveTrackColor: isDark ? Colors.grey[800] : Colors.grey[300],
           ),
         ],
       ),
-    );
-  }
-
-  Widget _quickInfoRow(IconData icon, String title, String value) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.indigo, size: 20),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              Text(value, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-            ],
-          ),
-        ),
-        const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
-      ],
     );
   }
 
@@ -455,13 +451,26 @@ class _SettingsPageState extends State<SettingsPage> {
         ElevatedButton(
           onPressed: () {},
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.indigo,
+            backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 18),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             elevation: 2,
           ),
           child: const Text("Salva tutte le impostazioni", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        ),
+        const SizedBox(height: 12),
+        // Tasto Reset aggiunto
+        OutlinedButton.icon(
+          onPressed: () {},
+          icon: const Icon(Icons.refresh, size: 18),
+          label: const Text("Reimposta ai valori di fabbrica", style: TextStyle(fontWeight: FontWeight.bold)),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.redAccent,
+            side: const BorderSide(color: Colors.redAccent),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
         ),
       ],
     );
