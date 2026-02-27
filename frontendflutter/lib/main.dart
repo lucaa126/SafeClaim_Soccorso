@@ -94,7 +94,6 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(width: 16),
         ],
       ),
-      // Il Drawer è stato avvolto in un SizedBox per occupare tutto lo schermo
       drawer: SizedBox(
         width: MediaQuery.of(context).size.width,
         child: _buildFullScreenDrawer(isDark, context),
@@ -127,7 +126,6 @@ class _SettingsPageState extends State<SettingsPage> {
       child: SafeArea(
         child: Column(
           children: [
-            // Header con Logo e bottone di chiusura
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: Stack(
@@ -138,7 +136,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     alignment: Alignment.centerRight,
                     child: IconButton(
                       icon: const Icon(Icons.close, size: 30),
-                      onPressed: () => Navigator.pop(context), // Chiude il menu
+                      onPressed: () => Navigator.pop(context), 
                     ),
                   ),
                 ],
@@ -160,7 +158,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // Voce di menu con testo centrale e icona a sinistra
   Widget _fullScreenSidebarItem(IconData icon, String label, bool isDark, {bool isSelected = false}) {
     return InkWell(
       onTap: () {},
@@ -171,12 +168,10 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Icona bloccata a sinistra
             Positioned(
               left: 32,
               child: Icon(icon, color: isSelected ? Colors.blue : Colors.grey, size: 28),
             ),
-            // Testo centrato
             Text(
               label,
               style: TextStyle(
@@ -221,14 +216,14 @@ class _SettingsPageState extends State<SettingsPage> {
           const CircleAvatar(radius: 45, backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11')),
           const SizedBox(height: 16),
           Text(nomeProfilo, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          Text(contattiProfilo, style: const TextStyle(color: Colors.grey, fontSize: 14)), // Ora mostra i contatti
+          Text(contattiProfilo, style: const TextStyle(color: Colors.grey, fontSize: 14)), 
           const SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: () => _mostraModaleModificaProfilo(isDark),
             icon: const Icon(Icons.edit, size: 18),
             label: const Text("Modifica Profilo"),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue, // Tasto blu
+              backgroundColor: Colors.blue, 
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 50),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -242,7 +237,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _mostraModaleModificaProfilo(bool isDark) {
     TextEditingController nomeController = TextEditingController(text: nomeProfilo);
-    TextEditingController contattiController = TextEditingController(text: contattiProfilo); // Cambiato da Ruolo a Contatti
+    TextEditingController contattiController = TextEditingController(text: contattiProfilo); 
 
     showModalBottomSheet(
       context: context,
@@ -263,13 +258,13 @@ class _SettingsPageState extends State<SettingsPage> {
               const SizedBox(height: 24),
               _customTextField("Nome Completo / Officina", "", isDark, controller: nomeController),
               const SizedBox(height: 16),
-              _customTextField("Contatti (Email/Telefono)", "", isDark, controller: contattiController), // Campo Contatti
+              _customTextField("Contatti (Email/Telefono)", "", isDark, controller: contattiController), 
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: () {
                   setState(() {
                     nomeProfilo = nomeController.text;
-                    contattiProfilo = contattiController.text; // Salva i contatti
+                    contattiProfilo = contattiController.text; 
                   });
                   Navigator.pop(context);
                 },
@@ -391,7 +386,8 @@ class _SettingsPageState extends State<SettingsPage> {
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
-            fillColor: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB),
+            // Modifica applicata: 0xFF282828 è appena più chiaro del 0xFF1E1E1E dello sfondo del modale
+            fillColor: isDark ? const Color(0xFF282828) : const Color(0xFFF9FAFB),
             isDense: true,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -434,8 +430,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Switch( 
             value: value, 
             onChanged: onChanged, 
-            activeColor: Colors.white, // Pallino bianco
-            activeTrackColor: Colors.blue, // Sfondo blu quando acceso
+            activeColor: Colors.white, 
+            activeTrackColor: Colors.blue, 
             inactiveThumbColor: isDark ? Colors.grey[400] : Colors.grey[600],
             inactiveTrackColor: isDark ? Colors.grey[800] : Colors.grey[300],
           ),
@@ -460,7 +456,6 @@ class _SettingsPageState extends State<SettingsPage> {
           child: const Text("Salva tutte le impostazioni", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         ),
         const SizedBox(height: 12),
-        // Tasto Reset aggiunto
         OutlinedButton.icon(
           onPressed: () {},
           icon: const Icon(Icons.refresh, size: 18),
