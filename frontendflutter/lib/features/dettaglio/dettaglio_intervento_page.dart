@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/routes.dart';
 import '../../widgets/app_drawer.dart';
@@ -7,12 +10,56 @@ import '../dashboard/dashboard_page.dart';
 class DettaglioArgs {
   final String id;
   final String cliente;
-  const DettaglioArgs({required this.id, required this.cliente});
+  final double lat;
+  final double lng;
+
+  const DettaglioArgs({
+    required this.id,
+    required this.cliente,
+    this.lat = 45.4642,
+    this.lng = 9.1900,
+  });
 }
 
-class DettaglioInterventoPage extends StatelessWidget {
+class DettaglioInterventoPage extends StatefulWidget {
   final DettaglioArgs args;
   const DettaglioInterventoPage({super.key, required this.args});
+
+  @override
+  State<DettaglioInterventoPage> createState() =>
+      _DettaglioInterventoPageState();
+}
+
+class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
+  late final MapController _mapController;
+  late double _zoom;
+
+  LatLng get _interventoPoint => LatLng(widget.args.lat, widget.args.lng);
+
+  @override
+  void initState() {
+    super.initState();
+    _mapController = MapController();
+    _zoom = 13;
+  }
+
+  Future<void> _setZoom(double zoom) async {
+    final nextZoom = zoom.clamp(5.0, 18.0);
+    setState(() => _zoom = nextZoom);
+    _mapController.move(_interventoPoint, nextZoom);
+  }
+
+  Future<void> _openNavigation() async {
+    final uri = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=${widget.args.lat},${widget.args.lng}&travelmode=driving',
+    );
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
+        mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossibile aprire Google Maps.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,17 +102,21 @@ class DettaglioInterventoPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("ID:",
-                                style: TextStyle(
-                                  color: isDark ? Colors.white70 : Colors.grey,
-                                  fontWeight: FontWeight.w800,
-                                )),
+                            Text(
+                              "ID:",
+                              style: TextStyle(
+                                color: isDark ? Colors.white70 : Colors.grey,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                             const SizedBox(height: 10),
-                            Text("Cliente:",
-                                style: TextStyle(
-                                  color: isDark ? Colors.white70 : Colors.grey,
-                                  fontWeight: FontWeight.w800,
-                                )),
+                            Text(
+                              "Cliente:",
+                              style: TextStyle(
+                                color: isDark ? Colors.white70 : Colors.grey,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -73,20 +124,24 @@ class DettaglioInterventoPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            args.id,
+                            widget.args.id,
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w900,
-                              color: isDark ? Colors.white : const Color(0xFF111827),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF111827),
                             ),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            args.cliente,
+                            widget.args.cliente,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : const Color(0xFF111827),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF111827),
                             ),
                           ),
                         ],
@@ -98,43 +153,88 @@ class DettaglioInterventoPage extends StatelessWidget {
                   // Mappa (mock UI)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(18),
-                    child: Container(
+                    child: SizedBox(
                       height: 260,
-                      color: isDark ? const Color(0xFF1F1F1F) : const Color(0xFFEFEFEF),
                       child: Stack(
                         children: [
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Container(
-                              width: 120,
-                              color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFF2F3A44),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 16),
-                                  _zoomBox(isDark),
+                          FlutterMap(
+                            mapController: _mapController,
+                            options: MapOptions(
+                              initialCenter: _interventoPoint,
+                              initialZoom: _zoom,
+                              minZoom: 5,
+                              maxZoom: 19,
+                            ),
+                            children: [
+                              TileLayer(
+                                urlTemplate:
+                                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                userAgentPackageName:
+                                    'com.safeclaim.frontendflutter',
+                              ),
+                              MarkerLayer(
+                                markers: [
+                                  Marker(
+                                    point: _interventoPoint,
+                                    width: 56,
+                                    height: 56,
+                                    child: const Icon(
+                                      Icons.location_on_rounded,
+                                      size: 44,
+                                      color: Color(0xFF6A7AF4),
+                                    ),
+                                  ),
                                 ],
+                              ),
+                            ],
+                          ),
+                          Positioned(
+                            left: 16,
+                            top: 16,
+                            child: _zoomBox(isDark),
+                          ),
+                          Positioned(
+                            left: 86,
+                            top: 20,
+                            child: _tooltipBubble(isDark),
+                          ),
+                          Positioned(
+                            right: 12,
+                            top: 12,
+                            child: Material(
+                              color: isDark
+                                  ? const Color(0xCC2C2C2C)
+                                  : const Color(0xF2FFFFFF),
+                              borderRadius: BorderRadius.circular(14),
+                              child: InkWell(
+                                onTap: _openNavigation,
+                                borderRadius: BorderRadius.circular(14),
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.navigation_rounded,
+                                        size: 18,
+                                        color: Color(0xFF6A7AF4),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        "Apri Maps",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-
-                          // pin
-                          Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: const [
-                                Icon(Icons.location_on_rounded, size: 44, color: Color(0xFF6A7AF4)),
-                              ],
-                            ),
-                          ),
-
-                          // tooltip
-                          Positioned(
-                            left: 150,
-                            top: 28,
-                            child: _tooltipBubble(isDark),
-                          ),
-
                           Positioned(
                             right: 12,
                             bottom: 10,
@@ -143,7 +243,9 @@ class DettaglioInterventoPage extends StatelessWidget {
                               child: Text(
                                 "Leaflet | © OpenStreetMap",
                                 style: TextStyle(
-                                  color: isDark ? Colors.white70 : Colors.black87,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.black87,
                                   fontWeight: FontWeight.w700,
                                   fontSize: 11,
                                 ),
@@ -172,7 +274,10 @@ class DettaglioInterventoPage extends StatelessWidget {
                       ),
                       child: const Text(
                         "Prendi in Carico",
-                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),
@@ -183,7 +288,10 @@ class DettaglioInterventoPage extends StatelessWidget {
                       onPressed: () {},
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFFFF4D5A),
-                        side: const BorderSide(color: Color(0xFFFF4D5A), width: 2),
+                        side: const BorderSide(
+                          color: Color(0xFFFF4D5A),
+                          width: 2,
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -191,7 +299,10 @@ class DettaglioInterventoPage extends StatelessWidget {
                       ),
                       child: const Text(
                         "Rifiuta",
-                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),
@@ -213,9 +324,11 @@ class DettaglioInterventoPage extends StatelessWidget {
                 const Spacer(),
                 IconButton(
                   onPressed: () {},
-                  icon: Icon(Icons.refresh_rounded,
-                      color: isDark ? Colors.white70 : Colors.black54),
-                )
+                  icon: Icon(
+                    Icons.refresh_rounded,
+                    color: isDark ? Colors.white70 : Colors.black54,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -264,21 +377,28 @@ class DettaglioInterventoPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           if (!isDark)
-            BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 14),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 14,
+            ),
         ],
       ),
       child: Column(
         children: [
           IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.add_rounded,
-                color: isDark ? Colors.white : Colors.black87),
+            onPressed: () => _setZoom(_zoom + 1),
+            icon: Icon(
+              Icons.add_rounded,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
           ),
           Divider(height: 1, color: isDark ? Colors.white12 : Colors.black12),
           IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.remove_rounded,
-                color: isDark ? Colors.white : Colors.black87),
+            onPressed: () => _setZoom(_zoom - 1),
+            icon: Icon(
+              Icons.remove_rounded,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
           ),
         ],
       ),
@@ -289,10 +409,14 @@ class DettaglioInterventoPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+        color: isDark ? const Color(0xE62C2C2C) : const Color(0xF7FFFFFF),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          if (!isDark) BoxShadow(color: Colors.black.withOpacity(0.10), blurRadius: 18)
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.10),
+              blurRadius: 18,
+            ),
         ],
       ),
       child: Row(
@@ -311,16 +435,20 @@ class DettaglioInterventoPage extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                "Intervento Richiesto",
+                "${widget.args.lat.toStringAsFixed(4)}, ${widget.args.lng.toStringAsFixed(4)}",
                 style: TextStyle(
                   color: isDark ? Colors.white70 : Colors.grey,
                   fontWeight: FontWeight.w600,
                 ),
-              )
+              ),
             ],
           ),
           const SizedBox(width: 14),
-          Icon(Icons.close_rounded, size: 18, color: isDark ? Colors.white : Colors.black54),
+          Icon(
+            Icons.close_rounded,
+            size: 18,
+            color: isDark ? Colors.white : Colors.black54,
+          ),
         ],
       ),
     );
@@ -401,7 +529,7 @@ Widget _card({
       boxShadow: [
         if (!isDark)
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
