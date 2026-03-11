@@ -10,6 +10,7 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final showDettaglio = currentRoute == Routes.dettaglio;
 
     return Drawer(
       backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
@@ -47,6 +48,14 @@ class AppDrawer extends StatelessWidget {
               isDark,
               Routes.dashboard,
             ),
+            if (showDettaglio)
+              _fullScreenSidebarItem(
+                context,
+                Icons.location_on_outlined,
+                "Dettaglio Intervento",
+                isDark,
+                Routes.dettaglio,
+              ),
             _fullScreenSidebarItem(
               context,
               Icons.campaign_outlined,
@@ -104,7 +113,15 @@ class AppDrawer extends StatelessWidget {
       onTap: () {
         Navigator.pop(context); // Chiude il drawer
         if (!isSelected) {
-          Navigator.pushReplacementNamed(context, route);
+          if (route == Routes.dashboard) {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              Routes.dashboard,
+              (route) => false,
+            );
+          } else {
+            Navigator.pushReplacementNamed(context, route);
+          }
         }
       },
       child: Container(

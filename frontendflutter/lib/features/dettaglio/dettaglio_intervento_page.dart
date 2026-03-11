@@ -83,7 +83,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
       ),
       drawer: SizedBox(
         width: MediaQuery.of(context).size.width,
-        child: const AppDrawer(currentRoute: Routes.dashboard),
+        child: const AppDrawer(currentRoute: Routes.dettaglio),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
