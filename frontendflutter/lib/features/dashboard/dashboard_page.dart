@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../app/app.dart';
 import '../../app/routes.dart';
@@ -35,32 +37,58 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   bool operativoOnline = true;
+  late final MapController _mapController;
+  late _QueueRow _selectedRichiesta;
 
   final richieste = const [
     _QueueRow(
+      id: 'SOS-2491',
       tipo: '(Furgone)',
-      posizione: 'Mappa',
+      cliente: '+39 333 1234567',
+      posizione: 'Milano Centro',
+      lat: 45.4642,
+      lng: 9.1900,
       statusKind: _StatusKind.pending,
       statusText: 'In Attesa',
       actionText: 'Accetta',
       actionKind: _ActionKind.outlinePrimary,
     ),
     _QueueRow(
+      id: 'SOS-2492',
       tipo: '(SUV)',
-      posizione: 'Mappa',
+      cliente: '+39 338 9876543',
+      posizione: 'Rho Fiera',
+      lat: 45.5184,
+      lng: 9.0519,
       statusKind: _StatusKind.accepted,
       statusText: 'accepted',
       actionText: 'Completa',
       actionKind: _ActionKind.filledSuccess,
     ),
     _QueueRow(
-      tipo: '',
-      posizione: 'Mappa',
+      id: 'SOS-2488',
+      tipo: '(City Car)',
+      cliente: '+39 339 0000000',
+      posizione: 'Linate',
+      lat: 45.4610,
+      lng: 9.2782,
       statusKind: _StatusKind.handled,
       statusText: 'handled',
       actionKind: _ActionKind.none,
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _mapController = MapController();
+    _selectedRichiesta = richieste.first;
+  }
+
+  void _focusRichiesta(_QueueRow richiesta) {
+    setState(() => _selectedRichiesta = richiesta);
+    _mapController.move(LatLng(richiesta.lat, richiesta.lng), 13.8);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -218,6 +246,7 @@ class _DashboardPageState extends State<DashboardPage> {
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: DataTable(
+                  showCheckboxColumn: false,
                   headingTextStyle: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: isDark ? Colors.white : Colors.black87,
@@ -237,14 +266,188 @@ class _DashboardPageState extends State<DashboardPage> {
                       cells: [
                         DataCell(
                           _buildPosizioneCell(isDark, r.posizione),
-                          onTap: () => _openDettaglio(context),
+                          onTap: () => _focusRichiesta(r),
                         ),
-                        DataCell(_statusChip(isDark, r.statusKind)),
-                        DataCell(_buildActionButtons(context, r.statusKind)),
+                        DataCell(
+                          _statusChip(isDark, r.statusKind),
+                          onTap: () => _focusRichiesta(r),
+                        ),
+                        DataCell(
+                          _buildActionButtons(context, r),
+                          onTap: () => _focusRichiesta(r),
+                        ),
                       ],
                     );
                   }).toList(),
                 ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              "Mappa Intervento",
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: isDark ? Colors.white : const Color(0xFF374151),
+                letterSpacing: -0.6,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _card(
+              isDark: isDark,
+              color: cardColor,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF6A7AF4),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.location_on_rounded,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _selectedRichiesta.id,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF111827),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${_selectedRichiesta.posizione} ${_selectedRichiesta.tipo}',
+                              style: TextStyle(
+                                color: isDark ? Colors.white70 : Colors.grey,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: SizedBox(
+                      height: 280,
+                      child: Stack(
+                        children: [
+                          FlutterMap(
+                            mapController: _mapController,
+                            options: MapOptions(
+                              initialCenter: LatLng(
+                                _selectedRichiesta.lat,
+                                _selectedRichiesta.lng,
+                              ),
+                              initialZoom: 13.8,
+                              minZoom: 5,
+                              maxZoom: 19,
+                            ),
+                            children: [
+                              TileLayer(
+                                urlTemplate:
+                                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                userAgentPackageName:
+                                    'com.safeclaim.frontendflutter',
+                              ),
+                              MarkerLayer(
+                                markers: [
+                                  Marker(
+                                    point: LatLng(
+                                      _selectedRichiesta.lat,
+                                      _selectedRichiesta.lng,
+                                    ),
+                                    width: 56,
+                                    height: 56,
+                                    child: const Icon(
+                                      Icons.location_on_rounded,
+                                      size: 44,
+                                      color: Color(0xFF6A7AF4),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          Positioned(
+                            left: 12,
+                            top: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xE62C2C2C)
+                                    : const Color(0xF7FFFFFF),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Veicolo fermo",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF111827),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${_selectedRichiesta.lat.toStringAsFixed(4)}, ${_selectedRichiesta.lng.toStringAsFixed(4)}',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.grey,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            right: 12,
+                            bottom: 10,
+                            child: Opacity(
+                              opacity: 0.55,
+                              child: Text(
+                                "Leaflet | © OpenStreetMap",
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.black87,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 40),
@@ -275,32 +478,37 @@ Widget _buildPosizioneCell(bool isDark, String label) {
   );
 }
 
-Widget _buildActionButtons(BuildContext context, _StatusKind status) {
+Widget _buildActionButtons(BuildContext context, _QueueRow richiesta) {
   return Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      if (status == _StatusKind.pending) ...[
+      if (richiesta.statusKind == _StatusKind.pending) ...[
         _iconButton(
           icon: Icons.check,
           color: Colors.green,
-          onTap: () => _openDettaglio(context),
+          onTap: () => _openDettaglio(context, richiesta),
         ),
         const SizedBox(width: 8),
       ],
       _iconButton(
         icon: Icons.close,
         color: Colors.redAccent,
-        onTap: () => _openDettaglio(context),
+        onTap: () => _openDettaglio(context, richiesta),
       ),
     ],
   );
 }
 
-void _openDettaglio(BuildContext context) {
+void _openDettaglio(BuildContext context, _QueueRow richiesta) {
   Navigator.pushNamed(
     context,
     Routes.dettaglio,
-    arguments: const DettaglioArgs(id: 'SOS-2491', cliente: '+39 333 1234567'),
+    arguments: DettaglioArgs(
+      id: richiesta.id,
+      cliente: richiesta.cliente,
+      lat: richiesta.lat,
+      lng: richiesta.lng,
+    ),
   );
 }
 
@@ -440,16 +648,24 @@ Widget _statusChip(bool isDark, _StatusKind kind) {
 }
 
 class _QueueRow {
+  final String id;
   final String tipo;
+  final String cliente;
   final String posizione;
+  final double lat;
+  final double lng;
   final _StatusKind statusKind;
   final String statusText;
   final String actionText;
   final _ActionKind actionKind;
 
   const _QueueRow({
+    required this.id,
     required this.tipo,
+    required this.cliente,
     required this.posizione,
+    required this.lat,
+    required this.lng,
     required this.statusKind,
     this.statusText = '',
     this.actionText = '',
