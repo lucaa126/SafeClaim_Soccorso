@@ -235,7 +235,10 @@ class _DashboardPageState extends State<DashboardPage> {
                   rows: richieste.map((r) {
                     return DataRow(
                       cells: [
-                        DataCell(_buildPosizioneCell(isDark, r.posizione)),
+                        DataCell(
+                          _buildPosizioneCell(isDark, r.posizione),
+                          onTap: () => _openDettaglio(context),
+                        ),
                         DataCell(_statusChip(isDark, r.statusKind)),
                         DataCell(_buildActionButtons(context, r.statusKind)),
                       ],
@@ -250,87 +253,81 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
     );
   }
+}
 
-
-  }
-
-  Widget _buildPosizioneCell(bool isDark, String label) {
-    return Row(
-      children: [
-        Icon(
-          Icons.location_on_rounded,
-          size: 16,
-          color: isDark ? Colors.white : Colors.black87,
+Widget _buildPosizioneCell(bool isDark, String label) {
+  return Row(
+    children: [
+      Icon(
+        Icons.location_on_rounded,
+        size: 16,
+        color: isDark ? Colors.white : Colors.black87,
+      ),
+      const SizedBox(width: 6),
+      Text(
+        label,
+        style: const TextStyle(
+          color: Color(0xFF6A7AF4),
+          fontWeight: FontWeight.w900,
         ),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xFF6A7AF4),
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
-  Widget _buildActionButtons(BuildContext context, _StatusKind status) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (status == _StatusKind.pending) ...[
-          _iconButton(
-            icon: Icons.check,
-            color: Colors.green,
-            onTap: () => _openDettaglio(context),
-          ),
-          const SizedBox(width: 8),
-        ],
+Widget _buildActionButtons(BuildContext context, _StatusKind status) {
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      if (status == _StatusKind.pending) ...[
         _iconButton(
-          icon: Icons.close,
-          color: Colors.redAccent,
+          icon: Icons.check,
+          color: Colors.green,
           onTap: () => _openDettaglio(context),
         ),
+        const SizedBox(width: 8),
       ],
-    );
-  }
-
-  void _openDettaglio(BuildContext context) {
-    Navigator.pushNamed(
-      context,
-      Routes.dettaglio,
-      arguments: const DettaglioArgs(
-        id: 'SOS-2491',
-        cliente: '+39 333 1234567',
+      _iconButton(
+        icon: Icons.close,
+        color: Colors.redAccent,
+        onTap: () => _openDettaglio(context),
       ),
-    );
-  }
+    ],
+  );
+}
 
-  Widget _iconButton({
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        shape: BoxShape.circle,
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Icon(icon, color: color, size: 18),
-          ),
+void _openDettaglio(BuildContext context) {
+  Navigator.pushNamed(
+    context,
+    Routes.dettaglio,
+    arguments: const DettaglioArgs(id: 'SOS-2491', cliente: '+39 333 1234567'),
+  );
+}
+
+Widget _iconButton({
+  required IconData icon,
+  required Color color,
+  required VoidCallback onTap,
+}) {
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.transparent,
+      shape: BoxShape.circle,
+      border: Border.all(color: color.withValues(alpha: 0.5)),
+    ),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Icon(icon, color: color, size: 18),
         ),
       ),
-    );
-  }
-
+    ),
+  );
+}
 
 Widget _card({
   required bool isDark,
