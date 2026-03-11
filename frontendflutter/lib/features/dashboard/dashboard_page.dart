@@ -309,21 +309,21 @@ Widget _iconButton({
   required Color color,
   required VoidCallback onTap,
 }) {
-  return Container(
-    decoration: BoxDecoration(
-      color: Colors.transparent,
-      shape: BoxShape.circle,
-      border: Border.all(color: color.withValues(alpha: 0.5)),
-    ),
-    child: Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Icon(icon, color: color, size: 18),
+  return Material(
+    color: Colors.transparent,
+    shape: const CircleBorder(),
+    child: InkWell(
+      customBorder: const CircleBorder(),
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: color.withValues(alpha: 0.85), width: 3),
         ),
+        child: Icon(icon, color: color, size: 18),
       ),
     ),
   );

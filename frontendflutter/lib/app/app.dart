@@ -12,14 +12,14 @@ class SoccorsoApp extends StatefulWidget {
   const SoccorsoApp({super.key});
 
   // Metodo statico per accedere al cambio tema da qualsiasi pagina
-  static _SoccorsoAppState of(BuildContext context) =>
-      context.findAncestorStateOfType<_SoccorsoAppState>()!;
+  static SoccorsoAppState of(BuildContext context) =>
+      context.findAncestorStateOfType<SoccorsoAppState>()!;
 
   @override
-  State<SoccorsoApp> createState() => _SoccorsoAppState();
+  State<SoccorsoApp> createState() => SoccorsoAppState();
 }
 
-class _SoccorsoAppState extends State<SoccorsoApp> {
+class SoccorsoAppState extends State<SoccorsoApp> {
   ThemeMode _themeMode = ThemeMode.dark;
 
   void toggleTheme(bool isDark) {
@@ -67,11 +67,13 @@ class _SoccorsoAppState extends State<SoccorsoApp> {
         Routes.impostazioni: (_) => const SettingsPage(),
         Routes.flotta: (_) => const FlottaPage(),
         Routes.analytics: (_) => const AnalyticsPage(),
-        Routes.logout: (_) => const PlaceholderPage(title: 'Logout', currentRoute: Routes.logout),
+        Routes.logout: (_) =>
+            const PlaceholderPage(title: 'Logout', currentRoute: Routes.logout),
       },
       onGenerateRoute: (settings) {
         if (settings.name == Routes.dettaglio) {
-          final args = (settings.arguments as DettaglioArgs?) ??
+          final args =
+              (settings.arguments as DettaglioArgs?) ??
               const DettaglioArgs(id: 'SOS-2491', cliente: '+39 333 1234567');
           return MaterialPageRoute(
             builder: (_) => DettaglioInterventoPage(args: args),
