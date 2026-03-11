@@ -27,60 +27,89 @@ class Review {
 }
 
 class AnalyticsService {
+  // Simula una chiamata API con un delay casuale
+  Future<T> _simulateApiCall<T>(T data, {int minDelay = 300, int maxDelay = 800, String endpoint = 'API'}) async {
+    final delay = minDelay + (DateTime.now().microsecond % (maxDelay - minDelay));
+    print('🔵 [$endpoint] Inizio chiamata API...');
+    print('   ⏱️  Delay: ${delay}ms');
+    await Future.delayed(Duration(milliseconds: delay));
+    print('✅ [$endpoint] Risposta ricevuta con successo');
+    return data;
+  }
+
   // ===== STATISTICHE RICHIESTE =====
-  int getTotalRequests() => 1250;
-  int getPending() => 325;
-  int getAccepted() => 350;
-  int getHandled() => 1085;
+  Future<int> getTotalRequests() async {
+    return await _simulateApiCall(1250, endpoint: 'getTotalRequests');
+  }
+
+  Future<int> getPending() async {
+    return await _simulateApiCall(325, endpoint: 'getPending');
+  }
+
+  Future<int> getAccepted() async {
+    return await _simulateApiCall(350, endpoint: 'getAccepted');
+  }
+
+  Future<int> getHandled() async {
+    return await _simulateApiCall(1085, endpoint: 'getHandled');
+  }
 
   // ===== DATI STATISTICI =====
-  List<int> getRequestsOverLastDays(int days) {
-    return [120, 145, 132, 150, 110, 160, 140];
+  Future<List<int>> getRequestsOverLastDays(int days) async {
+    return await _simulateApiCall([120, 145, 132, 150, 110, 160, 140], endpoint: 'getRequestsOverLastDays');
   }
 
   int getMaxRequestsValue() {
-    final values = getRequestsOverLastDays(7);
+    final values = [120, 145, 132, 150, 110, 160, 140];
     return values.isEmpty ? 1 : values.reduce((a, b) => a > b ? a : b);
   }
 
-  int getAverageHandlingTimeMinutes() => 34;
+  Future<int> getAverageHandlingTimeMinutes() async {
+    return await _simulateApiCall(34, endpoint: 'getAverageHandlingTimeMinutes');
+  }
 
   // ===== STATO FLOTTA =====
-  Map<String, int> getFleetStatusCounts() => {
-        'available': 12,
-        'busy': 8,
-        'maintenance': 3,
-      };
+  Future<Map<String, int>> getFleetStatusCounts() async {
+    return await _simulateApiCall({
+      'available': 12,
+      'busy': 8,
+      'maintenance': 3,
+    }, endpoint: 'getFleetStatusCounts');
+  }
 
   // ===== RECENSIONI =====
-  List<Review> getRecentReviews() => [
-        Review(
-          author: 'Mario R.',
-          rating: 5,
-          comment: 'Servizio rapidissimo.',
-          date: DateTime.now().subtract(const Duration(days: 2)),
-        ),
-        Review(
-          author: 'Anna B.',
-          rating: 4,
-          comment: 'Attesa lunga ma risolto.',
-          date: DateTime.now().subtract(const Duration(days: 1)),
-        ),
-        Review(
-          author: 'Giovanni M.',
-          rating: 5,
-          comment: 'Professionali e gentili.',
-          date: DateTime.now(),
-        ),
-        Review(
-          author: 'Elena S.',
-          rating: 3,
-          comment: 'Potrebbe essere più veloce.',
-          date: DateTime.now().subtract(const Duration(hours: 12)),
-        ),
-      ];
+  Future<List<Review>> getRecentReviews() async {
+    return await _simulateApiCall([
+      Review(
+        author: 'Mario R.',
+        rating: 5,
+        comment: 'Servizio rapidissimo.',
+        date: DateTime.now().subtract(const Duration(days: 2)),
+      ),
+      Review(
+        author: 'Anna B.',
+        rating: 4,
+        comment: 'Attesa lunga ma risolto.',
+        date: DateTime.now().subtract(const Duration(days: 1)),
+      ),
+      Review(
+        author: 'Giovanni M.',
+        rating: 5,
+        comment: 'Professionali e gentili.',
+        date: DateTime.now(),
+      ),
+      Review(
+        author: 'Elena S.',
+        rating: 3,
+        comment: 'Potrebbe essere più veloce.',
+        date: DateTime.now().subtract(const Duration(hours: 12)),
+      ),
+    ], endpoint: 'getRecentReviews');
+  }
 
-  double getAverageRating() => 4.25;
+  Future<double> getAverageRating() async {
+    return await _simulateApiCall(4.25, endpoint: 'getAverageRating');
+  }
 
   // ===== TRAFFICO LIVE =====
   Future<List<TrafficIncident>> getRealTimeTraffic(String city) async {

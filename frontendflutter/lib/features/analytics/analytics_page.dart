@@ -17,16 +17,17 @@ class _AnalyticsPageState extends State<AnalyticsPage>
   final AnalyticsService service = AnalyticsService();
 
   // ===== VARIABILI DI STATO =====
-  late int total;
-  late int pending;
-  late int accepted;
-  late int handled;
-  late List<int> last7Days;
-  late Map<String, int> fleetStatus;
-  late int averageHandlingMins;
+  int total = 0;
+  int pending = 0;
+  int accepted = 0;
+  int handled = 0;
+  List<int> last7Days = [];
+  Map<String, int> fleetStatus = {};
+  int averageHandlingMins = 0;
 
   List<TrafficIncident> traffic = [];
   bool loadingTraffic = false;
+  bool loadingAnalytics = true;
 
   String selectedCategory = 'overview';
   late TabController _tabController;
@@ -40,16 +41,38 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     _loadTraffic();
   }
 
-  void _loadAllData() {
-    setState(() {
-      total = service.getTotalRequests();
-      pending = service.getPending();
-      accepted = service.getAccepted();
-      handled = service.getHandled();
-      last7Days = service.getRequestsOverLastDays(7);
-      fleetStatus = service.getFleetStatusCounts();
-      averageHandlingMins = service.getAverageHandlingTimeMinutes();
-    });
+  Future<void> _loadAllData() async {
+    try {
+      setState(() => loadingAnalytics = true);
+      
+      final totalRequests = await service.getTotalRequests();
+      final pendingRequests = await service.getPending();
+      final acceptedRequests = await service.getAccepted();
+      final handledRequests = await service.getHandled();
+      final requestsData = await service.getRequestsOverLastDays(7);
+      final fleetStatusData = await service.getFleetStatusCounts();
+      final avgHandlingTime = await service.getAverageHandlingTimeMinutes();
+
+      if (mounted) {
+        setState(() {
+          total = totalRequests;
+          pending = pendingRequests;
+          accepted = acceptedRequests;
+          handled = handledRequests;
+          last7Days = requestsData;
+          fleetStatus = fleetStatusData;
+          averageHandlingMins = avgHandlingTime;
+          loadingAnalytics = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => loadingAnalytics = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Errore caricamento dati analytics: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _loadTraffic() async {
@@ -113,30 +136,56 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         width: MediaQuery.of(context).size.width,
         child: const AppDrawer(currentRoute: Routes.analytics),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // HEADER
-              _buildHeader(),
-              const SizedBox(height: 20),
+      body: loadingAnalytics
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      isDarkMode ? const Color(0xFF7380ec) : const Color(0xFF7380ec),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Caricamento dati analytics...',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Simulazione API in corso',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey,
+                        ),
+                  ),
+                ],
+              ),
+            )
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // HEADER
+                    _buildHeader(),
+                    const SizedBox(height: 20),
 
-              // SUMMARY CARDS (4 card responsive)
-              _buildSummaryCards(isMobile),
-              const SizedBox(height: 24),
+                    // SUMMARY CARDS (4 card responsive)
+                    _buildSummaryCards(isMobile),
+                    const SizedBox(height: 24),
 
-              // TAB NAVIGATION
-              _buildTabNavigation(),
-              const SizedBox(height: 16),
+                    // TAB NAVIGATION
+                    _buildTabNavigation(),
+                    const SizedBox(height: 16),
 
-              // CONTENUTO DINAMICO BASE CATEGORIA
-              _buildCategoryContent(),
-            ],
-          ),
-        ),
-      ),
+                    // CONTENUTO DINAMICO BASE CATEGORIA
+                    _buildCategoryContent(),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 
@@ -559,7 +608,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
           ),
           const SizedBox(height: 4),
           Text(
-            '${service.getAverageHandlingTimeMinutes()} minuti',
+            '$averageHandlingMins minuti',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF7380ec),
