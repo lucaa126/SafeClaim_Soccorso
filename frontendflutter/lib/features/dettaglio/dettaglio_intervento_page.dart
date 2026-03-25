@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../app/routes.dart';
 import '../../widgets/app_drawer.dart';
 import '../dashboard/dashboard_page.dart';
+import '../interventi/intervento_api_service.dart';
 
 class DettaglioArgs {
   final String id;
@@ -23,6 +24,7 @@ class DettaglioArgs {
 
 class DettaglioInterventoPage extends StatefulWidget {
   final DettaglioArgs args;
+
   const DettaglioInterventoPage({super.key, required this.args});
 
   @override
@@ -31,16 +33,64 @@ class DettaglioInterventoPage extends StatefulWidget {
 }
 
 class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
+  final InterventoApiService _api = InterventoApiService();
   late final MapController _mapController;
   late double _zoom;
 
-  LatLng get _interventoPoint => LatLng(widget.args.lat, widget.args.lng);
+  InterventionDetail? _detail;
+  bool _isLoading = true;
+  String? _errorMessage;
+  String? _actionInFlight;
+
+  double get _currentLat => _detail?.lat ?? widget.args.lat;
+  double get _currentLng => _detail?.lng ?? widget.args.lng;
+  String get _currentCliente => _detail?.cliente ?? widget.args.cliente;
+  String get _currentId => _detail?.id ?? widget.args.id;
+
+  LatLng get _interventoPoint => LatLng(_currentLat, _currentLng);
 
   @override
   void initState() {
     super.initState();
     _mapController = MapController();
     _zoom = 13;
+    _loadDetail();
+  }
+
+  Future<void> _loadDetail() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final detail = await _api.getInterventoDetail(widget.args.id);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _detail = detail;
+        _isLoading = false;
+      });
+      _moveMap();
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _errorMessage = error.toString().replaceFirst('Exception: ', '');
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _moveMap() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _mapController.move(_interventoPoint, _zoom);
+    });
   }
 
   Future<void> _setZoom(double zoom) async {
@@ -51,7 +101,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
 
   Future<void> _openNavigation() async {
     final uri = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1&destination=${widget.args.lat},${widget.args.lng}&travelmode=driving',
+      'https://www.google.com/maps/dir/?api=1&destination=$_currentLat,$_currentLng&travelmode=driving',
     );
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
         mounted) {
@@ -61,15 +111,57 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
     }
   }
 
+  Future<void> _runAction(String action) async {
+    setState(() => _actionInFlight = action);
+    try {
+      late final ActionResponse response;
+      switch (action) {
+        case 'take_in_charge':
+          response = await _api.takeInCharge(_currentId);
+          break;
+        case 'reject':
+          response = await _api.reject(_currentId);
+          break;
+        case 'complete':
+          response = await _api.complete(_currentId);
+          break;
+        default:
+          throw Exception('Azione non supportata');
+      }
+      if (!mounted) {
+        return;
+      }
+      setState(() => _detail = response.detail);
+      _moveMap();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(response.message)));
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Exception: ', '')),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _actionInFlight = null);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? const Color(0xFF2C2C2C) : Colors.white;
+    final detail = _detail;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Dettaglio Intervento",
+          'Dettaglio Intervento',
           style: TextStyle(
             fontWeight: FontWeight.w900,
             color: isDark ? Colors.white : const Color(0xFF111827),
@@ -85,11 +177,39 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
         width: MediaQuery.of(context).size.width,
         child: const AppDrawer(currentRoute: Routes.dettaglio),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: RefreshIndicator(
+        onRefresh: _loadDetail,
+        child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           children: [
+            if (_errorMessage != null) ...[
+              _card(
+                isDark: isDark,
+                color: cardColor,
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Color(0xFFFF4D5A)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF111827),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _loadDetail,
+                      child: const Text('Riprova'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+            ],
             _card(
               isDark: isDark,
               color: cardColor,
@@ -102,55 +222,36 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              "ID:",
-                              style: TextStyle(
-                                color: isDark ? Colors.white70 : Colors.grey,
-                                fontWeight: FontWeight.w800,
-                              ),
+                            _labelValue(
+                              label: 'ID',
+                              value: _currentId,
+                              isDark: isDark,
                             ),
                             const SizedBox(height: 10),
-                            Text(
-                              "Cliente:",
-                              style: TextStyle(
-                                color: isDark ? Colors.white70 : Colors.grey,
-                                fontWeight: FontWeight.w800,
-                              ),
+                            _labelValue(
+                              label: 'Cliente',
+                              value: _currentCliente,
+                              isDark: isDark,
+                            ),
+                            const SizedBox(height: 10),
+                            _labelValue(
+                              label: 'Stato',
+                              value: detail?.statusText ?? 'Caricamento...',
+                              isDark: isDark,
                             ),
                           ],
                         ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            widget.args.id,
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF111827),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            widget.args.cliente,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF111827),
-                            ),
-                          ),
-                        ],
-                      ),
+                      if (_isLoading)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 12),
+                          child: CircularProgressIndicator(),
+                        )
+                      else
+                        _statusBadge(detail?.status ?? 'pending'),
                     ],
                   ),
                   const SizedBox(height: 14),
-
-                  // Mappa (mock UI)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(18),
                     child: SizedBox(
@@ -224,7 +325,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                                       ),
                                       SizedBox(width: 8),
                                       Text(
-                                        "Apri Maps",
+                                        'Apri Maps',
                                         style: TextStyle(
                                           fontWeight: FontWeight.w800,
                                         ),
@@ -241,7 +342,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                             child: Opacity(
                               opacity: 0.55,
                               child: Text(
-                                "Leaflet | © OpenStreetMap",
+                                'Leaflet | © OpenStreetMap',
                                 style: TextStyle(
                                   color: isDark
                                       ? Colors.white70
@@ -256,65 +357,150 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Bottoni
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6A7AF4),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                  if (detail != null) ...[
+                    _detailRow('Posizione', detail.posizione, isDark),
+                    const SizedBox(height: 8),
+                    _detailRow('Veicolo', detail.vehicleType, isDark),
+                    const SizedBox(height: 8),
+                    _detailRow(
+                      'Assegnato a',
+                      detail.assignedDriver ?? 'Non assegnato',
+                      isDark,
+                    ),
+                    const SizedBox(height: 8),
+                    _detailRow(
+                      'Note',
+                      detail.notes?.isNotEmpty == true
+                          ? detail.notes!
+                          : 'Nessuna nota',
+                      isDark,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (detail?.availableActions.contains('take_in_charge') ??
+                      false) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _actionInFlight == null
+                            ? () => _runAction('take_in_charge')
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6A7AF4),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        "Prendi in Carico",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                        ),
+                        child: _actionInFlight == 'take_in_charge'
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Prendi in Carico',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                ),
+                              ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFFFF4D5A),
-                        side: const BorderSide(
-                          color: Color(0xFFFF4D5A),
-                          width: 2,
+                    const SizedBox(height: 12),
+                  ],
+                  if (detail?.availableActions.contains('complete') ??
+                      false) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _actionInFlight == null
+                            ? () => _runAction('complete')
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2E8B57),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      child: const Text(
-                        "Rifiuta",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                        ),
+                        child: _actionInFlight == 'complete'
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Completa Intervento',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                ),
+                              ),
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (detail?.availableActions.contains('reject') ?? false)
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: _actionInFlight == null
+                            ? () => _runAction('reject')
+                            : null,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFFF4D5A),
+                          side: const BorderSide(
+                            color: Color(0xFFFF4D5A),
+                            width: 2,
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: _actionInFlight == 'reject'
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Rifiuta',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                ),
+                              ),
+                      ),
+                    ),
+                  if ((detail?.availableActions.isEmpty ?? true) && !_isLoading)
+                    Text(
+                      'Nessuna azione disponibile per questo intervento.',
+                      style: TextStyle(
+                        color: isDark ? Colors.white70 : Colors.grey,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                 ],
               ),
             ),
             const SizedBox(height: 22),
-
             Row(
               children: [
                 Text(
-                  "Traffico Live",
+                  'Traffico Live',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
@@ -323,7 +509,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                 ),
                 const Spacer(),
                 IconButton(
-                  onPressed: () {},
+                  onPressed: _loadDetail,
                   icon: Icon(
                     Icons.refresh_rounded,
                     color: isDark ? Colors.white70 : Colors.black54,
@@ -332,15 +518,14 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
               ],
             ),
             const SizedBox(height: 12),
-
             _trafficCard(
               isDark: isDark,
               cardColor: cardColor,
               iconBg: const Color(0xFFFF4D5A),
               icon: Icons.car_crash_rounded,
-              title: "Incidente in tangenziale Est a Milano, cod...",
-              source: "News Traffico",
-              time: "18:20",
+              title: 'Incidente in tangenziale Est a Milano, cod...',
+              source: 'News Traffico',
+              time: '18:20',
             ),
             const SizedBox(height: 12),
             _trafficCard(
@@ -348,9 +533,9 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
               cardColor: cardColor,
               iconBg: const Color(0xFFFF4D5A),
               icon: Icons.car_crash_rounded,
-              title: "Incidente Al adesso: 4 km di coda verso ...",
-              source: "News Traffico",
-              time: "08:39",
+              title: 'Incidente Al adesso: 4 km di coda verso ...',
+              source: 'News Traffico',
+              time: '08:39',
             ),
             const SizedBox(height: 12),
             _trafficCard(
@@ -358,9 +543,9 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
               cardColor: cardColor,
               iconBg: const Color(0xFFFFC24A),
               icon: Icons.traffic_rounded,
-              title: "Tir si ribalta sull’Autosole, oltre 6 chilome...",
-              source: "News Traffico",
-              time: "08:00",
+              title: 'Tir si ribalta sull’Autosole, oltre 6 chilome...',
+              source: 'News Traffico',
+              time: '08:00',
             ),
             const SizedBox(height: 40),
           ],
@@ -427,7 +612,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Veicolo Fermo",
+                _detail?.statusText ?? 'Veicolo Fermo',
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   color: isDark ? Colors.white : const Color(0xFF111827),
@@ -435,19 +620,13 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
               ),
               const SizedBox(height: 2),
               Text(
-                "${widget.args.lat.toStringAsFixed(4)}, ${widget.args.lng.toStringAsFixed(4)}",
+                '${_currentLat.toStringAsFixed(4)}, ${_currentLng.toStringAsFixed(4)}',
                 style: TextStyle(
                   color: isDark ? Colors.white70 : Colors.grey,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ],
-          ),
-          const SizedBox(width: 14),
-          Icon(
-            Icons.close_rounded,
-            size: 18,
-            color: isDark ? Colors.white : Colors.black54,
           ),
         ],
       ),
@@ -512,6 +691,97 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
       ),
     );
   }
+}
+
+Widget _labelValue({
+  required String label,
+  required String value,
+  required bool isDark,
+}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        '$label:',
+        style: TextStyle(
+          color: isDark ? Colors.white70 : Colors.grey,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      const SizedBox(height: 4),
+      Text(
+        value,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w900,
+          color: isDark ? Colors.white : const Color(0xFF111827),
+        ),
+      ),
+    ],
+  );
+}
+
+Widget _detailRow(String label, String value, bool isDark) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      SizedBox(
+        width: 110,
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isDark ? Colors.white70 : Colors.grey,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+      Expanded(
+        child: Text(
+          value,
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF111827),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+Widget _statusBadge(String status) {
+  Color background;
+  Color foreground;
+
+  switch (status) {
+    case 'accepted':
+      background = const Color(0xFFE8EAF6);
+      foreground = const Color(0xFF3F51B5);
+      break;
+    case 'handled':
+      background = const Color(0xFFE0F2F1);
+      foreground = const Color(0xFF00796B);
+      break;
+    case 'rejected':
+      background = const Color(0xFFFFEBEE);
+      foreground = const Color(0xFFC62828);
+      break;
+    default:
+      background = const Color(0xFFFFF3E0);
+      foreground = const Color(0xFFE65100);
+      break;
+  }
+
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+    decoration: BoxDecoration(
+      color: background,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Text(
+      status.toUpperCase(),
+      style: TextStyle(color: foreground, fontWeight: FontWeight.w900),
+    ),
+  );
 }
 
 Widget _card({
