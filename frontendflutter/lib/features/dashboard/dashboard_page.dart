@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import '../../app/app.dart';
 import '../../app/routes.dart';
 import '../../widgets/app_drawer.dart';
+import 'dashboard_api_service.dart';
 import '../dettaglio/dettaglio_intervento_page.dart';
 import '../interventi/intervento_api_service.dart';
 
@@ -33,7 +34,8 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  final InterventoApiService _api = InterventoApiService();
+  final DashboardApiService _dashboardApi = DashboardApiService();
+  final InterventoApiService _interventoApi = InterventoApiService();
   late final MapController _mapController;
 
   DashboardSummary? _summary;
@@ -59,8 +61,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
     try {
       final results = await Future.wait<dynamic>([
-        _api.getDashboardSummary(),
-        _api.getDashboardRequests(),
+        _dashboardApi.getDashboardSummary(),
+        _dashboardApi.getDashboardRequests(),
       ]);
       final summary = results[0] as DashboardSummary;
       final requests = results[1] as List<QueueRequest>;
@@ -131,7 +133,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Future<void> _toggleOperational(bool value) async {
     setState(() => _isUpdatingOperational = true);
     try {
-      final summary = await _api.setOperationalStatus(value);
+      final summary = await _dashboardApi.setOperationalStatus(value);
       if (!mounted) {
         return;
       }
@@ -154,13 +156,13 @@ class _DashboardPageState extends State<DashboardPage> {
       late final ActionResponse response;
       switch (action) {
         case 'take_in_charge':
-          response = await _api.takeInCharge(requestId);
+          response = await _interventoApi.takeInCharge(requestId);
           break;
         case 'reject':
-          response = await _api.reject(requestId);
+          response = await _interventoApi.reject(requestId);
           break;
         case 'complete':
-          response = await _api.complete(requestId);
+          response = await _interventoApi.complete(requestId);
           break;
         default:
           throw Exception('Azione non supportata');

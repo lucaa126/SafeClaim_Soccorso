@@ -3,81 +3,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-class DashboardSummary {
-  final String workshopName;
-  final bool operativoOnline;
-  final int richiesteAttive;
-  final int completatiOggi;
-  final int tempoMedioMinuti;
-  final String? selectedRequestId;
-
-  const DashboardSummary({
-    required this.workshopName,
-    required this.operativoOnline,
-    required this.richiesteAttive,
-    required this.completatiOggi,
-    required this.tempoMedioMinuti,
-    required this.selectedRequestId,
-  });
-
-  factory DashboardSummary.fromJson(Map<String, dynamic> json) {
-    final kpi = (json['kpi'] as Map<String, dynamic>? ?? const {});
-    return DashboardSummary(
-      workshopName: (json['workshop_name'] ?? 'Officina Centrale') as String,
-      operativoOnline: (json['operativo_online'] ?? false) as bool,
-      richiesteAttive: (kpi['richieste_attive'] ?? 0) as int,
-      completatiOggi: (kpi['completati_oggi'] ?? 0) as int,
-      tempoMedioMinuti: (kpi['tempo_medio_minuti'] ?? 0) as int,
-      selectedRequestId: json['selected_request_id'] as String?,
-    );
-  }
-}
-
-class QueueRequest {
-  final String id;
-  final String vehicleType;
-  final String vehicleLabel;
-  final String cliente;
-  final String posizione;
-  final double lat;
-  final double lng;
-  final String status;
-  final String statusText;
-  final List<String> availableActions;
-
-  const QueueRequest({
-    required this.id,
-    required this.vehicleType,
-    required this.vehicleLabel,
-    required this.cliente,
-    required this.posizione,
-    required this.lat,
-    required this.lng,
-    required this.status,
-    required this.statusText,
-    required this.availableActions,
-  });
-
-  String get tipoLabel => '($vehicleType)';
-
-  factory QueueRequest.fromJson(Map<String, dynamic> json) {
-    return QueueRequest(
-      id: (json['id'] ?? '') as String,
-      vehicleType: (json['vehicle_type'] ?? '') as String,
-      vehicleLabel: (json['vehicle_label'] ?? '') as String,
-      cliente: (json['cliente'] ?? '') as String,
-      posizione: (json['posizione'] ?? '') as String,
-      lat: (json['lat'] as num? ?? 0).toDouble(),
-      lng: (json['lng'] as num? ?? 0).toDouble(),
-      status: (json['status'] ?? 'pending') as String,
-      statusText: (json['status_text'] ?? '') as String,
-      availableActions: List<String>.from(
-        json['available_actions'] ?? const [],
-      ),
-    );
-  }
-}
-
 class InterventionDetail {
   final String id;
   final String cliente;
@@ -170,26 +95,6 @@ class InterventoApiService {
       return 'http://10.0.2.2:5000/api';
     }
     return 'http://127.0.0.1:5000/api';
-  }
-
-  Future<DashboardSummary> getDashboardSummary() async {
-    final data = await _requestJson('GET', '/dashboard/summary');
-    return DashboardSummary.fromJson(data);
-  }
-
-  Future<List<QueueRequest>> getDashboardRequests() async {
-    final data = await _requestJson('GET', '/dashboard/requests');
-    final items = List<Map<String, dynamic>>.from(data['data'] ?? const []);
-    return items.map(QueueRequest.fromJson).toList();
-  }
-
-  Future<DashboardSummary> setOperationalStatus(bool operativoOnline) async {
-    final data = await _requestJson(
-      'PATCH',
-      '/dashboard/operational-status',
-      body: {'operativo_online': operativoOnline},
-    );
-    return DashboardSummary.fromJson(data);
   }
 
   Future<InterventionDetail> getInterventoDetail(String requestId) async {
