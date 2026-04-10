@@ -1,7 +1,6 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
+import '../../app/api_client.dart';
 
 class DashboardSummary {
   final String workshopName;
@@ -82,23 +81,9 @@ class QueueRequest {
 
 class DashboardApiService {
   DashboardApiService({http.Client? client})
-    : _client = client ?? http.Client();
+    : _apiClient = SafeClaimApiClient(client: client);
 
-  final http.Client _client;
-
-  String get _baseUrl {
-    const configured = String.fromEnvironment('SAFECLAIM_API_BASE_URL');
-    if (configured.isNotEmpty) {
-      return configured;
-    }
-    if (kIsWeb) {
-      return 'http://127.0.0.1:5000/api';
-    }
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:5000/api';
-    }
-    return 'http://127.0.0.1:5000/api';
-  }
+  final SafeClaimApiClient _apiClient;
 
   Future<DashboardSummary> getDashboardSummary() async {
     final data = await _requestJson('GET', '/dashboard/summary');
@@ -129,42 +114,7 @@ class DashboardApiService {
     String path, {
     Map<String, dynamic>? body,
   }) async {
-    final uri = Uri.parse('$_baseUrl$path');
-    late final http.Response response;
-
-    try {
-      switch (method) {
-        case 'GET':
-          response = await _client.get(uri);
-          break;
-        case 'PATCH':
-          response = await _client.patch(
-            uri,
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode(body ?? const {}),
-          );
-          break;
-        default:
-          throw Exception('Metodo HTTP non supportato: $method');
-      }
-    } on http.ClientException catch (error) {
-      throw Exception('Errore di connessione API: ${error.message}');
-    }
-
-    if (response.body.isEmpty) {
-      throw Exception('Risposta API vuota');
-    }
-
-    final decoded = jsonDecode(response.body);
-    if (decoded is! Map<String, dynamic>) {
-      throw Exception('Formato risposta API non valido');
-    }
-
-    if (response.statusCode >= 400) {
-      throw Exception(_asString(decoded['message']) ?? 'Errore API');
-    }
-
-    return decoded;
+    return _apiClient.requestJson(method, path, body: body);
   }
 }
 

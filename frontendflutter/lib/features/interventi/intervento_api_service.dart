@@ -1,7 +1,6 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
+import '../../app/api_client.dart';
 
 class InterventionDetail {
   final String id;
@@ -79,23 +78,9 @@ class ActionResponse {
 
 class InterventoApiService {
   InterventoApiService({http.Client? client})
-    : _client = client ?? http.Client();
+    : _apiClient = SafeClaimApiClient(client: client);
 
-  final http.Client _client;
-
-  String get _baseUrl {
-    const configured = String.fromEnvironment('SAFECLAIM_API_BASE_URL');
-    if (configured.isNotEmpty) {
-      return configured;
-    }
-    if (kIsWeb) {
-      return 'http://127.0.0.1:5000/api';
-    }
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:5000/api';
-    }
-    return 'http://127.0.0.1:5000/api';
-  }
+  final SafeClaimApiClient _apiClient;
 
   Future<InterventionDetail> getInterventoDetail(String requestId) async {
     final data = await _requestJson('GET', '/dettaglioIntervento/$requestId');
@@ -133,35 +118,6 @@ class InterventoApiService {
     String path, {
     Map<String, dynamic>? body,
   }) async {
-    final uri = Uri.parse('$_baseUrl$path');
-    late final http.Response response;
-
-    switch (method) {
-      case 'GET':
-        response = await _client.get(uri);
-        break;
-      case 'PATCH':
-        response = await _client.patch(
-          uri,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(body ?? const {}),
-        );
-        break;
-      case 'POST':
-        response = await _client.post(
-          uri,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(body ?? const {}),
-        );
-        break;
-      default:
-        throw Exception('Metodo HTTP non supportato: $method');
-    }
-
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-    if (response.statusCode >= 400) {
-      throw Exception(decoded['message'] ?? 'Errore API');
-    }
-    return decoded;
+    return _apiClient.requestJson(method, path, body: body);
   }
 }
