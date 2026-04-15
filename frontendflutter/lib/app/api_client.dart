@@ -2,9 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_config.dart';
+import 'auth_service.dart';
+import '../features/login/login_api_service.dart';
 
 class SafeClaimApiClient {
   SafeClaimApiClient({http.Client? client}) : _client = client ?? http.Client();
@@ -12,8 +13,7 @@ class SafeClaimApiClient {
   final http.Client _client;
 
   Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('admin_token');
+    return AuthService.getAccessToken();
   }
 
   Future<Map<String, dynamic>> requestJson(
@@ -21,6 +21,8 @@ class SafeClaimApiClient {
     String path, {
     Map<String, dynamic>? body,
   }) async {
+    await _ensureValidToken();
+
     String? lastConnectionMessage;
 
     for (final baseUrl in SafeClaimApiConfig.baseUrls) {
@@ -33,6 +35,8 @@ class SafeClaimApiClient {
           body,
         ).timeout(SafeClaimApiConfig.requestTimeout);
         return _decodeJson(response);
+      } on TokenInvalidException {
+        rethrow;
       } on http.ClientException catch (error) {
         lastConnectionMessage = error.message;
       } on _ApiConnectionException catch (error) {
@@ -48,6 +52,25 @@ class SafeClaimApiClient {
       'Errore di connessione API su tutti i base URL configurati'
       '${lastConnectionMessage == null ? '' : ': $lastConnectionMessage'}',
     );
+  }
+
+  Future<void> _ensureValidToken() async {
+    if (await AuthService.hasValidAccessToken()) {
+      return;
+    }
+
+    final refreshToken = await AuthService.getRefreshToken();
+    if (refreshToken == null || refreshToken.isEmpty) {
+      await AuthService.clearSession();
+      throw const TokenInvalidException();
+    }
+
+    try {
+      await LoginApiService(client: _client).refreshToken();
+    } catch (_) {
+      await AuthService.clearSession();
+      throw const TokenInvalidException();
+    }
   }
 
   Future<http.Response> _send(
@@ -82,6 +105,11 @@ class SafeClaimApiClient {
   }
 
   Map<String, dynamic> _decodeJson(http.Response response) {
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      AuthService.clearSession();
+      throw const TokenInvalidException();
+    }
+
     if (response.body.isEmpty) {
       throw _ApiConnectionException('Risposta API vuota');
     }

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../app/api_config.dart';
+import '../../app/auth_service.dart';
 
 class LoginResponse {
   final String accessToken;
@@ -31,9 +31,6 @@ class LoginApiService {
 
   final http.Client _client;
 
-  static const String _tokenKey = 'admin_token';
-  static const String _refreshTokenKey = 'refresh_token';
-
   Future<LoginResponse> login(String email, String password) async {
     final uri = Uri.parse(
       '${SafeClaimApiConfig.keycloakBaseUrl}/realms/${SafeClaimApiConfig.keycloakRealm}/protocol/openid-connect/token',
@@ -54,11 +51,11 @@ class LoginApiService {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       final loginResponse = LoginResponse.fromJson(data);
 
-      // Save tokens
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_tokenKey, loginResponse.accessToken);
-      await prefs.setString(_refreshTokenKey, loginResponse.refreshToken);
-
+      await AuthService.saveTokens(
+        accessToken: loginResponse.accessToken,
+        refreshToken: loginResponse.refreshToken,
+        expiresIn: loginResponse.expiresIn,
+      );
       return loginResponse;
     } else {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -67,24 +64,19 @@ class LoginApiService {
   }
 
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_refreshTokenKey);
+    await AuthService.clearSession();
   }
 
   Future<String?> getAccessToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+    return AuthService.getAccessToken();
   }
 
   Future<String?> getRefreshToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_refreshTokenKey);
+    return AuthService.getRefreshToken();
   }
 
   Future<bool> isLoggedIn() async {
-    final token = await getAccessToken();
-    return token != null && token.isNotEmpty;
+    return AuthService.hasValidAccessToken();
   }
 
   Future<LoginResponse> refreshToken() async {
@@ -111,15 +103,14 @@ class LoginApiService {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       final loginResponse = LoginResponse.fromJson(data);
 
-      // Update tokens
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_tokenKey, loginResponse.accessToken);
-      await prefs.setString(_refreshTokenKey, loginResponse.refreshToken);
-
+      await AuthService.saveTokens(
+        accessToken: loginResponse.accessToken,
+        refreshToken: loginResponse.refreshToken,
+        expiresIn: loginResponse.expiresIn,
+      );
       return loginResponse;
     } else {
-      // If refresh fails, logout
-      await logout();
+      await AuthService.clearSession();
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       throw Exception(data['error_description'] ?? 'Token refresh failed');
     }

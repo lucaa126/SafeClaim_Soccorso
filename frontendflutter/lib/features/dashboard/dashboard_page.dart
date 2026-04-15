@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../app/app.dart';
+import '../../app/auth_service.dart';
 import '../../app/routes.dart';
 import '../../widgets/app_drawer.dart';
 import 'dashboard_api_service.dart';
@@ -88,6 +89,10 @@ class _DashboardPageState extends State<DashboardPage> {
       if (!mounted) {
         return;
       }
+      if (error is TokenInvalidException) {
+        Navigator.pushNamedAndRemoveUntil(context, Routes.login, (_) => false);
+        return;
+      }
       setState(() {
         _isLoading = false;
         _errorMessage = error.toString().replaceFirst('Exception: ', '');
@@ -146,7 +151,7 @@ class _DashboardPageState extends State<DashboardPage> {
         return;
       }
       setState(() => _isUpdatingOperational = false);
-      _showSnack(error.toString().replaceFirst('Exception: ', ''));
+      _handleAuthError(error);
     }
   }
 
@@ -176,7 +181,7 @@ class _DashboardPageState extends State<DashboardPage> {
       if (!mounted) {
         return;
       }
-      _showSnack(error.toString().replaceFirst('Exception: ', ''));
+      _handleAuthError(error);
     } finally {
       if (mounted) {
         setState(() => _pendingActionRequestId = null);
@@ -195,6 +200,16 @@ class _DashboardPageState extends State<DashboardPage> {
         lng: richiesta.lng,
       ),
     ).then((_) => _loadDashboard(preserveSelectionId: richiesta.id));
+  }
+
+  void _handleAuthError(Object error) {
+    if (error is TokenInvalidException) {
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, Routes.login, (_) => false);
+      return;
+    }
+
+    _showSnack(error.toString().replaceFirst('Exception: ', ''));
   }
 
   void _showSnack(String message) {

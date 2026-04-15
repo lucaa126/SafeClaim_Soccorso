@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../app/auth_service.dart';
 import '../../app/routes.dart';
 import '../../widgets/app_drawer.dart';
 import '../dashboard/dashboard_page.dart';
@@ -77,6 +78,10 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
       if (!mounted) {
         return;
       }
+      if (error is TokenInvalidException) {
+        Navigator.pushNamedAndRemoveUntil(context, Routes.login, (_) => false);
+        return;
+      }
       setState(() {
         _errorMessage = error.toString().replaceFirst('Exception: ', '');
         _isLoading = false;
@@ -138,6 +143,10 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
       ).showSnackBar(SnackBar(content: Text(response.message)));
     } catch (error) {
       if (!mounted) {
+        return;
+      }
+      if (error is TokenInvalidException) {
+        Navigator.pushNamedAndRemoveUntil(context, Routes.login, (_) => false);
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
