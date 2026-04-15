@@ -5,6 +5,11 @@ class SafeClaimApiConfig {
   static const String localFallbackBaseUrl = 'https://safeclaim.giobra.com/api';
   static const Duration requestTimeout = Duration(seconds: 5);
 
+  // Keycloak configuration
+  static const String keycloakBaseUrl = 'https://keycloak.giobra.com';
+  static const String keycloakRealm = 'safeClaim';
+  static const String keycloakClientId = 'safeclaim-client';
+
   static List<String> get baseUrls {
     const configuredPrimary = localBaseUrl;
     const configuredFallback = localFallbackBaseUrl;

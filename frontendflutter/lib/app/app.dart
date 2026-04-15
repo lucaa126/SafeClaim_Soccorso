@@ -7,6 +7,7 @@ import '../features/shared/placeholder_page.dart';
 import '../features/dettaglio/dettaglio_intervento_page.dart';
 import '../features/flotta/flotta_page.dart';
 import '../features/analytics/analytics_page.dart';
+import '../features/login/login.dart';
 
 class SoccorsoApp extends StatefulWidget {
   const SoccorsoApp({super.key});
@@ -60,8 +61,9 @@ class SoccorsoAppState extends State<SoccorsoApp> {
       themeMode: _themeMode,
 
       // ---------------- ROTTE ----------------
-      initialRoute: Routes.dashboard,
+      initialRoute: Routes.login,
       routes: {
+        Routes.login: (_) => const LoginPage(),
         Routes.dashboard: (_) => const DashboardPage(),
         Routes.richieste: (_) => const RichiestePage(),
         Routes.impostazioni: (_) => const SettingsPage(),

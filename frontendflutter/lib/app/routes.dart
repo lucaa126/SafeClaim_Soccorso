@@ -1,4 +1,5 @@
 class Routes {
+  static const login = '/login';
   static const dashboard = '/dashboard';
   static const richieste = '/richieste';
   static const dettaglio = '/dettaglio';

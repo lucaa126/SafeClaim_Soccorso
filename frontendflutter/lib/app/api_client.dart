@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_config.dart';
 
@@ -9,6 +10,11 @@ class SafeClaimApiClient {
   SafeClaimApiClient({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
+
+  Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('admin_token');
+  }
 
   Future<Map<String, dynamic>> requestJson(
     String method,
@@ -49,19 +55,25 @@ class SafeClaimApiClient {
     Uri uri,
     Map<String, dynamic>? body,
   ) async {
+    final token = await _getToken();
+    final headers = <String, String>{'Content-Type': 'application/json'};
+    if (token != null) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+
     switch (method) {
       case 'GET':
-        return _client.get(uri);
+        return _client.get(uri, headers: headers);
       case 'PATCH':
         return _client.patch(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode(body ?? const {}),
         );
       case 'POST':
         return _client.post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode(body ?? const {}),
         );
       default:
