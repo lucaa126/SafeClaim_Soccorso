@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../app/routes.dart';
 import '../../widgets/app_drawer.dart';
 import '../dashboard/dashboard_page.dart';
+
+import 'richiesta_model.dart';
+import 'richieste_api_service.dart';
 
 class RichiestePage extends StatefulWidget {
   const RichiestePage({super.key});
@@ -12,25 +16,52 @@ class RichiestePage extends StatefulWidget {
 }
 
 class _RichiestePageState extends State<RichiestePage> {
+  final RichiesteApiService _apiService = RichiesteApiService();
+  
   int _selectedFilterIndex = 0;
+  List<RichiestaIntervento> _interventi = [];
+  bool _isLoading = true;
+  String? _errorMessage;
 
-  final List<Map<String, dynamic>> _interventi = [
-    {"id": "#SOS-2491", "data": "04/03 09:11", "stato": "PENDING"},
-    {"id": "#SOS-2492", "data": "04/03 08:56", "stato": "ACCEPTED"},
-    {"id": "#SOS-2488", "data": "04/03 07:11", "stato": "HANDLED"},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchDati();
+  }
 
-  List<Map<String, dynamic>> get _interventiFiltrati {
+  Future<void> _fetchDati() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      // Ora il metodo combacia con il servizio
+      final dati = await _apiService.fetchRichieste();
+      if (mounted) {
+        setState(() {
+          _interventi = dati;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString().contains("Exception:") 
+              ? e.toString().replaceFirst("Exception: ", "") 
+              : "Errore di connessione al server.";
+        });
+      }
+    }
+  }
+
+  List<RichiestaIntervento> get _interventiFiltrati {
     switch (_selectedFilterIndex) {
-      case 1:
-        return _interventi.where((i) => i["stato"] == "PENDING").toList();
-      case 2:
-        return _interventi.where((i) => i["stato"] == "ACCEPTED").toList();
-      case 3:
-        return _interventi.where((i) => i["stato"] == "HANDLED").toList();
-      case 0:
-      default:
-        return _interventi;
+      case 1: return _interventi.where((i) => i.stato == "PENDING").toList();
+      case 2: return _interventi.where((i) => i.stato == "ACCEPTED").toList();
+      case 3: return _interventi.where((i) => i.stato == "HANDLED").toList();
+      default: return _interventi;
     }
   }
 
@@ -50,186 +81,146 @@ class _RichiestePageState extends State<RichiestePage> {
         width: MediaQuery.of(context).size.width,
         child: const AppDrawer(currentRoute: Routes.richieste),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Gestione Richieste",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-                color: isDark ? Colors.white : const Color(0xFF374151),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Storico e gestione operativa degli interventi in entrata.",
-              style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.grey),
-            ),
-            const SizedBox(height: 24),
-
-            Builder(builder: (context) {
-              final isMobile = MediaQuery.of(context).size.width < 600;
-
-              return Container(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    if (!isDark)
-                      BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)
-                  ],
+      body: RefreshIndicator(
+        onRefresh: _fetchDati,
+        color: const Color(0xFF6A7AF4),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Gestione Richieste",
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : const Color(0xFF374151),
                 ),
-                width: double.infinity,
-                child: isMobile
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildFilterTab(0, "Tutte", Icons.list, isMobile),
-                          const SizedBox(height: 8),
-                          _buildFilterTab(1, "Da Gestire", Icons.warning_amber_rounded, isMobile),
-                          const SizedBox(height: 8),
-                          _buildFilterTab(2, "In Corso", Icons.directions_car_filled_outlined, isMobile),
-                          const SizedBox(height: 8),
-                          _buildFilterTab(3, "Completate", Icons.check_circle_outline, isMobile),
-                        ],
-                      )
-                    : SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _buildFilterTab(0, "Tutte", Icons.list, isMobile),
-                            _buildFilterTab(1, "Da Gestire", Icons.warning_amber_rounded, isMobile),
-                            _buildFilterTab(2, "In Corso", Icons.directions_car_filled_outlined, isMobile),
-                            _buildFilterTab(3, "Completate", Icons.check_circle_outline, isMobile),
-                          ],
-                        ),
-                      ),
-              );
-            }),
-            const SizedBox(height: 24),
-
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  if (!isDark)
-                    BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)
-                ],
               ),
-              child: Center(
-                child: _interventiFiltrati.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.all(40.0),
-                        child: Text(
-                          "Nessuna richiesta trovata per questo stato.",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      )
-                    : DataTable(
-                        headingTextStyle: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                        dataRowMaxHeight: 70,
-                        dataRowMinHeight: 70,
-                        horizontalMargin: 24,
-                        dividerThickness: 0.5,
-                        columnSpacing: 40,
-                        columns: const [
-                          DataColumn(label: Text("ID Intervento")),
-                          DataColumn(label: Text("Data/Ora")),
-                          DataColumn(label: Text("Azioni")),
-                        ],
-                        rows: _interventiFiltrati.map((intervento) {
-                          return DataRow(cells: [
-                            DataCell(_buildColoredId(intervento["id"], intervento["stato"], isDark)),
-                            DataCell(Text(
-                              intervento["data"],
-                              style: TextStyle(color: isDark ? Colors.white70 : Colors.grey),
-                            )),
-                            DataCell(_buildActionButtons(intervento["stato"])),
-                          ]);
-                        }).toList(),
-                      ),
+              const SizedBox(height: 8),
+              Text(
+                "Storico e gestione operativa degli interventi in entrata.",
+                style: TextStyle(
+                  fontSize: 15, 
+                  color: isDark ? Colors.white70 : Colors.blueGrey,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-            const SizedBox(height: 40),
-          ],
+              const SizedBox(height: 24),
+              _buildFilterSection(isDark, cardColor),
+              const SizedBox(height: 24),
+              if (_isLoading)
+                const Center(child: Padding(padding: EdgeInsets.all(60.0), child: CircularProgressIndicator()))
+              else if (_errorMessage != null)
+                _buildErrorState()
+              else
+                _buildTableContainer(cardColor, isDark),
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildFilterTab(int index, String label, IconData icon, bool isMobile) {
+  // --- I restanti metodi helper (_buildFilterSection, _filterTab, _buildTableContainer, ecc.) 
+  // rimangono identici a quelli del tuo file originale, 
+  // assicurati solo di copiarli integralmente. ---
+  
+  Widget _buildFilterSection(bool isDark, Color cardColor) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [if (!isDark) BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
+      ),
+      child: isMobile 
+        ? Column(children: _getFilterButtons(true))
+        : SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: _getFilterButtons(false))),
+    );
+  }
+
+  List<Widget> _getFilterButtons(bool isMobile) {
+    return [
+      _filterTab(0, "Tutte", Icons.list, isMobile),
+      _filterTab(1, "Da Gestire", Icons.warning_amber_rounded, isMobile),
+      _filterTab(2, "In Corso", Icons.directions_car_filled_outlined, isMobile),
+      _filterTab(3, "Completate", Icons.check_circle_outline, isMobile),
+    ];
+  }
+
+  Widget _filterTab(int index, String label, IconData icon, bool isMobile) {
     bool isSelected = _selectedFilterIndex == index;
     return GestureDetector(
       onTap: () => setState(() => _selectedFilterIndex = index),
       child: Container(
-        margin: isMobile ? EdgeInsets.zero : const EdgeInsets.only(right: 16),
+        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF6A7AF4) : Colors.transparent,
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(15),
         ),
         child: Row(
-          mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
           mainAxisAlignment: isMobile ? MainAxisAlignment.center : MainAxisAlignment.start,
           children: [
-            Icon(icon, size: 20, color: isSelected ? Colors.white : Colors.blueGrey),
+            Icon(icon, size: 18, color: isSelected ? Colors.white : Colors.blueGrey),
             const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                color: isSelected ? Colors.white : Colors.blueGrey,
-              ),
-            ),
+            Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.blueGrey)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildColoredId(String id, String status, bool isDark) {
-    Color bgColor;
-    Color textColor;
-
-    switch (status) {
-      case "PENDING":
-        bgColor = const Color(0xFFFFF3E0);
-        textColor = const Color(0xFFE65100);
-        break;
-      case "ACCEPTED":
-        bgColor = const Color(0xFFE8EAF6);
-        textColor = const Color(0xFF3F51B5);
-        break;
-      case "HANDLED":
-        bgColor = const Color(0xFFE0F2F1);
-        textColor = const Color(0xFF00796B);
-        break;
-      default:
-        bgColor = Colors.grey.shade200;
-        textColor = Colors.grey.shade800;
-    }
-
-    if (isDark) bgColor = bgColor.withOpacity(0.22);
-
+  Widget _buildTableContainer(Color cardColor, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [if (!isDark) BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
       ),
-      child: Text(
-        id,
-        style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 13),
-      ),
+      child: _interventiFiltrati.isEmpty
+          ? const Padding(padding: EdgeInsets.all(60.0), child: Center(child: Text("Nessuna richiesta trovata.")))
+          : SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingTextStyle: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white : Colors.black87),
+                dataRowMaxHeight: 75,
+                dataRowMinHeight: 75,
+                columns: const [
+                  DataColumn(label: Text("ID INTERVENTO")),
+                  DataColumn(label: Text("DATA E ORA")),
+                  DataColumn(label: Text("AZIONI")),
+                ],
+                rows: _interventiFiltrati.map((item) {
+                  return DataRow(cells: [
+                    DataCell(_buildColoredId("#SOS-${item.id}", item.stato, isDark)),
+                    DataCell(Text(DateFormat('dd/MM HH:mm').format(item.dataRichiesta), style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? Colors.white70 : Colors.black54))),
+                    DataCell(_buildActionButtons(item.stato)),
+                  ]);
+                }).toList(),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildColoredId(String id, String status, bool isDark) {
+    Color bgColor; Color textColor;
+    switch (status) {
+      case "PENDING": bgColor = const Color(0xFFFFF3E0); textColor = const Color(0xFFE65100); break;
+      case "ACCEPTED": bgColor = const Color(0xFFE8EAF6); textColor = const Color(0xFF3F51B5); break;
+      case "HANDLED": bgColor = const Color(0xFFE0F2F1); textColor = const Color(0xFF00796B); break;
+      default: bgColor = Colors.grey.shade200; textColor = Colors.grey.shade800;
+    }
+    if (isDark) bgColor = bgColor.withOpacity(0.15);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10)),
+      child: Text(id, style: TextStyle(color: textColor, fontWeight: FontWeight.w900, fontSize: 13)),
     );
   }
 
@@ -237,34 +228,37 @@ class _RichiestePageState extends State<RichiestePage> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (status == "PENDING") ...[
-          _iconButton(Icons.check, Colors.green, const Color(0xFFE8F5E9)),
-          const SizedBox(width: 8),
-        ],
-        _iconButton(Icons.close, Colors.redAccent, const Color(0xFFFFEBEE)),
+        if (status == "PENDING") ...[_iconButton(Icons.check, Colors.green), const SizedBox(width: 8)],
+        _iconButton(Icons.visibility_outlined, Colors.blueAccent),
+        const SizedBox(width: 8),
+        _iconButton(Icons.close, Colors.redAccent),
       ],
     );
   }
 
-  Widget _iconButton(IconData icon, Color color, Color bgColor) {
+  Widget _iconButton(IconData icon, Color color) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        shape: BoxShape.circle,
-        border: Border.all(color: color.withOpacity(0.5)),
+      decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color.withOpacity(0.3))),
+      child: IconButton(
+        icon: Icon(icon, size: 18, color: color),
+        onPressed: () {},
+        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+        padding: EdgeInsets.zero,
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () {},
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Icon(icon, size: 18, color: color),
-          ),
-        ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red, size: 48),
+          const SizedBox(height: 16),
+          Text(_errorMessage!, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+          const SizedBox(height: 8),
+          TextButton(onPressed: _fetchDati, child: const Text("Riprova")),
+        ],
       ),
     );
   }
 }
-
