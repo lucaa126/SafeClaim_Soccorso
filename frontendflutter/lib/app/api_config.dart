@@ -2,14 +2,12 @@ import 'package:flutter/foundation.dart';
 
 class SafeClaimApiConfig {
   static const String localBaseUrl = 'http://127.0.0.1:5000/api';
-  static const String localFallbackBaseUrl = 'http://safeclaim.giobra.com/api';
+  static const String localFallbackBaseUrl = 'https://safeclaim.giobra.com/api';
   static const Duration requestTimeout = Duration(seconds: 5);
 
   static List<String> get baseUrls {
-    const configuredPrimary = String.fromEnvironment('SAFECLAIM_API_BASE_URL');
-    const configuredFallback = String.fromEnvironment(
-      'SAFECLAIM_API_FALLBACK_BASE_URL',
-    );
+    const configuredPrimary = localBaseUrl;
+    const configuredFallback = localFallbackBaseUrl;
 
     final defaults = _defaultBaseUrls;
     final urls = <String>[
