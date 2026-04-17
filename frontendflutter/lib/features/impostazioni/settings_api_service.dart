@@ -37,7 +37,7 @@ class SettingsApiService {
 
   // Recupera le impostazioni
   Future<WorkshopSettings> getSettings() async {
-    final data = await _apiClient.requestJson('GET', '/settings');
+    final data = await _apiClient.requestJson('GET', '/impostazioni');
     return WorkshopSettings.fromJson(data);
   }
 
@@ -50,7 +50,7 @@ class SettingsApiService {
   }) async {
     final data = await _apiClient.requestJson(
       'PATCH', // Cambia in POST o PUT se il tuo backend lo richiede
-      '/settings',
+      '/impostazioni',
       body: {
         'workshop_name': workshopName,
         'email': email,
