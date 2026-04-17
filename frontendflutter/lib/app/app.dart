@@ -3,11 +3,11 @@ import 'routes.dart';
 import '../features/dashboard/dashboard_page.dart';
 import '../features/richieste/richieste_page.dart';
 import '../features/impostazioni/settings_page.dart';
-import '../features/shared/placeholder_page.dart';
 import '../features/dettaglio/dettaglio_intervento_page.dart';
 import '../features/flotta/flotta_page.dart';
 import '../features/analytics/analytics_page.dart';
 import '../features/login/login.dart';
+import '../features/login/login_api_service.dart';
 
 class SoccorsoApp extends StatefulWidget {
   const SoccorsoApp({super.key});
@@ -69,8 +69,7 @@ class SoccorsoAppState extends State<SoccorsoApp> {
         Routes.impostazioni: (_) => const SettingsPage(),
         Routes.flotta: (_) => const FlottaPage(),
         Routes.analytics: (_) => const AnalyticsPage(),
-        Routes.logout: (_) =>
-            const PlaceholderPage(title: 'Logout', currentRoute: Routes.logout),
+        Routes.logout: (_) => const _LogoutPage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == Routes.dettaglio) {
@@ -84,5 +83,54 @@ class SoccorsoAppState extends State<SoccorsoApp> {
         return null;
       },
     );
+  }
+}
+
+class _LogoutPage extends StatefulWidget {
+  const _LogoutPage();
+
+  @override
+  State<_LogoutPage> createState() => _LogoutPageState();
+}
+
+class _LogoutPageState extends State<_LogoutPage> {
+  final LoginApiService _loginApi = LoginApiService();
+
+  @override
+  void initState() {
+    super.initState();
+    _logout();
+  }
+
+  Future<void> _logout() async {
+    String? errorMessage;
+
+    try {
+      await _loginApi.logout();
+    } catch (e) {
+      errorMessage = 'Logout Keycloak non completato: $e';
+    }
+
+    if (!mounted) return;
+
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    navigator.pushNamedAndRemoveUntil(Routes.login, (route) => false);
+
+    if (errorMessage != null) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.orangeAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

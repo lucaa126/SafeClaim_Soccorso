@@ -64,7 +64,32 @@ class LoginApiService {
   }
 
   Future<void> logout() async {
-    await AuthService.clearSession();
+    final refreshToken = await getRefreshToken();
+
+    try {
+      if (refreshToken == null || refreshToken.isEmpty) {
+        return;
+      }
+
+      final uri = Uri.parse(
+        '${SafeClaimApiConfig.keycloakBaseUrl}/realms/${SafeClaimApiConfig.keycloakRealm}/protocol/openid-connect/logout',
+      );
+
+      final response = await _client.post(
+        uri,
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'client_id': SafeClaimApiConfig.keycloakClientId,
+          'refresh_token': refreshToken,
+        },
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception(_errorMessage(response, 'Logout failed'));
+      }
+    } finally {
+      await AuthService.clearSession();
+    }
   }
 
   Future<String?> getAccessToken() async {
@@ -113,6 +138,19 @@ class LoginApiService {
       await AuthService.clearSession();
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       throw Exception(data['error_description'] ?? 'Token refresh failed');
+    }
+  }
+
+  String _errorMessage(http.Response response, String fallback) {
+    if (response.body.isEmpty) {
+      return fallback;
+    }
+
+    try {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return data['error_description'] ?? data['error'] ?? fallback;
+    } catch (_) {
+      return fallback;
     }
   }
 }
