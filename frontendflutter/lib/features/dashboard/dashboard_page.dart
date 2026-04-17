@@ -365,6 +365,46 @@ class _DashboardPageState extends State<DashboardPage> {
                 letterSpacing: -0.7,
               ),
             ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF111827)
+                    : const Color(0xFFF3F4F6),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF2EE6A6),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      '${_richieste.length} richieste da gestire',
+                      style: TextStyle(
+                        color: isDark ? Colors.white : const Color(0xFF111827),
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'Tap per selezionare',
+                    style: TextStyle(
+                      color: isDark ? Colors.white60 : const Color(0xFF6B7280),
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 14),
             _card(
               isDark: isDark,
@@ -382,54 +422,26 @@ class _DashboardPageState extends State<DashboardPage> {
                         child: Text('Nessuna richiesta disponibile.'),
                       ),
                     )
-                  : SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        showCheckboxColumn: false,
-                        headingTextStyle: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                        dataRowMaxHeight: 72,
-                        dataRowMinHeight: 72,
-                        horizontalMargin: 24,
-                        dividerThickness: 0.5,
-                        columnSpacing: 28,
-                        columns: const [
-                          DataColumn(label: Text('Posizione')),
-                          DataColumn(label: Text('Stato')),
-                          DataColumn(label: Text('Azioni')),
-                        ],
-                        rows: _richieste.map((richiesta) {
-                          return DataRow(
-                            cells: [
-                              DataCell(
-                                _buildPosizioneCell(
-                                  isDark,
-                                  richiesta.posizione,
-                                ),
-                                onTap: () => _focusRichiesta(richiesta),
-                              ),
-                              DataCell(
-                                _statusChip(isDark, richiesta.status),
-                                onTap: () => _focusRichiesta(richiesta),
-                              ),
-                              DataCell(
-                                _buildActionButtons(
-                                  isDark: isDark,
-                                  richiesta: richiesta,
-                                  isBusy:
-                                      _pendingActionRequestId == richiesta.id,
-                                  onFocus: () => _focusRichiesta(richiesta),
-                                  onOpenDetail: () => _openDettaglio(richiesta),
-                                  onAction: (action) =>
-                                      _performAction(richiesta.id, action),
-                                ),
-                              ),
-                            ],
-                          );
-                        }).toList(),
-                      ),
+                  : Column(
+                      children: _richieste.map((richiesta) {
+                        final isSelected =
+                            _selectedRichiesta?.id == richiesta.id;
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            bottom: richiesta == _richieste.last ? 0 : 12,
+                          ),
+                          child: _buildRequestCard(
+                            isDark: isDark,
+                            richiesta: richiesta,
+                            isSelected: isSelected,
+                            isBusy: _pendingActionRequestId == richiesta.id,
+                            onTap: () => _focusRichiesta(richiesta),
+                            onOpenDetail: () => _openDettaglio(richiesta),
+                            onAction: (action) =>
+                                _performAction(richiesta.id, action),
+                          ),
+                        );
+                      }).toList(),
                     ),
             ),
             const SizedBox(height: 18),
@@ -641,23 +653,143 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-Widget _buildPosizioneCell(bool isDark, String label) {
-  return Row(
-    children: [
-      Icon(
-        Icons.location_on_rounded,
-        size: 16,
-        color: isDark ? Colors.white : Colors.black87,
-      ),
-      const SizedBox(width: 6),
-      Text(
-        label,
-        style: const TextStyle(
-          color: Color(0xFF6A7AF4),
-          fontWeight: FontWeight.w900,
+Widget _buildRequestCard({
+  required bool isDark,
+  required QueueRequest richiesta,
+  required bool isSelected,
+  required bool isBusy,
+  required VoidCallback onTap,
+  required VoidCallback onOpenDetail,
+  required ValueChanged<String> onAction,
+}) {
+  final borderColor = isSelected
+      ? const Color(0xFF6A7AF4)
+      : isDark
+      ? Colors.white.withValues(alpha: 0.08)
+      : const Color(0xFFE5E7EB);
+  final backgroundColor = isSelected
+      ? (isDark ? const Color(0xFF1E293B) : const Color(0xFFF5F7FF))
+      : (isDark ? const Color(0xFF202020) : const Color(0xFFFAFBFC));
+
+  return Material(
+    color: Colors.transparent,
+    child: InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: borderColor, width: isSelected ? 1.8 : 1),
+          boxShadow: [
+            if (isSelected)
+              BoxShadow(
+                color: const Color(0xFF6A7AF4).withValues(alpha: 0.18),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelected
+                        ? const Color(0xFF6A7AF4)
+                        : const Color(0xFF6A7AF4).withValues(alpha: 0.14),
+                  ),
+                  child: Icon(
+                    Icons.location_on_rounded,
+                    color: isSelected ? Colors.white : const Color(0xFF6A7AF4),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        richiesta.posizione,
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF111827),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          height: 1.15,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        richiesta.cliente,
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF6B7280),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                _statusChip(isDark, richiesta.status),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _metaPill(
+                  isDark: isDark,
+                  icon: Icons.tag_rounded,
+                  label: richiesta.id,
+                ),
+                _metaPill(
+                  isDark: isDark,
+                  icon: Icons.directions_car_filled_rounded,
+                  label: richiesta.tipoLabel,
+                ),
+                if (isSelected)
+                  _metaPill(
+                    isDark: isDark,
+                    icon: Icons.my_location_rounded,
+                    label: 'Selezionata',
+                    accent: const Color(0xFF6A7AF4),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              height: 1,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.07)
+                  : const Color(0xFFE5E7EB),
+            ),
+            const SizedBox(height: 14),
+            _buildActionButtons(
+              isDark: isDark,
+              richiesta: richiesta,
+              isBusy: isBusy,
+              onOpenDetail: onOpenDetail,
+              onAction: onAction,
+            ),
+          ],
         ),
       ),
-    ],
+    ),
   );
 }
 
@@ -665,60 +797,91 @@ Widget _buildActionButtons({
   required bool isDark,
   required QueueRequest richiesta,
   required bool isBusy,
-  required VoidCallback onFocus,
   required VoidCallback onOpenDetail,
   required ValueChanged<String> onAction,
 }) {
-  return Row(
-    mainAxisSize: MainAxisSize.min,
+  return Wrap(
+    spacing: 8,
+    runSpacing: 8,
     children: [
-      _iconButton(
+      _actionButton(
+        isDark: isDark,
         icon: Icons.visibility_rounded,
+        label: 'Dettaglio',
         color: isDark ? Colors.white70 : const Color(0xFF374151),
-        onTap: onOpenDetail,
+        onPressed: onOpenDetail,
       ),
       if (richiesta.availableActions.contains('take_in_charge')) ...[
-        const SizedBox(width: 8),
-        _iconButton(
+        _actionButton(
+          isDark: isDark,
           icon: Icons.check,
+          label: 'Prendi in carico',
           color: Colors.green,
-          onTap: isBusy ? null : () => onAction('take_in_charge'),
+          onPressed: isBusy ? null : () => onAction('take_in_charge'),
         ),
       ],
       if (richiesta.availableActions.contains('complete')) ...[
-        const SizedBox(width: 8),
-        _iconButton(
+        _actionButton(
+          isDark: isDark,
           icon: Icons.done_all_rounded,
+          label: 'Completa',
           color: const Color(0xFF2E8B57),
-          onTap: isBusy ? null : () => onAction('complete'),
+          onPressed: isBusy ? null : () => onAction('complete'),
         ),
       ],
       if (richiesta.availableActions.contains('reject')) ...[
-        const SizedBox(width: 8),
-        _iconButton(
+        _actionButton(
+          isDark: isDark,
           icon: Icons.close,
+          label: 'Rifiuta',
           color: Colors.redAccent,
-          onTap: isBusy ? null : () => onAction('reject'),
+          onPressed: isBusy ? null : () => onAction('reject'),
         ),
       ],
       if (isBusy) ...[
-        const SizedBox(width: 8),
-        const SizedBox(
-          width: 18,
-          height: 18,
-          child: CircularProgressIndicator(strokeWidth: 2),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.06)
+                : const Color(0xFFF3F4F6),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              SizedBox(width: 10),
+              Text(
+                'Aggiornamento...',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ],
+          ),
         ),
       ],
       if (!isBusy &&
           !richiesta.availableActions.contains('take_in_charge') &&
           !richiesta.availableActions.contains('complete') &&
           !richiesta.availableActions.contains('reject')) ...[
-        const SizedBox(width: 8),
-        InkWell(
-          onTap: onFocus,
-          child: const Text(
-            'Nessuna',
-            style: TextStyle(fontWeight: FontWeight.w700),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : const Color(0xFFF3F4F6),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            'Nessuna azione disponibile',
+            style: TextStyle(
+              color: isDark ? Colors.white70 : const Color(0xFF6B7280),
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],
@@ -726,28 +889,68 @@ Widget _buildActionButtons({
   );
 }
 
-Widget _iconButton({
+Widget _metaPill({
+  required bool isDark,
   required IconData icon,
-  required Color color,
-  required VoidCallback? onTap,
+  required String label,
+  Color? accent,
 }) {
-  return Material(
-    color: Colors.transparent,
-    shape: const CircleBorder(),
-    child: InkWell(
-      customBorder: const CircleBorder(),
-      onTap: onTap,
-      child: Container(
-        width: 40,
-        height: 40,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: color.withValues(alpha: 0.85), width: 3),
-        ),
-        child: Icon(icon, color: color, size: 18),
+  final pillColor = accent;
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+    decoration: BoxDecoration(
+      color: pillColor != null
+          ? pillColor.withValues(alpha: 0.14)
+          : (isDark ? const Color(0xFF111827) : Colors.white),
+      borderRadius: BorderRadius.circular(999),
+      border: Border.all(
+        color:
+            pillColor?.withValues(alpha: 0.26) ??
+            (isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : const Color(0xFFE5E7EB)),
       ),
     ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: pillColor ?? const Color(0xFF6A7AF4)),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF111827),
+            fontWeight: FontWeight.w700,
+            fontSize: 12,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _actionButton({
+  required bool isDark,
+  required IconData icon,
+  required String label,
+  required Color color,
+  required VoidCallback? onPressed,
+}) {
+  return OutlinedButton.icon(
+    onPressed: onPressed,
+    style: OutlinedButton.styleFrom(
+      foregroundColor: color,
+      side: BorderSide(color: color.withValues(alpha: 0.5)),
+      backgroundColor: isDark
+          ? color.withValues(alpha: 0.08)
+          : color.withValues(alpha: 0.05),
+      disabledForegroundColor: color.withValues(alpha: 0.35),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+    ),
+    icon: Icon(icon, size: 16),
+    label: Text(label),
   );
 }
 
@@ -826,17 +1029,17 @@ Widget _statusChip(bool isDark, String status) {
     case 'pending':
       bg = const Color(0xFFFFF3E0);
       fg = const Color(0xFFE65100);
-      text = 'PENDING';
+      text = 'In attesa';
       break;
     case 'accepted':
       bg = const Color(0xFFE8EAF6);
       fg = const Color(0xFF3F51B5);
-      text = 'ACCEPTED';
+      text = 'Accettata';
       break;
     case 'handled':
       bg = const Color(0xFFE0F2F1);
       fg = const Color(0xFF00796B);
-      text = 'HANDLED';
+      text = 'Completata';
       break;
     default:
       bg = const Color(0xFFFFEBEE);
@@ -856,7 +1059,7 @@ Widget _statusChip(bool isDark, String status) {
     ),
     child: Text(
       text,
-      style: TextStyle(color: fg, fontWeight: FontWeight.bold, fontSize: 13),
+      style: TextStyle(color: fg, fontWeight: FontWeight.w800, fontSize: 13),
     ),
   );
 }
