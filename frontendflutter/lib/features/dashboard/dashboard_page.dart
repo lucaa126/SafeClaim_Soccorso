@@ -463,7 +463,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   ? const Padding(
                       padding: EdgeInsets.symmetric(vertical: 24),
                       child: Center(
-                        child: Text('Seleziona una richiesta dalla tabella.'),
+                        child: Text('Seleziona una richiesta dalla lista.'),
                       ),
                     )
                   : Column(
@@ -742,33 +742,45 @@ Widget _buildRequestCard({
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                _statusChip(isDark, richiesta.status),
               ],
             ),
             const SizedBox(height: 14),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _metaPill(
-                  isDark: isDark,
-                  icon: Icons.tag_rounded,
-                  label: richiesta.id,
-                ),
-                _metaPill(
-                  isDark: isDark,
-                  icon: Icons.directions_car_filled_rounded,
-                  label: richiesta.tipoLabel,
-                ),
-                if (isSelected)
-                  _metaPill(
-                    isDark: isDark,
-                    icon: Icons.my_location_rounded,
-                    label: 'Selezionata',
-                    accent: const Color(0xFF6A7AF4),
-                  ),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final pillMaxWidth = constraints.maxWidth;
+
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _statusChip(
+                      isDark: isDark,
+                      status: richiesta.status,
+                      maxWidth: pillMaxWidth,
+                    ),
+                    _metaPill(
+                      isDark: isDark,
+                      icon: Icons.tag_rounded,
+                      label: richiesta.id,
+                      maxWidth: pillMaxWidth,
+                    ),
+                    _metaPill(
+                      isDark: isDark,
+                      icon: Icons.directions_car_filled_rounded,
+                      label: richiesta.tipoLabel,
+                      maxWidth: pillMaxWidth,
+                    ),
+                    if (isSelected)
+                      _metaPill(
+                        isDark: isDark,
+                        icon: Icons.my_location_rounded,
+                        label: 'Selezionata',
+                        accent: const Color(0xFF6A7AF4),
+                        maxWidth: pillMaxWidth,
+                      ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 14),
             Container(
@@ -894,37 +906,45 @@ Widget _metaPill({
   required IconData icon,
   required String label,
   Color? accent,
+  double? maxWidth,
 }) {
   final pillColor = accent;
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-    decoration: BoxDecoration(
-      color: pillColor != null
-          ? pillColor.withValues(alpha: 0.14)
-          : (isDark ? const Color(0xFF111827) : Colors.white),
-      borderRadius: BorderRadius.circular(999),
-      border: Border.all(
-        color:
-            pillColor?.withValues(alpha: 0.26) ??
-            (isDark
-                ? Colors.white.withValues(alpha: 0.08)
-                : const Color(0xFFE5E7EB)),
-      ),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: pillColor ?? const Color(0xFF6A7AF4)),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: TextStyle(
-            color: isDark ? Colors.white : const Color(0xFF111827),
-            fontWeight: FontWeight.w700,
-            fontSize: 12,
-          ),
+  return ConstrainedBox(
+    constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: pillColor != null
+            ? pillColor.withValues(alpha: 0.14)
+            : (isDark ? const Color(0xFF111827) : Colors.white),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color:
+              pillColor?.withValues(alpha: 0.26) ??
+              (isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : const Color(0xFFE5E7EB)),
         ),
-      ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: pillColor ?? const Color(0xFF6A7AF4)),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF111827),
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }
@@ -1020,7 +1040,11 @@ Widget _kpi({
   );
 }
 
-Widget _statusChip(bool isDark, String status) {
+Widget _statusChip({
+  required bool isDark,
+  required String status,
+  double? maxWidth,
+}) {
   late Color bg;
   late Color fg;
   late String text;
@@ -1051,15 +1075,20 @@ Widget _statusChip(bool isDark, String status) {
     bg = bg.withValues(alpha: 0.22);
   }
 
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-    decoration: BoxDecoration(
-      color: bg,
-      borderRadius: BorderRadius.circular(8),
-    ),
-    child: Text(
-      text,
-      style: TextStyle(color: fg, fontWeight: FontWeight.w800, fontSize: 13),
+  return ConstrainedBox(
+    constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: fg, fontWeight: FontWeight.w800, fontSize: 13),
+      ),
     ),
   );
 }
