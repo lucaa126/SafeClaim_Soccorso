@@ -43,6 +43,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
   }
 
   Future<void> _loadAllData() async {
+    print('🔵 _loadAllData called');
     try {
       setState(() {
         loadingAnalytics = true;
@@ -66,6 +67,8 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         loadingAnalytics = false;
       });
     } catch (e) {
+      print('❌ ERRORE _loadAllData: $e');
+      print('Stack trace: $e');
       if (!mounted) {
         return;
       }

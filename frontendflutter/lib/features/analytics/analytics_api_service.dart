@@ -89,10 +89,18 @@ class AnalyticsApiService {
   final SafeClaimApiClient _apiClient;
 
   Future<AnalyticsSummary> getAnalyticsSummary() async {
+    print('🔴 getAnalyticsSummary called');
+    
     final totalResponse = await _requestJson('GET', '/total-requests');
     final pendingResponse = await _requestJson('GET', '/pending');
     final acceptedResponse = await _requestJson('GET', '/accepted');
     final handledResponse = await _requestJson('GET', '/handled');
+
+    print('📊 ANALYTICS DEBUG');
+    print('Total response: $totalResponse');
+    print('Pending response: $pendingResponse');
+    print('Accepted response: $acceptedResponse');
+    print('Handled response: $handledResponse');
 
     final data = {
       'data': {
@@ -106,6 +114,7 @@ class AnalyticsApiService {
       }
     };
 
+    print('Final data: $data');
     return AnalyticsSummary.fromJson(data);
   }
 
