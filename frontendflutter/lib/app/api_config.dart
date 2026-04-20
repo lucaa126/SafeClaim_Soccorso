@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 class SafeClaimApiConfig {
-  static const String localBaseUrl = 'http://127.0.0.1:5000/api';
+  static const String localBaseUrl = 'https://expert-barnacle-x5rw5545w57p3v6wv-5000.app.github.dev/api';
   static const String localFallbackBaseUrl = 'https://safeclaim.giobra.com/api';
   static const Duration requestTimeout = Duration(seconds: 5);
 

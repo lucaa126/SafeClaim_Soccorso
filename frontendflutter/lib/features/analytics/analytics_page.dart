@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/routes.dart';
 import '../../widgets/app_drawer.dart';
-import 'analytics_service.dart';
+import 'analytics_api_service.dart';
 import '../dashboard/dashboard_page.dart';
 
 class AnalyticsPage extends StatefulWidget {
@@ -14,7 +14,7 @@ class AnalyticsPage extends StatefulWidget {
 
 class _AnalyticsPageState extends State<AnalyticsPage>
     with SingleTickerProviderStateMixin {
-  final AnalyticsService service = AnalyticsService();
+  final AnalyticsApiService _analyticsApi = AnalyticsApiService();
 
   // ===== VARIABILI DI STATO =====
   int total = 0;
@@ -31,6 +31,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
 
   String selectedCategory = 'overview';
   late TabController _tabController;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -43,51 +44,59 @@ class _AnalyticsPageState extends State<AnalyticsPage>
 
   Future<void> _loadAllData() async {
     try {
-      setState(() => loadingAnalytics = true);
-      
-      final totalRequests = await service.getTotalRequests();
-      final pendingRequests = await service.getPending();
-      final acceptedRequests = await service.getAccepted();
-      final handledRequests = await service.getHandled();
-      final requestsData = await service.getRequestsOverLastDays(7);
-      final fleetStatusData = await service.getFleetStatusCounts();
-      final avgHandlingTime = await service.getAverageHandlingTimeMinutes();
+      setState(() {
+        loadingAnalytics = true;
+        _errorMessage = null;
+      });
 
-      if (mounted) {
-        setState(() {
-          total = totalRequests;
-          pending = pendingRequests;
-          accepted = acceptedRequests;
-          handled = handledRequests;
-          last7Days = requestsData;
-          fleetStatus = fleetStatusData;
-          averageHandlingMins = avgHandlingTime;
-          loadingAnalytics = false;
-        });
+      final summary = await _analyticsApi.getAnalyticsSummary();
+
+      if (!mounted) {
+        return;
       }
+
+      setState(() {
+        total = summary.total;
+        pending = summary.pending;
+        accepted = summary.accepted;
+        handled = summary.handled;
+        last7Days = summary.last7Days;
+        fleetStatus = summary.fleetStatus;
+        averageHandlingMins = summary.averageHandlingMins;
+        loadingAnalytics = false;
+      });
     } catch (e) {
-      if (mounted) {
-        setState(() => loadingAnalytics = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore caricamento dati analytics: $e')),
-        );
+      if (!mounted) {
+        return;
       }
+      setState(() {
+        loadingAnalytics = false;
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      });
+      _showSnack(_errorMessage ?? 'Errore caricamento dati analytics');
     }
   }
 
   Future<void> _loadTraffic() async {
     setState(() => loadingTraffic = true);
     try {
-      traffic = await service.getRealTimeTraffic('Milano');
-    } catch (e) {
+      traffic = await _analyticsApi.getRealTimeTraffic('Milano');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore caricamento traffico: $e')),
-        );
+        setState(() => loadingTraffic = false);
       }
-    } finally {
-      if (mounted) setState(() => loadingTraffic = false);
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => loadingTraffic = false);
+      _showSnack(e.toString().replaceFirst('Exception: ', ''));
     }
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   void _refreshData() {
@@ -455,7 +464,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
 
   // ===== REQUESTS CHART =====
   Widget _buildRequestsChart() {
-    final max = service.getMaxRequestsValue();
+    final max = last7Days.isEmpty ? 1 : last7Days.reduce((a, b) => a > b ? a : b);
 
     return Container(
       decoration: BoxDecoration(
@@ -626,7 +635,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     int total,
     Color color,
   ) {
-    final percentage = service.getPercentage(value, total);
+    final percentage = total == 0 ? 0.0 : (value / total) * 100;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
