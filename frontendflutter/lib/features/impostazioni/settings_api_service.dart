@@ -1,68 +1,107 @@
 import 'package:http/http.dart' as http;
 import '../../app/api_client.dart';
 
-// --- MODELLO DEI DATI ---
 class WorkshopSettings {
+  final int officinaId;
   final String workshopName;
   final String email;
   final String phone;
-  final bool notificheAttive;
+  final String? address;
+  final String? avatarUrl;
+  final bool? notificheAttive;
 
   const WorkshopSettings({
+    required this.officinaId,
     required this.workshopName,
     required this.email,
     required this.phone,
-    required this.notificheAttive,
+    this.address,
+    this.avatarUrl,
+    this.notificheAttive,
   });
 
   factory WorkshopSettings.fromJson(Map<String, dynamic> json) {
-    // Adattiamo il parsing alla struttura standard { "data": { ... } }
     final payload = _asMap(json['data']) ?? json;
+    final profilo = _asMap(payload['profilo']) ?? const <String, dynamic>{};
+    final officina = _asMap(payload['officina']) ?? const <String, dynamic>{};
+    final notifiche = _asMap(payload['notifiche']) ?? const <String, dynamic>{};
 
     return WorkshopSettings(
-      workshopName: _asString(payload['workshop_name']) ?? '',
-      email: _asString(payload['email']) ?? '',
-      phone: _asString(payload['phone']) ?? '',
-      notificheAttive: _asBool(payload['notifiche_attive']),
+      officinaId: _asInt(officina['id']) ?? 0,
+      workshopName: _asString(profilo['nome']) ?? '',
+      email: _asString(profilo['email_contatto']) ??
+          _asString(officina['email']) ??
+          '',
+      phone: _asString(profilo['telefono_contatto']) ??
+          _asString(officina['telefono']) ??
+          '',
+      address: _asString(officina['indirizzo']),
+      avatarUrl: _asString(profilo['avatar_url']),
+      notificheAttive: _asNullableBool(notifiche['push']),
     );
   }
 }
 
-// --- SERVIZIO API ---
 class SettingsApiService {
   SettingsApiService({http.Client? client})
       : _apiClient = SafeClaimApiClient(client: client);
 
   final SafeClaimApiClient _apiClient;
 
-  // Recupera le impostazioni
-  Future<WorkshopSettings> getSettings() async {
-    final data = await _apiClient.requestJson('GET', '/impostazioni');
+  Future<WorkshopSettings> getSettings({
+    required int officinaId,
+  }) async {
+    final data = await _apiClient.requestJson(
+      'GET',
+      '/impostazioni/?officina_id=$officinaId',
+    );
+
     return WorkshopSettings.fromJson(data);
   }
 
-  // Aggiorna le impostazioni
-  Future<WorkshopSettings> updateSettings({
+  Future<WorkshopSettings> updateProfile({
+    required int officinaId,
     required String workshopName,
     required String email,
     required String phone,
-    required bool notificheAttive,
   }) async {
     final data = await _apiClient.requestJson(
-      'PATCH', // Cambia in POST o PUT se il tuo backend lo richiede
-      '/impostazioni',
+      'PATCH',
+      '/impostazioni/profilo?officina_id=$officinaId',
       body: {
-        'workshop_name': workshopName,
-        'email': email,
-        'phone': phone,
-        'notifiche_attive': notificheAttive,
+        'nome': workshopName,
+        'email_contatto': email,
+        'telefono_contatto': phone,
       },
     );
-    return WorkshopSettings.fromJson(data);
+
+    final payload = _asMap(data['data']) ?? data;
+
+    return WorkshopSettings(
+      officinaId: _asInt(payload['id']) ?? officinaId,
+      workshopName: _asString(payload['nome']) ?? '',
+      email: _asString(payload['email_contatto']) ?? '',
+      phone: _asString(payload['telefono_contatto']) ?? '',
+      avatarUrl: _asString(payload['avatar_url']),
+      address: null,
+      notificheAttive: null,
+    );
+  }
+
+  Future<void> updateNotifications({
+    required int officinaId,
+    required bool push,
+  }) async {
+    await _apiClient.requestJson(
+      'PATCH',
+      '/impostazioni/notifiche?officina_id=$officinaId',
+      body: {
+        'push': push,
+      },
+    );
   }
 }
 
-// --- HELPER DI PARSING (Gli stessi della Dashboard per sicurezza) ---
 Map<String, dynamic>? _asMap(dynamic value) {
   if (value is Map<String, dynamic>) return value;
   if (value is Map) return Map<String, dynamic>.from(value);
@@ -75,12 +114,27 @@ String? _asString(dynamic value) {
   return value.toString();
 }
 
+int? _asInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
 bool _asBool(dynamic value) {
   if (value is bool) return value;
   if (value is num) return value != 0;
   if (value is String) {
     final normalized = value.trim().toLowerCase();
-    return normalized == 'true' || normalized == '1' || normalized == 'yes';
+    return normalized == 'true' ||
+        normalized == '1' ||
+        normalized == 'yes' ||
+        normalized == 'si';
   }
   return false;
+}
+
+bool? _asNullableBool(dynamic value) {
+  if (value == null) return null;
+  return _asBool(value);
 }

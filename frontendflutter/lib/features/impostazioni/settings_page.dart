@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
-
-// Modifica questi import in base alla struttura effettiva delle tue cartelle
 import '../../app/routes.dart';
 import '../../widgets/app_drawer.dart';
-import 'settings_api_service.dart'; 
-// Assumo che SoccorsoApp e buildSharedThemeToggle siano accessibili
-import '../../app/app.dart'; 
+import '../../app/app.dart';
+import 'settings_api_service.dart';
 
-// Riprendo la funzione per il toggle del tema che avevi nella Dashboard
 Widget buildSharedThemeToggle(BuildContext context, bool isDark) {
   return ToggleButtons(
     isSelected: [!isDark, isDark],
     onPressed: (index) {
-      // Sostituisci "SoccorsoApp" con la logica corretta della tua app se serve
       SoccorsoApp.of(context).toggleTheme(index == 1);
     },
     borderRadius: BorderRadius.circular(8),
@@ -35,21 +30,34 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   final SettingsApiService _settingsApi = SettingsApiService();
-  
+
   bool _isLoading = true;
   bool _isSaving = false;
   String? _errorMessage;
 
-  // Controller per i campi di testo
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+
   bool _notificheAttive = false;
+  bool _notificationsSupported = true;
+
+  int _officinaId = 1;
+  bool _initialized = false;
 
   @override
   void initState() {
     super.initState();
-    _loadSettings();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_initialized) return;
+    _initialized = true;
+
+    _resolveOfficinaIdAndLoad();
   }
 
   @override
@@ -60,6 +68,41 @@ class _SettingsPageState extends State<SettingsPage> {
     super.dispose();
   }
 
+  Future<void> _resolveOfficinaIdAndLoad() async {
+    try {
+      final routeArgs = ModalRoute.of(context)?.settings.arguments;
+      final resolvedId = _extractOfficinaId(routeArgs);
+
+      if (resolvedId != null) {
+        _officinaId = resolvedId;
+      }
+
+      await _loadSettings();
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+        _errorMessage = _normalizeError(error);
+      });
+    }
+  }
+
+  int? _extractOfficinaId(dynamic args) {
+    if (args == null) return null;
+
+    if (args is int) return args;
+
+    if (args is Map) {
+      final dynamic value = args['officina_id'] ?? args['officinaId'];
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+    }
+
+    return null;
+  }
+
   Future<void> _loadSettings() async {
     setState(() {
       _isLoading = true;
@@ -67,50 +110,78 @@ class _SettingsPageState extends State<SettingsPage> {
     });
 
     try {
-      final settings = await _settingsApi.getSettings();
-      
+      final settings = await _settingsApi.getSettings(
+        officinaId: _officinaId,
+      );
+
       if (!mounted) return;
 
       setState(() {
+        if (settings.officinaId > 0) {
+          _officinaId = settings.officinaId;
+        }
+
         _nameController.text = settings.workshopName;
         _emailController.text = settings.email;
         _phoneController.text = settings.phone;
-        _notificheAttive = settings.notificheAttive;
+        _notificheAttive = settings.notificheAttive ?? false;
+        _notificationsSupported = settings.notificheAttive != null;
         _isLoading = false;
       });
     } catch (error) {
       if (!mounted) return;
+
       setState(() {
         _isLoading = false;
-        _errorMessage = error.toString().replaceFirst('Exception: ', '');
+        _errorMessage = _normalizeError(error);
       });
     }
   }
 
   Future<void> _saveSettings() async {
+    FocusScope.of(context).unfocus();
+
     setState(() => _isSaving = true);
-    
+
     try {
-      await _settingsApi.updateSettings(
-        workshopName: _nameController.text,
-        email: _emailController.text,
-        phone: _phoneController.text,
-        notificheAttive: _notificheAttive,
+      await _settingsApi.updateProfile(
+        officinaId: _officinaId,
+        workshopName: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        phone: _phoneController.text.trim(),
       );
 
+      if (_notificationsSupported) {
+        try {
+          await _settingsApi.updateNotifications(
+            officinaId: _officinaId,
+            push: _notificheAttive,
+          );
+        } catch (_) {
+          _notificationsSupported = false;
+        }
+      }
+
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Impostazioni salvate con successo!'),
+        SnackBar(
+          content: Text(
+            _notificationsSupported
+                ? 'Impostazioni salvate con successo!'
+                : 'Profilo salvato. Le notifiche non sono supportate dal backend attuale',
+          ),
           backgroundColor: Colors.green,
         ),
       );
+
+      await _loadSettings();
     } catch (error) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Errore: ${error.toString().replaceFirst('Exception: ', '')}'),
+          content: Text('Errore: ${_normalizeError(error)}'),
           backgroundColor: Colors.red,
         ),
       );
@@ -119,6 +190,10 @@ class _SettingsPageState extends State<SettingsPage> {
         setState(() => _isSaving = false);
       }
     }
+  }
+
+  String _normalizeError(Object error) {
+    return error.toString().replaceFirst('Exception: ', '').trim();
   }
 
   @override
@@ -136,14 +211,17 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       drawer: SizedBox(
         width: MediaQuery.of(context).size.width,
-        child: const AppDrawer(currentRoute: Routes.impostazioni), // Usa la rotta giusta
+        child: const AppDrawer(currentRoute: Routes.impostazioni),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _loadSettings,
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 children: [
                   Text(
                     'Configurazione Officina',
@@ -152,6 +230,14 @@ class _SettingsPageState extends State<SettingsPage> {
                       fontWeight: FontWeight.w900,
                       color: isDark ? Colors.white : const Color(0xFF374151),
                       letterSpacing: -0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Officina ID: $_officinaId',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white70 : Colors.black54,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -213,13 +299,19 @@ class _SettingsPageState extends State<SettingsPage> {
                         const SizedBox(height: 24),
                         SwitchListTile.adaptive(
                           title: const Text('Ricevi notifiche push'),
-                          subtitle: const Text('Avvisi per nuove richieste di soccorso'),
+                          subtitle: Text(
+                            _notificationsSupported
+                                ? 'Avvisi per nuove richieste di soccorso'
+                                : 'Non disponibile con il backend attuale',
+                          ),
                           value: _notificheAttive,
                           activeColor: const Color(0xFF6A7AF4),
                           contentPadding: EdgeInsets.zero,
-                          onChanged: (val) {
-                            setState(() => _notificheAttive = val);
-                          },
+                          onChanged: _notificationsSupported
+                              ? (val) {
+                                  setState(() => _notificheAttive = val);
+                                }
+                              : null,
                         ),
                       ],
                     ),
@@ -236,7 +328,14 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       onPressed: _isSaving ? null : _saveSettings,
                       child: _isSaving
-                          ? const CircularProgressIndicator(color: Colors.white)
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.4,
+                                color: Colors.white,
+                              ),
+                            )
                           : const Text(
                               'SALVA IMPOSTAZIONI',
                               style: TextStyle(
