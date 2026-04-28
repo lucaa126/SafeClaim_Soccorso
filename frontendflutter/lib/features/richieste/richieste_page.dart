@@ -17,6 +17,7 @@ class RichiestePage extends StatefulWidget {
 }
 
 class _RichiestePageState extends State<RichiestePage> {
+  static const _filterLabels = ["Tutte", "Da Gestire", "In Corso", "Completate"];
   final RichiesteApiService _apiService = RichiesteApiService();
 
   int _selectedFilterIndex = 0;
@@ -38,7 +39,9 @@ class _RichiestePageState extends State<RichiestePage> {
     });
     try {
       // Ora il metodo combacia con il servizio
-      final dati = await _apiService.fetchRichieste();
+      final dati = await _apiService.fetchRichieste(
+        stato: _filterLabels[_selectedFilterIndex],
+      );
       if (mounted) {
         setState(() {
           _interventi = dati;
@@ -59,19 +62,6 @@ class _RichiestePageState extends State<RichiestePage> {
             ? e.toString().replaceFirst("Exception: ", "")
             : "Errore di connessione al server.";
       });
-    }
-  }
-
-  List<RichiestaIntervento> get _interventiFiltrati {
-    switch (_selectedFilterIndex) {
-      case 1:
-        return _interventi.where((i) => i.stato == "PENDING").toList();
-      case 2:
-        return _interventi.where((i) => i.stato == "ACCEPTED").toList();
-      case 3:
-        return _interventi.where((i) => i.stato == "HANDLED").toList();
-      default:
-        return _interventi;
     }
   }
 
@@ -176,7 +166,10 @@ class _RichiestePageState extends State<RichiestePage> {
   Widget _filterTab(int index, String label, IconData icon, bool isMobile) {
     bool isSelected = _selectedFilterIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _selectedFilterIndex = index),
+      onTap: () {
+        setState(() => _selectedFilterIndex = index);
+        _fetchDati();
+      },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -219,7 +212,7 @@ class _RichiestePageState extends State<RichiestePage> {
             BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10),
         ],
       ),
-      child: _interventiFiltrati.isEmpty
+      child: _interventi.isEmpty
           ? const Padding(
               padding: EdgeInsets.all(60.0),
               child: Center(child: Text("Nessuna richiesta trovata.")),
@@ -238,7 +231,7 @@ class _RichiestePageState extends State<RichiestePage> {
                   DataColumn(label: Text("DATA E ORA")),
                   DataColumn(label: Text("AZIONI")),
                 ],
-                rows: _interventiFiltrati.map((item) {
+                rows: _interventi.map((item) {
                   return DataRow(
                     cells: [
                       DataCell(
@@ -266,15 +259,15 @@ class _RichiestePageState extends State<RichiestePage> {
     Color bgColor;
     Color textColor;
     switch (status) {
-      case "PENDING":
+      case "da_gestire":
         bgColor = const Color(0xFFFFF3E0);
         textColor = const Color(0xFFE65100);
         break;
-      case "ACCEPTED":
+      case "in_corso":
         bgColor = const Color(0xFFE8EAF6);
         textColor = const Color(0xFF3F51B5);
         break;
-      case "HANDLED":
+      case "completato":
         bgColor = const Color(0xFFE0F2F1);
         textColor = const Color(0xFF00796B);
         break;
@@ -304,7 +297,7 @@ class _RichiestePageState extends State<RichiestePage> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (status == "PENDING") ...[
+        if (status == "da_gestire") ...[
           _iconButton(Icons.check, Colors.green),
           const SizedBox(width: 8),
         ],

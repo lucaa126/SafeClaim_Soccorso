@@ -6,14 +6,12 @@ class RichiesteApiService {
   // Istanziamo il tuo client specifico
   final SafeClaimApiClient _apiClient = SafeClaimApiClient();
 
-  Future<List<RichiestaIntervento>> fetchRichieste() async {
+  Future<List<RichiestaIntervento>> fetchRichieste({String? stato}) async {
     try {
-      // Usiamo requestJson del tuo SafeClaimApiClient
-      // Sostituisci 'richieste_endpoint' con il path reale del tuo server
-      final response = await _apiClient.requestJson(
-        'GET', 
-        'get_richieste.php', 
-      );
+      final query = (stato != null && stato != "Tutte")
+          ? '?stato=${Uri.encodeQueryComponent(stato)}'
+          : '';
+      final response = await _apiClient.requestJson('GET', '/richieste/$query');
 
       if (response['success'] == true) {
         final List data = response['data'] as List;
@@ -22,8 +20,7 @@ class RichiesteApiService {
         throw Exception(response['message'] ?? 'Errore nel recupero delle richieste');
       }
     } catch (e) {
-      // L'errore verrà catturato dal blocco try-catch nella UI
-      rethrow; 
+      rethrow;
     }
   }
 }

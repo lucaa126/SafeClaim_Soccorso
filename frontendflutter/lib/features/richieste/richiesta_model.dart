@@ -16,7 +16,7 @@ class RichiestaIntervento {
       id: json['id'] is String ? int.parse(json['id']) : json['id'],
       dataRichiesta: DateTime.parse(json['data_richiesta'] ?? json['data'] ?? DateTime.now().toString()),
       orarioArrivo: json['orario_arrivo'] != null ? DateTime.parse(json['orario_arrivo']) : null,
-      stato: json['stato'] ?? 'PENDING',
+      stato: json['stato'] ?? 'da_gestire',
     );
   }
 }
