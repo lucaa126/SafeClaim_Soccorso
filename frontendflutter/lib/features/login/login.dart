@@ -16,12 +16,39 @@ class _LoginPageState extends State<LoginPage> {
   bool rememberMe = false;
   bool hidePassword = true;
   bool isLoading = false;
+  
+  // Variabili per gestire il colore dinamico
+  bool isEmailEmpty = true;
+  bool isPasswordEmpty = true;
+
   final LoginApiService _loginApi = LoginApiService();
 
   @override
   void initState() {
     super.initState();
     _checkIfLoggedIn();
+
+    // Listener per l'email: aggiorna il colore quando l'utente scrive
+    emailController.addListener(() {
+      setState(() {
+        isEmailEmpty = emailController.text.isEmpty;
+      });
+    });
+
+    // Listener per la password: aggiorna il colore quando l'utente scrive
+    passwordController.addListener(() {
+      setState(() {
+        isPasswordEmpty = passwordController.text.isEmpty;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    // È buona norma liberare la memoria dei controller
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkIfLoggedIn() async {
@@ -36,28 +63,22 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // FUNZIONE DI LOGIN TRAMITE API
   Future<void> _loginAdmin() async {
     final username = emailController.text.trim();
     final password = passwordController.text.trim();
 
-    // 1. Controllo campi vuoti
     if (username.isEmpty || password.isEmpty) {
       _mostraErrore("Inserisci username e password");
       return;
     }
 
     setState(() {
-      isLoading = true; // Mostriamo la rotellina di caricamento
+      isLoading = true;
     });
 
     try {
-      // 2. Effettua il login con Keycloak
       await _loginApi.login(username, password);
-
       if (!mounted) return;
-
-      // Naviga alla Dashboard
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -65,13 +86,12 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     } catch (e) {
-      // Credenziali sbagliate o errore del server
       final errorMessage = e.toString().contains('Login failed') ? e.toString() : 'Credenziali non valide. Riprova.';
       _mostraErrore(errorMessage);
     } finally {
       if (mounted) {
         setState(() {
-          isLoading = false; // Fermiamo la rotellina
+          isLoading = false;
         });
       }
     }
@@ -118,17 +138,20 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-
                 const Text(
                   'Inserisci le tue credenziali',
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 const SizedBox(height: 32),
 
-                // USERNAME
+                // --- USERNAME ---
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.text,
+                  // Stile del testo: cambia in base a isEmailEmpty
+                  style: TextStyle(
+                    color: isEmailEmpty ? Colors.grey : Colors.black,
+                  ),
                   decoration: InputDecoration(
                     labelText: 'Username',
                     hintText: 'testuser',
@@ -141,10 +164,14 @@ class _LoginPageState extends State<LoginPage> {
 
                 const SizedBox(height: 20),
 
-                // PASSWORD
+                // --- PASSWORD ---
                 TextField(
                   controller: passwordController,
                   obscureText: hidePassword,
+                  // Stile del testo: cambia in base a isPasswordEmpty
+                  style: TextStyle(
+                    color: isPasswordEmpty ? Colors.grey : Colors.black,
+                  ),
                   decoration: InputDecoration(
                     labelText: 'Password',
                     hintText: '••••••••',
