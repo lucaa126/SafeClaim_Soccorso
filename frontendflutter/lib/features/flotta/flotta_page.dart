@@ -161,24 +161,17 @@ class _FlottaPageState extends State<FlottaPage> {
             ),
             const SizedBox(height: 24),
 
-            // Grid di carte veicoli
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 1,
-                childAspectRatio: 1.3,
-                mainAxisSpacing: 16,
-              ),
-              itemCount: fleet.length,
-              itemBuilder: (context, index) {
-                final vehicle = fleet[index];
-                return _buildFleetCard(
-                  vehicle,
-                  isDark,
-                  cardColor,
-                );
-              },
+            // Elenco di carte veicoli senza spazio extra tra gli elementi
+            Column(
+              children: fleet
+                  .map(
+                    (vehicle) => _buildFleetCard(
+                      vehicle,
+                      isDark,
+                      cardColor,
+                    ),
+                  )
+                  .toList(),
             ),
           ],
         ),
