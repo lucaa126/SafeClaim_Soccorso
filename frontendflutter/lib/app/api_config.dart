@@ -10,6 +10,7 @@ class SafeClaimApiConfig {
   static const String keycloakRealm = 'safeClaim';
   static const String keycloakClientId = 'safeclaim-client';
 
+  // API Base URL per chiamate protette
   static List<String> get baseUrls {
     const configuredPrimary = localBaseUrl;
     const configuredFallback = localFallbackBaseUrl;
@@ -26,11 +27,11 @@ class SafeClaimApiConfig {
 
   static List<String> get _defaultBaseUrls {
     if (kIsWeb) {
-      return const [localBaseUrl, localFallbackBaseUrl];
+      return const [localFallbackBaseUrl, localBaseUrl];
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       return const [localFallbackBaseUrl, localBaseUrl];
     }
-    return const [localBaseUrl, localFallbackBaseUrl];
+    return const [localFallbackBaseUrl, localBaseUrl];
   }
 }
