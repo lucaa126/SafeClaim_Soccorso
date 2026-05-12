@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'routes.dart';
+import 'theme.dart';
 import '../features/dashboard/dashboard_page.dart';
 import '../features/richieste/richieste_page.dart';
 import '../features/impostazioni/settings_page.dart';
@@ -21,7 +22,7 @@ class SoccorsoApp extends StatefulWidget {
 }
 
 class SoccorsoAppState extends State<SoccorsoApp> {
-  ThemeMode _themeMode = ThemeMode.dark;
+  ThemeMode _themeMode = ThemeMode.light;
 
   void toggleTheme(bool isDark) {
     setState(() {
@@ -31,33 +32,11 @@ class SoccorsoAppState extends State<SoccorsoApp> {
 
   @override
   Widget build(BuildContext context) {
-    const seed = Color(0xFF6A7AF4);
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Soccorso Admin',
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.light,
-        colorSchemeSeed: seed,
-        scaffoldBackgroundColor: const Color(0xFFF1F3F9),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFF1F3F9),
-          elevation: 0,
-          iconTheme: IconThemeData(color: Colors.black87),
-        ),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorSchemeSeed: seed,
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF121212),
-          elevation: 0,
-          iconTheme: IconThemeData(color: Colors.white),
-        ),
-      ),
+      theme: lightTheme(),
+      darkTheme: darkTheme(),
       themeMode: _themeMode,
 
       // ---------------- ROTTE ----------------

@@ -8,8 +8,8 @@ class Vehicle {
   final String name;
   final String targa; // Rinominato da plate a targa per matchare l'API
   final String status;
-  
-  // Questi campi non sono presenti nel tuo esempio di risposta API. 
+
+  // Questi campi non sono presenti nel tuo esempio di risposta API.
   // Li rendo opzionali per evitare errori di logica.
   final String? driver;
   final double? lat;
@@ -26,9 +26,9 @@ class Vehicle {
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
-    // L'API restituisce i dati "flat", non serve cercare 'data' a meno che 
+    // L'API restituisce i dati "flat", non serve cercare 'data' a meno che
     // il tuo SafeClaimApiClient non faccia un wrapping automatico.
-    final payload = json; 
+    final payload = json;
 
     return Vehicle(
       id: _asInt(payload['id']),
@@ -42,19 +42,39 @@ class Vehicle {
   }
 }
 
+int _asInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value) ?? 0;
+  return 0;
+}
+
+String? _asString(dynamic value) {
+  if (value == null) return null;
+  final text = value.toString().trim();
+  return text.isEmpty ? null : text;
+}
+
+double? _asDouble(dynamic value) {
+  if (value is double) return value;
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
+
 // --- SERVICE API ---
 
 class FlottaApiService {
   final SafeClaimApiClient _apiClient;
 
   FlottaApiService({http.Client? client})
-      : _apiClient = SafeClaimApiClient(client: client);
+    : _apiClient = SafeClaimApiClient(client: client);
 
   /// Recupera la lista completa dei veicoli
   Future<List<Vehicle>> getFleet() async {
     // Nota: Ho aggiunto 'api' al percorso come da tua specifica /api/flotta/
     final dynamic data = await _requestJson('GET', '/api/flotta/');
-    
+
     if (data is List) {
       return data
           .map((item) => Vehicle.fromJson(Map<String, dynamic>.from(item)))
@@ -78,7 +98,11 @@ class FlottaApiService {
     );
   }
 
-  Future<dynamic> _requestJson(String method, String path, {Map<String, dynamic>? body}) async {
+  Future<dynamic> _requestJson(
+    String method,
+    String path, {
+    Map<String, dynamic>? body,
+  }) async {
     return _apiClient.requestJson(method, path, body: body);
   }
 }

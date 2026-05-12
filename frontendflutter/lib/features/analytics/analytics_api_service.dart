@@ -89,32 +89,42 @@ class AnalyticsApiService {
   final SafeClaimApiClient _apiClient;
 
   Future<AnalyticsSummary> getAnalyticsSummary() async {
-    print('🔴 getAnalyticsSummary called');
-    
-    final totalResponse = await _requestJson('GET', '/total-requests');
-    final pendingResponse = await _requestJson('GET', '/pending');
-    final acceptedResponse = await _requestJson('GET', '/accepted');
-    final handledResponse = await _requestJson('GET', '/handled');
-
-    print('📊 ANALYTICS DEBUG');
-    print('Total response: $totalResponse');
-    print('Pending response: $pendingResponse');
-    print('Accepted response: $acceptedResponse');
-    print('Handled response: $handledResponse');
+    final totalResponse = await _requestJson(
+      'GET',
+      '/analytics/total-requests',
+    );
+    final pendingResponse = await _requestJson('GET', '/analytics/pending');
+    final acceptedResponse = await _requestJson('GET', '/analytics/accepted');
+    final handledResponse = await _requestJson('GET', '/analytics/handled');
 
     final data = {
       'data': {
-        'total': totalResponse['data'] ?? totalResponse['count'] ?? totalResponse['total'] ?? 0,
-        'pending': pendingResponse['data'] ?? pendingResponse['count'] ?? pendingResponse['pending'] ?? 0,
-        'accepted': acceptedResponse['data'] ?? acceptedResponse['count'] ?? acceptedResponse['accepted'] ?? 0,
-        'handled': handledResponse['data'] ?? handledResponse['count'] ?? handledResponse['handled'] ?? 0,
+        'total':
+            totalResponse['data'] ??
+            totalResponse['count'] ??
+            totalResponse['total'] ??
+            0,
+        'pending':
+            pendingResponse['data'] ??
+            pendingResponse['count'] ??
+            pendingResponse['pending'] ??
+            0,
+        'accepted':
+            acceptedResponse['data'] ??
+            acceptedResponse['count'] ??
+            acceptedResponse['accepted'] ??
+            0,
+        'handled':
+            handledResponse['data'] ??
+            handledResponse['count'] ??
+            handledResponse['handled'] ??
+            0,
         'last7Days': totalResponse['last7Days'] ?? const [],
         'fleetStatus': totalResponse['fleetStatus'] ?? const {},
         'averageHandlingMins': totalResponse['averageHandlingMins'] ?? 0,
-      }
+      },
     };
 
-    print('Final data: $data');
     return AnalyticsSummary.fromJson(data);
   }
 
@@ -138,7 +148,9 @@ class AnalyticsApiService {
 
     return rawItems
         .whereType<Map>()
-        .map((item) => TrafficIncident.fromJson(Map<String, dynamic>.from(item)))
+        .map(
+          (item) => TrafficIncident.fromJson(Map<String, dynamic>.from(item)),
+        )
         .toList();
   }
 

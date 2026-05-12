@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 class SafeClaimApiConfig {
-  static const String localBaseUrl = 'https://glowing-funicular-v6ww5xrg44wcxvjg-5000.app.github.dev/api';
+  static const String localBaseUrl = 'https://safeclaim.giobra.com/api';
   static const String localFallbackBaseUrl = 'https://safeclaim.giobra.com/api';
   static const Duration requestTimeout = Duration(seconds: 5);
 

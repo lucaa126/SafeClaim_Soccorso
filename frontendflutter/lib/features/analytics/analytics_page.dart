@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../app/routes.dart';
+import '../../app/theme.dart';
 import '../../widgets/app_drawer.dart';
+import '../../widgets/safeclaim_ui.dart';
 import 'analytics_api_service.dart';
-import '../dashboard/dashboard_page.dart';
 
 class AnalyticsPage extends StatefulWidget {
   const AnalyticsPage({super.key});
@@ -36,14 +37,12 @@ class _AnalyticsPageState extends State<AnalyticsPage>
   @override
   void initState() {
     super.initState();
-    _tabController =
-        TabController(length: 4, vsync: this, initialIndex: 0);
+    _tabController = TabController(length: 4, vsync: this, initialIndex: 0);
     _loadAllData();
     _loadTraffic();
   }
 
   Future<void> _loadAllData() async {
-    print('🔵 _loadAllData called');
     try {
       setState(() {
         loadingAnalytics = true;
@@ -67,8 +66,6 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         loadingAnalytics = false;
       });
     } catch (e) {
-      print('❌ ERRORE _loadAllData: $e');
-      print('Stack trace: $e');
       if (!mounted) {
         return;
       }
@@ -97,9 +94,9 @@ class _AnalyticsPageState extends State<AnalyticsPage>
   }
 
   void _showSnack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _refreshData() {
@@ -120,19 +117,18 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     final isMobile = screenWidth < 600;
 
     return Scaffold(
-      backgroundColor: isDarkMode ? const Color(0xFF1c1d1f) : const Color(0xFFdcdcdf),
+      backgroundColor: isDarkMode
+          ? SafeClaimColors.darkBackground
+          : SafeClaimColors.background,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor:
-            isDarkMode ? const Color(0xFF0d1117) : Colors.white,
-        foregroundColor:
-            isDarkMode ? Colors.white : const Color(0xFF363949),
+        backgroundColor: isDarkMode
+            ? SafeClaimColors.darkSurface
+            : SafeClaimColors.primary,
+        foregroundColor: Colors.white,
         title: const Text(
           'Analytics',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
         ),
         actions: [
           buildSharedThemeToggle(context, isDarkMode),
@@ -156,7 +152,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                   CircularProgressIndicator(
                     strokeWidth: 3,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      isDarkMode ? const Color(0xFF7380ec) : const Color(0xFF7380ec),
+                      SafeClaimColors.primary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -168,8 +164,8 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                   Text(
                     'Simulazione API in corso',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey,
-                        ),
+                      color: safeClaimSubtleTextColor(isDarkMode),
+                    ),
                   ),
                 ],
               ),
@@ -209,16 +205,18 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         Text(
           'Analytics',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 28,
-              ),
+            fontWeight: FontWeight.bold,
+            fontSize: 28,
+          ),
         ),
         const SizedBox(height: 8),
         Text(
           'Panoramica e metriche operative',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey,
-              ),
+            color: safeClaimSubtleTextColor(
+              Theme.of(context).brightness == Brightness.dark,
+            ),
+          ),
         ),
       ],
     );
@@ -230,25 +228,25 @@ class _AnalyticsPageState extends State<AnalyticsPage>
       {
         'label': 'Richieste totali',
         'value': total.toString(),
-        'color': const Color(0xFF7380ec),
+        'color': SafeClaimColors.primary,
         'icon': Icons.assignment_ind,
       },
       {
         'label': 'In attesa',
         'value': pending.toString(),
-        'color': const Color(0xFFffbb55),
+        'color': SafeClaimColors.textMuted,
         'icon': Icons.schedule,
       },
       {
         'label': 'In corso',
         'value': accepted.toString(),
-        'color': const Color(0xFF7380ec),
+        'color': SafeClaimColors.primaryDark,
         'icon': Icons.directions_run,
       },
       {
         'label': 'Completate',
         'value': handled.toString(),
-        'color': const Color(0xFF41f1b6),
+        'color': SafeClaimColors.textStrong,
         'icon': Icons.check_circle,
       },
     ];
@@ -274,8 +272,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
           onTap: () {
             setState(() {
               selectedCategory = card['label'] as String;
-              _tabController
-                  .animateTo(index == 0 ? 0 : index);
+              _tabController.animateTo(index == 0 ? 0 : index);
             });
           },
         );
@@ -297,7 +294,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).brightness == Brightness.dark
-              ? const Color(0xFF0d1117)
+              ? SafeClaimColors.darkCard
               : Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
@@ -308,7 +305,9 @@ class _AnalyticsPageState extends State<AnalyticsPage>
             ),
           ],
           border: Border.all(
-            color: isSelected ? color.withValues(alpha: 0.5) : Colors.transparent,
+            color: isSelected
+                ? color.withValues(alpha: 0.5)
+                : Colors.transparent,
             width: 2,
           ),
         ),
@@ -326,7 +325,9 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                       label,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white70
+                            : SafeClaimColors.textMuted,
                         fontWeight: FontWeight.w500,
                       ),
                       maxLines: 2,
@@ -339,11 +340,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                       color: color.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      icon,
-                      size: 16,
-                      color: color,
-                    ),
+                    child: Icon(icon, size: 16, color: color),
                   ),
                 ],
               ),
@@ -367,7 +364,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF0d1117)
+            ? SafeClaimColors.darkCard
             : Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
@@ -391,11 +388,13 @@ class _AnalyticsPageState extends State<AnalyticsPage>
             selectedCategory = newCategories[index];
           });
         },
-        labelColor: const Color(0xFF7380ec),
-        unselectedLabelColor: Colors.grey,
+        labelColor: SafeClaimColors.primary,
+        unselectedLabelColor: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white70
+            : SafeClaimColors.textMuted,
         indicator: UnderlineTabIndicator(
           borderSide: const BorderSide(
-            color: Color(0xFF7380ec),
+            color: SafeClaimColors.primary,
             width: 3,
           ),
           insets: const EdgeInsets.symmetric(horizontal: 0),
@@ -449,30 +448,32 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         const SizedBox(height: 20),
         Text(
           'Statistiche Richieste',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        _buildStatCard('Totale', total, const Color(0xFF7380ec)),
+        _buildStatCard('Totale', total, SafeClaimColors.primary),
         const SizedBox(height: 8),
-        _buildStatCard('In attesa', pending, const Color(0xFFffbb55)),
+        _buildStatCard('In attesa', pending, SafeClaimColors.textMuted),
         const SizedBox(height: 8),
-        _buildStatCard('In corso', accepted, const Color(0xFF7380ec)),
+        _buildStatCard('In corso', accepted, SafeClaimColors.primaryDark),
         const SizedBox(height: 8),
-        _buildStatCard('Completate', handled, const Color(0xFF41f1b6)),
+        _buildStatCard('Completate', handled, SafeClaimColors.textStrong),
       ],
     );
   }
 
   // ===== REQUESTS CHART =====
   Widget _buildRequestsChart() {
-    final max = last7Days.isEmpty ? 1 : last7Days.reduce((a, b) => a > b ? a : b);
+    final max = last7Days.isEmpty
+        ? 1
+        : last7Days.reduce((a, b) => a > b ? a : b);
 
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF0d1117)
+            ? SafeClaimColors.darkCard
             : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -489,9 +490,9 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         children: [
           Text(
             'Richieste ultimi 7 giorni',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
           SizedBox(
@@ -513,15 +514,16 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                         width: 30,
                         height: height,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF7380ec),
+                          color: SafeClaimColors.primary,
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(8),
                             topRight: Radius.circular(8),
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF7380ec)
-                                  .withValues(alpha: 0.3),
+                              color: SafeClaimColors.primary.withValues(
+                                alpha: 0.3,
+                              ),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -534,7 +536,9 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                       isToday ? 'oggi' : 'g${6 - index}',
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.grey.shade600,
+                        color: safeClaimSubtleTextColor(
+                          Theme.of(context).brightness == Brightness.dark,
+                        ),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -557,20 +561,25 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         const SizedBox(height: 20),
         Text(
           'Dettagli Operazioni',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        _buildStatusBar('In attesa', pending, total, const Color(0xFFffbb55)),
+        _buildStatusBar('In attesa', pending, total, SafeClaimColors.textMuted),
         const SizedBox(height: 12),
-        _buildStatusBar('In corso', accepted, total, const Color(0xFF7380ec)),
+        _buildStatusBar(
+          'In corso',
+          accepted,
+          total,
+          SafeClaimColors.primaryDark,
+        ),
         const SizedBox(height: 12),
         _buildStatusBar(
           'Completate',
           handled,
           total,
-          const Color(0xFF41f1b6),
+          SafeClaimColors.textStrong,
         ),
       ],
     );
@@ -581,7 +590,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF0d1117)
+            ? SafeClaimColors.darkCard
             : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -598,20 +607,30 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         children: [
           Text(
             'Stato operazioni',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          _buildStatusBar('In attesa', pending, total, const Color(0xFFffbb55)),
+          _buildStatusBar(
+            'In attesa',
+            pending,
+            total,
+            SafeClaimColors.textMuted,
+          ),
           const SizedBox(height: 12),
-          _buildStatusBar('In corso', accepted, total, const Color(0xFF7380ec)),
+          _buildStatusBar(
+            'In corso',
+            accepted,
+            total,
+            SafeClaimColors.primaryDark,
+          ),
           const SizedBox(height: 12),
           _buildStatusBar(
             'Completate',
             handled,
             total,
-            const Color(0xFF41f1b6),
+            SafeClaimColors.textStrong,
           ),
           const Divider(height: 24),
           Text(
@@ -622,9 +641,9 @@ class _AnalyticsPageState extends State<AnalyticsPage>
           Text(
             '$averageHandlingMins minuti',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF7380ec),
-                ),
+              fontWeight: FontWeight.bold,
+              color: SafeClaimColors.primary,
+            ),
           ),
         ],
       ),
@@ -632,12 +651,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
   }
 
   // ===== STATUS BAR WIDGET =====
-  Widget _buildStatusBar(
-    String label,
-    int value,
-    int total,
-    Color color,
-  ) {
+  Widget _buildStatusBar(String label, int value, int total, Color color) {
     final percentage = total == 0 ? 0.0 : (value / total) * 100;
 
     return Column(
@@ -648,16 +662,16 @@ class _AnalyticsPageState extends State<AnalyticsPage>
           children: [
             Text(
               label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             Text(
               '$value (${percentage.toStringAsFixed(1)}%)',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
           ],
         ),
@@ -667,7 +681,9 @@ class _AnalyticsPageState extends State<AnalyticsPage>
           child: LinearProgressIndicator(
             value: percentage / 100,
             minHeight: 28,
-            backgroundColor: Colors.grey.shade300,
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white.withValues(alpha: 0.14)
+                : SafeClaimColors.primaryLightest,
             valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         ),
@@ -685,7 +701,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF0d1117)
+            ? SafeClaimColors.darkCard
             : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -702,16 +718,16 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         children: [
           Text(
             'Stato flotta',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           ...fleetStatus.entries.map((entry) {
             final colors = {
-              'available': const Color(0xFF41f1b6),
-              'busy': const Color(0xFF7380ec),
-              'maintenance': const Color(0xFFffbb55),
+              'available': SafeClaimColors.textStrong,
+              'busy': SafeClaimColors.primaryDark,
+              'maintenance': SafeClaimColors.textMuted,
             };
             final labels = {
               'available': 'Disponibili',
@@ -737,17 +753,15 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                       const SizedBox(width: 12),
                       Text(
                         labels[entry.key] ?? entry.key,
-                        style:
-                            Theme.of(context).textTheme.bodySmall,
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
                   Text(
                     entry.value.toString(),
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -758,14 +772,12 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     );
   }
 
-
-
   // ===== TRAFFIC CARD =====
   Widget _buildTrafficCard() {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF0d1117)
+            ? SafeClaimColors.darkCard
             : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -785,9 +797,9 @@ class _AnalyticsPageState extends State<AnalyticsPage>
             children: [
               Text(
                 'Traffico Live',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               IconButton(
                 onPressed: _loadTraffic,
@@ -798,7 +810,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            Color(0xFF7380ec),
+                            SafeClaimColors.primary,
                           ),
                         ),
                       )
@@ -829,15 +841,17 @@ class _AnalyticsPageState extends State<AnalyticsPage>
           children: [
             const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(
-                Color(0xFF7380ec),
+                SafeClaimColors.primary,
               ),
             ),
             const SizedBox(height: 12),
             Text(
               'Ricerca notizie in corso...',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey,
-                  ),
+                color: safeClaimSubtleTextColor(
+                  Theme.of(context).brightness == Brightness.dark,
+                ),
+              ),
             ),
           ],
         ),
@@ -855,12 +869,12 @@ class _AnalyticsPageState extends State<AnalyticsPage>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF41f1b6).withValues(alpha: 0.15),
+                color: SafeClaimColors.textStrong.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(50),
               ),
               child: const Icon(
                 Icons.check_circle,
-                color: Color(0xFF41f1b6),
+                color: SafeClaimColors.textStrong,
                 size: 32,
               ),
             ),
@@ -868,8 +882,10 @@ class _AnalyticsPageState extends State<AnalyticsPage>
             Text(
               'Nessuna criticità rilevata.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey,
-                  ),
+                color: safeClaimSubtleTextColor(
+                  Theme.of(context).brightness == Brightness.dark,
+                ),
+              ),
             ),
           ],
         ),
@@ -894,20 +910,21 @@ class _AnalyticsPageState extends State<AnalyticsPage>
   // ===== TRAFFIC ITEM =====
   Widget _buildTrafficItem(TrafficIncident incident) {
     final isDanger = incident.title.toLowerCase().contains('incidente');
-    final isWarning = incident.title.toLowerCase().contains('coda') ||
+    final isWarning =
+        incident.title.toLowerCase().contains('coda') ||
         incident.title.toLowerCase().contains('code');
 
     Color iconBgColor;
     IconData icon;
 
     if (isDanger) {
-      iconBgColor = const Color(0xFFff7782);
+      iconBgColor = SafeClaimColors.danger;
       icon = Icons.car_crash;
     } else if (isWarning) {
-      iconBgColor = const Color(0xFFffbb55);
+      iconBgColor = SafeClaimColors.warning;
       icon = Icons.traffic;
     } else {
-      iconBgColor = const Color(0xFF7380ec);
+      iconBgColor = SafeClaimColors.primary;
       icon = Icons.info;
     }
 
@@ -937,11 +954,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                     color: iconBgColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    icon,
-                    color: iconBgColor,
-                    size: 20,
-                  ),
+                  child: Icon(icon, color: iconBgColor, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -952,10 +965,9 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                         incident.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style:
-                            Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Row(
@@ -963,22 +975,21 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                         children: [
                           Text(
                             incident.source,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
+                            style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
-                                  color: const Color(0xFF7380ec),
+                                  color: SafeClaimColors.primary,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                 ),
                           ),
                           Text(
                             _formatTime(incident.pubDate),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
+                            style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
-                                  color: Colors.grey.shade600,
+                                  color: safeClaimSubtleTextColor(
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark,
+                                  ),
                                   fontSize: 11,
                                 ),
                           ),
@@ -1000,7 +1011,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF0d1117)
+            ? SafeClaimColors.darkCard
             : Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
@@ -1021,16 +1032,18 @@ class _AnalyticsPageState extends State<AnalyticsPage>
               Text(
                 label,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey,
-                    ),
+                  color: safeClaimSubtleTextColor(
+                    Theme.of(context).brightness == Brightness.dark,
+                  ),
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 value.toString(),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: color,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
               ),
             ],
           ),
@@ -1040,11 +1053,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
               color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              Icons.trending_up,
-              color: color,
-              size: 24,
-            ),
+            child: Icon(Icons.trending_up, color: color, size: 24),
           ),
         ],
       ),

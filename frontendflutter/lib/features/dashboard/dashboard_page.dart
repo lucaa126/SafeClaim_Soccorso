@@ -2,30 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../app/app.dart';
 import '../../app/auth_service.dart';
 import '../../app/routes.dart';
+import '../../app/theme.dart';
 import '../../widgets/app_drawer.dart';
+import '../../widgets/safeclaim_ui.dart';
 import 'dashboard_api_service.dart';
 import '../dettaglio/dettaglio_intervento_page.dart';
 import '../interventi/intervento_api_service.dart';
-
-Widget buildSharedThemeToggle(BuildContext context, bool isDark) {
-  return ToggleButtons(
-    isSelected: [!isDark, isDark],
-    onPressed: (index) {
-      SoccorsoApp.of(context).toggleTheme(index == 1);
-    },
-    borderRadius: BorderRadius.circular(8),
-    constraints: const BoxConstraints(minHeight: 32, minWidth: 36),
-    selectedColor: Colors.white,
-    fillColor: Colors.blue,
-    children: const [
-      Icon(Icons.wb_sunny_outlined, size: 18),
-      Icon(Icons.nightlight_round, size: 18),
-    ],
-  );
-}
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -221,7 +205,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF2C2C2C) : Colors.white;
+    final cardColor = safeClaimCardColor(isDark);
     final summary = _summary;
 
     return Scaffold(
@@ -245,8 +229,7 @@ class _DashboardPageState extends State<DashboardPage> {
               style: TextStyle(
                 fontSize: 34,
                 fontWeight: FontWeight.w900,
-                color: isDark ? Colors.white : const Color(0xFF374151),
-                letterSpacing: -0.8,
+                color: isDark ? Colors.white : SafeClaimColors.foreground,
               ),
             ),
             const SizedBox(height: 6),
@@ -254,7 +237,7 @@ class _DashboardPageState extends State<DashboardPage> {
               'Benvenuto, ${summary?.workshopName ?? 'Officina Centrale'}',
               style: TextStyle(
                 fontSize: 15,
-                color: isDark ? Colors.white70 : Colors.grey,
+                color: safeClaimSubtleTextColor(isDark),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -274,7 +257,10 @@ class _DashboardPageState extends State<DashboardPage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF2EE6A6), Color(0xFF6A7AF4)],
+                        colors: [
+                          SafeClaimColors.primaryLight,
+                          SafeClaimColors.primary,
+                        ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),
@@ -292,7 +278,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             fontWeight: FontWeight.w900,
                             color: isDark
                                 ? Colors.white
-                                : const Color(0xFF111827),
+                                : SafeClaimColors.foreground,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -301,7 +287,7 @@ class _DashboardPageState extends State<DashboardPage> {
                               ? 'Online - Ricezione chiamate'
                               : 'Offline - Pausa',
                           style: TextStyle(
-                            color: isDark ? Colors.white70 : Colors.grey,
+                            color: safeClaimSubtleTextColor(isDark),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -311,7 +297,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   Switch.adaptive(
                     value: summary?.operativoOnline ?? false,
                     activeThumbColor: Colors.white,
-                    activeTrackColor: const Color(0xFF6A7AF4),
+                    activeTrackColor: SafeClaimColors.primary,
                     onChanged: _isUpdatingOperational
                         ? null
                         : _toggleOperational,
@@ -323,7 +309,7 @@ class _DashboardPageState extends State<DashboardPage> {
             _kpi(
               isDark: isDark,
               cardColor: cardColor,
-              bubble: const Color(0xFF6A7AF4),
+              bubble: SafeClaimColors.primary,
               bubbleChild: const Text(
                 'SOS',
                 style: TextStyle(
@@ -338,7 +324,7 @@ class _DashboardPageState extends State<DashboardPage> {
             _kpi(
               isDark: isDark,
               cardColor: cardColor,
-              bubble: const Color(0xFF2EE6A6),
+              bubble: SafeClaimColors.primaryLight,
               bubbleChild: const Icon(Icons.check_rounded, color: Colors.white),
               value: '${summary?.completatiOggi ?? 0}',
               label: 'Completati Oggi',
@@ -347,7 +333,7 @@ class _DashboardPageState extends State<DashboardPage> {
             _kpi(
               isDark: isDark,
               cardColor: cardColor,
-              bubble: const Color(0xFFFFC24A),
+              bubble: SafeClaimColors.textMuted,
               bubbleChild: const Icon(
                 Icons.access_time_rounded,
                 color: Colors.white,
@@ -361,8 +347,7 @@ class _DashboardPageState extends State<DashboardPage> {
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w900,
-                color: isDark ? Colors.white : const Color(0xFF374151),
-                letterSpacing: -0.7,
+                color: isDark ? Colors.white : SafeClaimColors.foreground,
               ),
             ),
             const SizedBox(height: 8),
@@ -370,8 +355,8 @@ class _DashboardPageState extends State<DashboardPage> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: isDark
-                    ? const Color(0xFF111827)
-                    : const Color(0xFFF3F4F6),
+                    ? SafeClaimColors.darkSurface
+                    : SafeClaimColors.primaryLightest,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
@@ -380,7 +365,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     width: 10,
                     height: 10,
                     decoration: const BoxDecoration(
-                      color: Color(0xFF2EE6A6),
+                      color: SafeClaimColors.primary,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -389,7 +374,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     child: Text(
                       '${_richieste.length} richieste da gestire',
                       style: TextStyle(
-                        color: isDark ? Colors.white : const Color(0xFF111827),
+                        color: isDark
+                            ? Colors.white
+                            : SafeClaimColors.foreground,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -397,7 +384,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   Text(
                     'Tap per selezionare',
                     style: TextStyle(
-                      color: isDark ? Colors.white60 : const Color(0xFF6B7280),
+                      color: isDark
+                          ? Colors.white60
+                          : SafeClaimColors.textMuted,
                       fontWeight: FontWeight.w700,
                       fontSize: 12,
                     ),
@@ -450,8 +439,7 @@ class _DashboardPageState extends State<DashboardPage> {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
-                color: isDark ? Colors.white : const Color(0xFF374151),
-                letterSpacing: -0.6,
+                color: isDark ? Colors.white : SafeClaimColors.foreground,
               ),
             ),
             const SizedBox(height: 12),
@@ -475,7 +463,7 @@ class _DashboardPageState extends State<DashboardPage> {
                               width: 42,
                               height: 42,
                               decoration: const BoxDecoration(
-                                color: Color(0xFF6A7AF4),
+                                color: SafeClaimColors.primary,
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -495,7 +483,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                       fontWeight: FontWeight.w900,
                                       color: isDark
                                           ? Colors.white
-                                          : const Color(0xFF111827),
+                                          : SafeClaimColors.foreground,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -504,7 +492,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                     style: TextStyle(
                                       color: isDark
                                           ? Colors.white70
-                                          : Colors.grey,
+                                          : SafeClaimColors.textMuted,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -550,7 +538,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                           child: const Icon(
                                             Icons.location_on_rounded,
                                             size: 44,
-                                            color: Color(0xFF6A7AF4),
+                                            color: SafeClaimColors.primary,
                                           ),
                                         ),
                                       ],
@@ -581,7 +569,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                             fontWeight: FontWeight.w900,
                                             color: isDark
                                                 ? Colors.white
-                                                : const Color(0xFF111827),
+                                                : SafeClaimColors.foreground,
                                           ),
                                         ),
                                         const SizedBox(height: 2),
@@ -590,7 +578,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                           style: TextStyle(
                                             color: isDark
                                                 ? Colors.white70
-                                                : Colors.grey,
+                                                : SafeClaimColors.textMuted,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -641,7 +629,7 @@ class _DashboardPageState extends State<DashboardPage> {
             child: Text(
               _errorMessage ?? 'Errore sconosciuto',
               style: TextStyle(
-                color: isDark ? Colors.white : const Color(0xFF111827),
+                color: isDark ? Colors.white : SafeClaimColors.foreground,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -663,13 +651,13 @@ Widget _buildRequestCard({
   required ValueChanged<String> onAction,
 }) {
   final borderColor = isSelected
-      ? const Color(0xFF6A7AF4)
+      ? SafeClaimColors.primary
       : isDark
       ? Colors.white.withValues(alpha: 0.08)
-      : const Color(0xFFE5E7EB);
+      : SafeClaimColors.primaryLight.withValues(alpha: 0.45);
   final backgroundColor = isSelected
-      ? (isDark ? const Color(0xFF1E293B) : const Color(0xFFF5F7FF))
-      : (isDark ? const Color(0xFF202020) : const Color(0xFFFAFBFC));
+      ? (isDark ? SafeClaimColors.darkSurface : SafeClaimColors.primaryLightest)
+      : (isDark ? SafeClaimColors.darkCard : Colors.white);
 
   return Material(
     color: Colors.transparent,
@@ -687,7 +675,7 @@ Widget _buildRequestCard({
           boxShadow: [
             if (isSelected)
               BoxShadow(
-                color: const Color(0xFF6A7AF4).withValues(alpha: 0.18),
+                color: SafeClaimColors.primary.withValues(alpha: 0.16),
                 blurRadius: 18,
                 offset: const Offset(0, 8),
               ),
@@ -705,12 +693,12 @@ Widget _buildRequestCard({
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isSelected
-                        ? const Color(0xFF6A7AF4)
-                        : const Color(0xFF6A7AF4).withValues(alpha: 0.14),
+                        ? SafeClaimColors.primary
+                        : SafeClaimColors.primary.withValues(alpha: 0.14),
                   ),
                   child: Icon(
                     Icons.location_on_rounded,
-                    color: isSelected ? Colors.white : const Color(0xFF6A7AF4),
+                    color: isSelected ? Colors.white : SafeClaimColors.primary,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -723,7 +711,7 @@ Widget _buildRequestCard({
                         style: TextStyle(
                           color: isDark
                               ? Colors.white
-                              : const Color(0xFF111827),
+                              : SafeClaimColors.foreground,
                           fontWeight: FontWeight.w900,
                           fontSize: 16,
                           height: 1.15,
@@ -735,7 +723,7 @@ Widget _buildRequestCard({
                         style: TextStyle(
                           color: isDark
                               ? Colors.white70
-                              : const Color(0xFF6B7280),
+                              : SafeClaimColors.textMuted,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -775,7 +763,7 @@ Widget _buildRequestCard({
                         isDark: isDark,
                         icon: Icons.my_location_rounded,
                         label: 'Selezionata',
-                        accent: const Color(0xFF6A7AF4),
+                        accent: SafeClaimColors.primary,
                         maxWidth: pillMaxWidth,
                       ),
                   ],
@@ -788,7 +776,7 @@ Widget _buildRequestCard({
               height: 1,
               color: isDark
                   ? Colors.white.withValues(alpha: 0.07)
-                  : const Color(0xFFE5E7EB),
+                  : SafeClaimColors.primaryLight.withValues(alpha: 0.45),
             ),
             const SizedBox(height: 14),
             _buildActionButtons(
@@ -820,7 +808,7 @@ Widget _buildActionButtons({
         isDark: isDark,
         icon: Icons.visibility_rounded,
         label: 'Dettaglio',
-        color: isDark ? Colors.white70 : const Color(0xFF374151),
+        color: isDark ? Colors.white70 : SafeClaimColors.textStrong,
         onPressed: onOpenDetail,
       ),
       if (richiesta.availableActions.contains('take_in_charge')) ...[
@@ -828,7 +816,7 @@ Widget _buildActionButtons({
           isDark: isDark,
           icon: Icons.check,
           label: 'Prendi in carico',
-          color: Colors.green,
+          color: SafeClaimColors.primary,
           onPressed: isBusy ? null : () => onAction('take_in_charge'),
         ),
       ],
@@ -837,7 +825,7 @@ Widget _buildActionButtons({
           isDark: isDark,
           icon: Icons.done_all_rounded,
           label: 'Completa',
-          color: const Color(0xFF2E8B57),
+          color: SafeClaimColors.textStrong,
           onPressed: isBusy ? null : () => onAction('complete'),
         ),
       ],
@@ -856,7 +844,7 @@ Widget _buildActionButtons({
           decoration: BoxDecoration(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.06)
-                : const Color(0xFFF3F4F6),
+                : SafeClaimColors.primaryLightest,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -885,13 +873,13 @@ Widget _buildActionButtons({
           decoration: BoxDecoration(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.05)
-                : const Color(0xFFF3F4F6),
+                : SafeClaimColors.primaryLightest,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             'Nessuna azione disponibile',
             style: TextStyle(
-              color: isDark ? Colors.white70 : const Color(0xFF6B7280),
+              color: isDark ? Colors.white70 : SafeClaimColors.textMuted,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -916,20 +904,20 @@ Widget _metaPill({
       decoration: BoxDecoration(
         color: pillColor != null
             ? pillColor.withValues(alpha: 0.14)
-            : (isDark ? const Color(0xFF111827) : Colors.white),
+            : (isDark ? SafeClaimColors.darkSurface : Colors.white),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color:
               pillColor?.withValues(alpha: 0.26) ??
               (isDark
                   ? Colors.white.withValues(alpha: 0.08)
-                  : const Color(0xFFE5E7EB)),
+                  : SafeClaimColors.primaryLight.withValues(alpha: 0.45)),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: pillColor ?? const Color(0xFF6A7AF4)),
+          Icon(icon, size: 14, color: pillColor ?? SafeClaimColors.primary),
           const SizedBox(width: 6),
           Flexible(
             child: Text(
@@ -937,7 +925,7 @@ Widget _metaPill({
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: isDark ? Colors.white : const Color(0xFF111827),
+                color: isDark ? Colors.white : SafeClaimColors.foreground,
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
               ),
@@ -983,18 +971,7 @@ Widget _card({
   return Container(
     width: double.infinity,
     padding: padding,
-    decoration: BoxDecoration(
-      color: color,
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: [
-        if (!isDark)
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-      ],
-    ),
+    decoration: safeClaimCardDecoration(isDark, color: color),
     child: child,
   );
 }
@@ -1022,14 +999,13 @@ Widget _kpi({
               style: TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.w900,
-                color: isDark ? Colors.white : const Color(0xFF111827),
-                letterSpacing: -1.0,
+                color: isDark ? Colors.white : SafeClaimColors.foreground,
               ),
             ),
             Text(
               label,
               style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey,
+                color: safeClaimSubtleTextColor(isDark),
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -1051,23 +1027,23 @@ Widget _statusChip({
 
   switch (status) {
     case 'pending':
-      bg = const Color(0xFFFFF3E0);
-      fg = const Color(0xFFE65100);
+      bg = SafeClaimColors.primaryLightest;
+      fg = SafeClaimColors.textStrong;
       text = 'In attesa';
       break;
     case 'accepted':
-      bg = const Color(0xFFE8EAF6);
-      fg = const Color(0xFF3F51B5);
+      bg = SafeClaimColors.primaryLight.withValues(alpha: 0.22);
+      fg = SafeClaimColors.primaryDark;
       text = 'Accettata';
       break;
     case 'handled':
-      bg = const Color(0xFFE0F2F1);
-      fg = const Color(0xFF00796B);
+      bg = SafeClaimColors.textStrong.withValues(alpha: 0.10);
+      fg = SafeClaimColors.textStrong;
       text = 'Completata';
       break;
     default:
-      bg = const Color(0xFFFFEBEE);
-      fg = const Color(0xFFC62828);
+      bg = SafeClaimColors.dangerSoft;
+      fg = SafeClaimColors.danger;
       text = status.toUpperCase();
   }
 
@@ -1082,6 +1058,7 @@ Widget _statusChip({
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: fg.withValues(alpha: 0.45)),
       ),
       child: Text(
         text,

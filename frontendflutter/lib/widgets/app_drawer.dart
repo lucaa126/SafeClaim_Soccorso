@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../app/routes.dart';
+import '../app/theme.dart';
 
 class AppDrawer extends StatelessWidget {
   final String currentRoute;
@@ -13,26 +14,40 @@ class AppDrawer extends StatelessWidget {
     final showDettaglio = currentRoute == Routes.dettaglio;
 
     return Drawer(
-      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      backgroundColor: isDark ? SafeClaimColors.darkSurface : Colors.white,
       child: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? SafeClaimColors.darkCard
+                    : SafeClaimColors.primary,
+                border: Border(
+                  bottom: BorderSide(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.10)
+                        : SafeClaimColors.primaryDark,
+                  ),
+                ),
+              ),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   const Text(
                     "SOCCORSO",
                     style: TextStyle(
-                      color: Color(0xFFE57373),
+                      color: Colors.white,
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                   Align(
                     alignment: Alignment.centerRight,
                     child: IconButton(
+                      color: Colors.white,
                       icon: const Icon(Icons.close, size: 30),
                       onPressed: () => Navigator.pop(context),
                     ),
@@ -40,7 +55,7 @@ class AppDrawer extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             _fullScreenSidebarItem(
               context,
               Icons.grid_view_rounded,
@@ -85,7 +100,11 @@ class AppDrawer extends StatelessWidget {
               Routes.impostazioni,
             ),
             const Spacer(),
-            const Divider(),
+            Divider(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.10)
+                  : SafeClaimColors.primaryLight.withValues(alpha: 0.45),
+            ),
             _fullScreenSidebarItem(
               context,
               Icons.logout,
@@ -128,7 +147,9 @@ class AppDrawer extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 20),
         color: isSelected
-            ? Colors.blue.withValues(alpha: 0.1)
+            ? (isDark
+                  ? SafeClaimColors.primary.withValues(alpha: 0.18)
+                  : SafeClaimColors.primaryLightest)
             : Colors.transparent,
         child: Stack(
           alignment: Alignment.center,
@@ -137,7 +158,9 @@ class AppDrawer extends StatelessWidget {
               left: 32,
               child: Icon(
                 icon,
-                color: isSelected ? Colors.blue : Colors.grey,
+                color: isSelected
+                    ? SafeClaimColors.primary
+                    : (isDark ? Colors.white60 : SafeClaimColors.textMuted),
                 size: 28,
               ),
             ),
@@ -146,9 +169,9 @@ class AppDrawer extends StatelessWidget {
               style: TextStyle(
                 fontSize: 20,
                 color: isSelected
-                    ? Colors.blue
-                    : (isDark ? Colors.white70 : Colors.black87),
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    ? SafeClaimColors.primary
+                    : (isDark ? Colors.white70 : SafeClaimColors.foreground),
+                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
               ),
             ),
           ],

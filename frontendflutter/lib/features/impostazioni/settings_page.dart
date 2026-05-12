@@ -1,25 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../app/routes.dart';
 import '../../widgets/app_drawer.dart';
-import '../../app/app.dart';
+import '../../app/theme.dart';
+import '../../widgets/safeclaim_ui.dart';
 import 'settings_api_service.dart';
-
-Widget buildSharedThemeToggle(BuildContext context, bool isDark) {
-  return ToggleButtons(
-    isSelected: [!isDark, isDark],
-    onPressed: (index) {
-      SoccorsoApp.of(context).toggleTheme(index == 1);
-    },
-    borderRadius: BorderRadius.circular(8),
-    constraints: const BoxConstraints(minHeight: 32, minWidth: 36),
-    selectedColor: Colors.white,
-    fillColor: Colors.blue,
-    children: const [
-      Icon(Icons.wb_sunny_outlined, size: 18),
-      Icon(Icons.nightlight_round, size: 18),
-    ],
-  );
-}
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -110,9 +94,7 @@ class _SettingsPageState extends State<SettingsPage> {
     });
 
     try {
-      final settings = await _settingsApi.getSettings(
-        officinaId: _officinaId,
-      );
+      final settings = await _settingsApi.getSettings(officinaId: _officinaId);
 
       if (!mounted) return;
 
@@ -171,7 +153,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ? 'Impostazioni salvate con successo!'
                 : 'Profilo salvato. Le notifiche non sono supportate dal backend attuale',
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: SafeClaimColors.primary,
         ),
       );
 
@@ -182,7 +164,7 @@ class _SettingsPageState extends State<SettingsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Errore: ${_normalizeError(error)}'),
-          backgroundColor: Colors.red,
+          backgroundColor: SafeClaimColors.danger,
         ),
       );
     } finally {
@@ -199,7 +181,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF2C2C2C) : Colors.white;
+    final cardColor = safeClaimCardColor(isDark);
 
     return Scaffold(
       appBar: AppBar(
@@ -228,8 +210,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     style: TextStyle(
                       fontSize: 34,
                       fontWeight: FontWeight.w900,
-                      color: isDark ? Colors.white : const Color(0xFF374151),
-                      letterSpacing: -0.8,
+                      color: isDark ? Colors.white : SafeClaimColors.foreground,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -237,7 +218,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     'Officina ID: $_officinaId',
                     style: TextStyle(
                       fontSize: 14,
-                      color: isDark ? Colors.white70 : Colors.black54,
+                      color: safeClaimSubtleTextColor(isDark),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -246,27 +227,20 @@ class _SettingsPageState extends State<SettingsPage> {
                       padding: const EdgeInsets.all(16),
                       margin: const EdgeInsets.only(bottom: 24),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
-                        border: Border.all(color: Colors.redAccent),
+                        color: SafeClaimColors.dangerSoft,
+                        border: Border.all(color: SafeClaimColors.danger),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         _errorMessage!,
-                        style: const TextStyle(color: Colors.redAccent),
+                        style: const TextStyle(color: SafeClaimColors.danger),
                       ),
                     ),
                   Container(
                     padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
+                    decoration: safeClaimCardDecoration(
+                      isDark,
                       color: cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -305,7 +279,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                 : 'Non disponibile con il backend attuale',
                           ),
                           value: _notificheAttive,
-                          activeColor: const Color(0xFF6A7AF4),
+                          activeThumbColor: Colors.white,
+                          activeTrackColor: SafeClaimColors.primary,
                           contentPadding: EdgeInsets.zero,
                           onChanged: _notificationsSupported
                               ? (val) {
@@ -321,7 +296,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     height: 54,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6A7AF4),
+                        backgroundColor: SafeClaimColors.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

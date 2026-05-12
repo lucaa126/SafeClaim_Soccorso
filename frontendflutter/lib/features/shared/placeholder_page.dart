@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/routes.dart';
+import '../../app/theme.dart';
 import '../../widgets/app_drawer.dart';
 
 class PlaceholderPage extends StatelessWidget {
@@ -30,7 +31,7 @@ class PlaceholderPage extends StatelessWidget {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w900,
-            color: isDark ? Colors.white : const Color(0xFF111827),
+            color: isDark ? Colors.white : SafeClaimColors.foreground,
           ),
         ),
       ),

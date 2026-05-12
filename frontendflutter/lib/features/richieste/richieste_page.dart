@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../app/auth_service.dart';
 import '../../app/routes.dart';
+import '../../app/theme.dart';
 import '../../widgets/app_drawer.dart';
-import '../dashboard/dashboard_page.dart';
+import '../../widgets/safeclaim_ui.dart';
 
 import 'richiesta_model.dart';
 import 'richieste_api_service.dart';
@@ -68,7 +68,7 @@ class _RichiestePageState extends State<RichiestePage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF2C2C2C) : Colors.white;
+    final cardColor = safeClaimCardColor(isDark);
 
     return Scaffold(
       appBar: AppBar(
@@ -83,7 +83,7 @@ class _RichiestePageState extends State<RichiestePage> {
       ),
       body: RefreshIndicator(
         onRefresh: _fetchDati,
-        color: const Color(0xFF6A7AF4),
+        color: SafeClaimColors.primary,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -95,7 +95,7 @@ class _RichiestePageState extends State<RichiestePage> {
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : const Color(0xFF374151),
+                  color: isDark ? Colors.white : SafeClaimColors.foreground,
                 ),
               ),
               const SizedBox(height: 8),
@@ -103,7 +103,7 @@ class _RichiestePageState extends State<RichiestePage> {
                 "Storico e gestione operativa degli interventi in entrata.",
                 style: TextStyle(
                   fontSize: 15,
-                  color: isDark ? Colors.white70 : Colors.blueGrey,
+                  color: safeClaimSubtleTextColor(isDark),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -142,7 +142,10 @@ class _RichiestePageState extends State<RichiestePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           if (!isDark)
-            BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+            ),
         ],
       ),
       child: isMobile
@@ -174,8 +177,11 @@ class _RichiestePageState extends State<RichiestePage> {
         margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF6A7AF4) : Colors.transparent,
-          borderRadius: BorderRadius.circular(15),
+          color: isSelected ? SafeClaimColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? SafeClaimColors.primary : Colors.transparent,
+          ),
         ),
         child: Row(
           mainAxisAlignment: isMobile
@@ -185,14 +191,14 @@ class _RichiestePageState extends State<RichiestePage> {
             Icon(
               icon,
               size: 18,
-              color: isSelected ? Colors.white : Colors.blueGrey,
+              color: isSelected ? Colors.white : SafeClaimColors.textMuted,
             ),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : Colors.blueGrey,
+                color: isSelected ? Colors.white : SafeClaimColors.textMuted,
               ),
             ),
           ],
@@ -209,7 +215,10 @@ class _RichiestePageState extends State<RichiestePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           if (!isDark)
-            BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+            ),
         ],
       ),
       child: _interventi.isEmpty
@@ -222,7 +231,7 @@ class _RichiestePageState extends State<RichiestePage> {
               child: DataTable(
                 headingTextStyle: TextStyle(
                   fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : Colors.black87,
+                  color: isDark ? Colors.white : SafeClaimColors.foreground,
                 ),
                 dataRowMaxHeight: 75,
                 dataRowMinHeight: 75,
@@ -239,10 +248,12 @@ class _RichiestePageState extends State<RichiestePage> {
                       ),
                       DataCell(
                         Text(
-                          DateFormat('dd/MM HH:mm').format(item.dataRichiesta),
+                          _formatShortDateTime(item.dataRichiesta),
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white70 : Colors.black54,
+                            color: isDark
+                                ? Colors.white70
+                                : SafeClaimColors.textMuted,
                           ),
                         ),
                       ),
@@ -259,28 +270,29 @@ class _RichiestePageState extends State<RichiestePage> {
     Color bgColor;
     Color textColor;
     switch (status) {
-      case "da_gestire":
-        bgColor = const Color(0xFFFFF3E0);
-        textColor = const Color(0xFFE65100);
+      case "PENDING":
+        bgColor = SafeClaimColors.primaryLightest;
+        textColor = SafeClaimColors.textStrong;
         break;
-      case "in_corso":
-        bgColor = const Color(0xFFE8EAF6);
-        textColor = const Color(0xFF3F51B5);
+      case "ACCEPTED":
+        bgColor = SafeClaimColors.primaryLight.withValues(alpha: 0.22);
+        textColor = SafeClaimColors.primaryDark;
         break;
-      case "completato":
-        bgColor = const Color(0xFFE0F2F1);
-        textColor = const Color(0xFF00796B);
+      case "HANDLED":
+        bgColor = SafeClaimColors.textStrong.withValues(alpha: 0.10);
+        textColor = SafeClaimColors.textStrong;
         break;
       default:
-        bgColor = Colors.grey.shade200;
-        textColor = Colors.grey.shade800;
+        bgColor = SafeClaimColors.neutral;
+        textColor = SafeClaimColors.textStrong;
     }
-    if (isDark) bgColor = bgColor.withOpacity(0.15);
+    if (isDark) bgColor = bgColor.withValues(alpha: 0.18);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: textColor.withValues(alpha: 0.45)),
       ),
       child: Text(
         id,
@@ -297,13 +309,13 @@ class _RichiestePageState extends State<RichiestePage> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (status == "da_gestire") ...[
-          _iconButton(Icons.check, Colors.green),
+        if (status == "PENDING") ...[
+          _iconButton(Icons.check, SafeClaimColors.primary),
           const SizedBox(width: 8),
         ],
-        _iconButton(Icons.visibility_outlined, Colors.blueAccent),
+        _iconButton(Icons.visibility_outlined, SafeClaimColors.textStrong),
         const SizedBox(width: 8),
-        _iconButton(Icons.close, Colors.redAccent),
+        _iconButton(Icons.close, SafeClaimColors.danger),
       ],
     );
   }
@@ -312,7 +324,7 @@ class _RichiestePageState extends State<RichiestePage> {
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: IconButton(
         icon: Icon(icon, size: 18, color: color),
@@ -327,7 +339,11 @@ class _RichiestePageState extends State<RichiestePage> {
     return Center(
       child: Column(
         children: [
-          const Icon(Icons.error_outline, color: Colors.red, size: 48),
+          const Icon(
+            Icons.error_outline,
+            color: SafeClaimColors.danger,
+            size: 48,
+          ),
           const SizedBox(height: 16),
           Text(
             _errorMessage!,
@@ -339,5 +355,13 @@ class _RichiestePageState extends State<RichiestePage> {
         ],
       ),
     );
+  }
+
+  String _formatShortDateTime(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    return '$day/$month $hour:$minute';
   }
 }

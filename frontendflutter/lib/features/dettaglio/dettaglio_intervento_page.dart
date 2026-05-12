@@ -5,8 +5,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/auth_service.dart';
 import '../../app/routes.dart';
+import '../../app/theme.dart';
 import '../../widgets/app_drawer.dart';
-import '../dashboard/dashboard_page.dart';
+import '../../widgets/safeclaim_ui.dart';
 import '../interventi/intervento_api_service.dart';
 
 class DettaglioArgs {
@@ -164,17 +165,14 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF2C2C2C) : Colors.white;
+    final cardColor = safeClaimCardColor(isDark);
     final detail = _detail;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Dettaglio Intervento',
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            color: isDark ? Colors.white : const Color(0xFF111827),
-          ),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white),
         ),
         centerTitle: false,
         actions: [
@@ -197,7 +195,10 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                 color: cardColor,
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline, color: Color(0xFFFF4D5A)),
+                    const Icon(
+                      Icons.error_outline,
+                      color: SafeClaimColors.danger,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -205,7 +206,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                         style: TextStyle(
                           color: isDark
                               ? Colors.white
-                              : const Color(0xFF111827),
+                              : SafeClaimColors.foreground,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -291,7 +292,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                                     child: const Icon(
                                       Icons.location_on_rounded,
                                       size: 44,
-                                      color: Color(0xFF6A7AF4),
+                                      color: SafeClaimColors.primary,
                                     ),
                                   ),
                                 ],
@@ -313,8 +314,10 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                             top: 12,
                             child: Material(
                               color: isDark
-                                  ? const Color(0xCC2C2C2C)
-                                  : const Color(0xF2FFFFFF),
+                                  ? SafeClaimColors.darkSurface.withValues(
+                                      alpha: 0.92,
+                                    )
+                                  : Colors.white.withValues(alpha: 0.95),
                               borderRadius: BorderRadius.circular(14),
                               child: InkWell(
                                 onTap: _openNavigation,
@@ -330,7 +333,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                                       Icon(
                                         Icons.navigation_rounded,
                                         size: 18,
-                                        color: Color(0xFF6A7AF4),
+                                        color: SafeClaimColors.primary,
                                       ),
                                       SizedBox(width: 8),
                                       Text(
@@ -396,7 +399,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                             ? () => _runAction('take_in_charge')
                             : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6A7AF4),
+                          backgroundColor: SafeClaimColors.primary,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -432,7 +435,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                             ? () => _runAction('complete')
                             : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2E8B57),
+                          backgroundColor: SafeClaimColors.textStrong,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -467,9 +470,9 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                             ? () => _runAction('reject')
                             : null,
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFFF4D5A),
+                          foregroundColor: SafeClaimColors.danger,
                           side: const BorderSide(
-                            color: Color(0xFFFF4D5A),
+                            color: SafeClaimColors.danger,
                             width: 2,
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -498,7 +501,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                     Text(
                       'Nessuna azione disponibile per questo intervento.',
                       style: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.grey,
+                        color: safeClaimSubtleTextColor(isDark),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -513,7 +516,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
-                    color: isDark ? Colors.white : const Color(0xFF374151),
+                    color: isDark ? Colors.white : SafeClaimColors.foreground,
                   ),
                 ),
                 const Spacer(),
@@ -521,7 +524,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                   onPressed: _loadDetail,
                   icon: Icon(
                     Icons.refresh_rounded,
-                    color: isDark ? Colors.white70 : Colors.black54,
+                    color: safeClaimSubtleTextColor(isDark),
                   ),
                 ),
               ],
@@ -530,7 +533,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
             _trafficCard(
               isDark: isDark,
               cardColor: cardColor,
-              iconBg: const Color(0xFFFF4D5A),
+              iconBg: SafeClaimColors.danger,
               icon: Icons.car_crash_rounded,
               title: 'Incidente in tangenziale Est a Milano, cod...',
               source: 'News Traffico',
@@ -540,7 +543,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
             _trafficCard(
               isDark: isDark,
               cardColor: cardColor,
-              iconBg: const Color(0xFFFF4D5A),
+              iconBg: SafeClaimColors.danger,
               icon: Icons.car_crash_rounded,
               title: 'Incidente Al adesso: 4 km di coda verso ...',
               source: 'News Traffico',
@@ -550,7 +553,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
             _trafficCard(
               isDark: isDark,
               cardColor: cardColor,
-              iconBg: const Color(0xFFFFC24A),
+              iconBg: SafeClaimColors.warning,
               icon: Icons.traffic_rounded,
               title: 'Tir si ribalta sull’Autosole, oltre 6 chilome...',
               source: 'News Traffico',
@@ -567,7 +570,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
     return Container(
       width: 52,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+        color: isDark ? SafeClaimColors.darkCard : Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           if (!isDark)
@@ -603,7 +606,9 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xE62C2C2C) : const Color(0xF7FFFFFF),
+        color: isDark
+            ? SafeClaimColors.darkSurface.withValues(alpha: 0.90)
+            : Colors.white.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           if (!isDark)
@@ -624,14 +629,14 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                 _detail?.statusText ?? 'Veicolo Fermo',
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : const Color(0xFF111827),
+                  color: isDark ? Colors.white : SafeClaimColors.foreground,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 '${_currentLat.toStringAsFixed(4)}, ${_currentLng.toStringAsFixed(4)}',
                 style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.grey,
+                  color: safeClaimSubtleTextColor(isDark),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -673,7 +678,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
-                    color: isDark ? Colors.white : const Color(0xFF111827),
+                    color: isDark ? Colors.white : SafeClaimColors.foreground,
                     fontSize: 15,
                   ),
                 ),
@@ -681,7 +686,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
                 Text(
                   source,
                   style: TextStyle(
-                    color: isDark ? Colors.white70 : Colors.grey,
+                    color: safeClaimSubtleTextColor(isDark),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -692,7 +697,7 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
           Text(
             time,
             style: TextStyle(
-              color: isDark ? Colors.white70 : Colors.grey,
+              color: safeClaimSubtleTextColor(isDark),
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -713,7 +718,7 @@ Widget _labelValue({
       Text(
         '$label:',
         style: TextStyle(
-          color: isDark ? Colors.white70 : Colors.grey,
+          color: safeClaimSubtleTextColor(isDark),
           fontWeight: FontWeight.w800,
         ),
       ),
@@ -723,7 +728,7 @@ Widget _labelValue({
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w900,
-          color: isDark ? Colors.white : const Color(0xFF111827),
+          color: isDark ? Colors.white : SafeClaimColors.foreground,
         ),
       ),
     ],
@@ -739,7 +744,7 @@ Widget _detailRow(String label, String value, bool isDark) {
         child: Text(
           label,
           style: TextStyle(
-            color: isDark ? Colors.white70 : Colors.grey,
+            color: safeClaimSubtleTextColor(isDark),
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -748,7 +753,7 @@ Widget _detailRow(String label, String value, bool isDark) {
         child: Text(
           value,
           style: TextStyle(
-            color: isDark ? Colors.white : const Color(0xFF111827),
+            color: isDark ? Colors.white : SafeClaimColors.foreground,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -763,20 +768,20 @@ Widget _statusBadge(String status) {
 
   switch (status) {
     case 'accepted':
-      background = const Color(0xFFE8EAF6);
-      foreground = const Color(0xFF3F51B5);
+      background = SafeClaimColors.primaryLight.withValues(alpha: 0.22);
+      foreground = SafeClaimColors.primaryDark;
       break;
     case 'handled':
-      background = const Color(0xFFE0F2F1);
-      foreground = const Color(0xFF00796B);
+      background = SafeClaimColors.textStrong.withValues(alpha: 0.10);
+      foreground = SafeClaimColors.textStrong;
       break;
     case 'rejected':
-      background = const Color(0xFFFFEBEE);
-      foreground = const Color(0xFFC62828);
+      background = SafeClaimColors.dangerSoft;
+      foreground = SafeClaimColors.danger;
       break;
     default:
-      background = const Color(0xFFFFF3E0);
-      foreground = const Color(0xFFE65100);
+      background = SafeClaimColors.primaryLightest;
+      foreground = SafeClaimColors.textStrong;
       break;
   }
 
@@ -784,7 +789,8 @@ Widget _statusBadge(String status) {
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
     decoration: BoxDecoration(
       color: background,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: foreground.withValues(alpha: 0.45)),
     ),
     child: Text(
       status.toUpperCase(),
@@ -802,18 +808,7 @@ Widget _card({
   return Container(
     width: double.infinity,
     padding: padding,
-    decoration: BoxDecoration(
-      color: color,
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: [
-        if (!isDark)
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-      ],
-    ),
+    decoration: safeClaimCardDecoration(isDark, color: color),
     child: child,
   );
 }

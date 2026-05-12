@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../app/routes.dart';
+import '../../app/theme.dart';
 import '../../widgets/app_drawer.dart';
-import '../dashboard/dashboard_page.dart';
+import '../../widgets/safeclaim_ui.dart';
 
 // Modello per i veicoli (simile a Angular)
 class Vehicle {
@@ -92,33 +93,33 @@ class _FlottaPageState extends State<FlottaPage> {
   Color getStatusColor(String status) {
     switch (status) {
       case 'available':
-        return const Color(0xFF41f1b6); // Verde
+        return SafeClaimColors.textStrong;
       case 'busy':
-        return const Color(0xFFff7782); // Rosso
+        return SafeClaimColors.primaryDark;
       case 'maintenance':
-        return const Color(0xFF9e9e9e); // Grigio
+        return SafeClaimColors.textMuted;
       default:
-        return const Color(0xFF7380ec); // Blu
+        return SafeClaimColors.primary;
     }
   }
 
   Color getStatusBgColor(String status) {
     switch (status) {
       case 'available':
-        return const Color(0xFF41f1b6).withOpacity(0.15);
+        return SafeClaimColors.textStrong.withValues(alpha: 0.10);
       case 'busy':
-        return const Color(0xFFff7782).withOpacity(0.15);
+        return SafeClaimColors.primaryLight.withValues(alpha: 0.22);
       case 'maintenance':
-        return const Color(0xFF9e9e9e).withOpacity(0.15);
+        return SafeClaimColors.neutral;
       default:
-        return const Color(0xFF7380ec).withOpacity(0.15);
+        return SafeClaimColors.primaryLightest;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF2C2C2C) : Colors.white;
+    final cardColor = safeClaimCardColor(isDark);
 
     return Scaffold(
       appBar: AppBar(
@@ -147,7 +148,7 @@ class _FlottaPageState extends State<FlottaPage> {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
-                color: isDark ? Colors.white : const Color(0xFF111827),
+                color: isDark ? Colors.white : SafeClaimColors.foreground,
               ),
             ),
             const SizedBox(height: 6),
@@ -155,23 +156,26 @@ class _FlottaPageState extends State<FlottaPage> {
               'Monitoraggio in tempo reale stato mezzi e autisti.',
               style: TextStyle(
                 fontSize: 14,
-                color: isDark ? Colors.white70 : Colors.grey,
+                color: safeClaimSubtleTextColor(isDark),
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 24),
 
-            // Elenco di carte veicoli senza spazio extra tra gli elementi
-            Column(
-              children: fleet
-                  .map(
-                    (vehicle) => _buildFleetCard(
-                      vehicle,
-                      isDark,
-                      cardColor,
-                    ),
-                  )
-                  .toList(),
+            // Grid di carte veicoli
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 1,
+                childAspectRatio: 1.3,
+                mainAxisSpacing: 16,
+              ),
+              itemCount: fleet.length,
+              itemBuilder: (context, index) {
+                final vehicle = fleet[index];
+                return _buildFleetCard(vehicle, isDark, cardColor);
+              },
             ),
           ],
         ),
@@ -185,18 +189,7 @@ class _FlottaPageState extends State<FlottaPage> {
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
-            )
-        ],
-      ),
+      decoration: safeClaimCardDecoration(isDark, color: cardColor),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -227,7 +220,9 @@ class _FlottaPageState extends State<FlottaPage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
-                        color: isDark ? Colors.white : const Color(0xFF111827),
+                        color: isDark
+                            ? Colors.white
+                            : SafeClaimColors.foreground,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -235,7 +230,7 @@ class _FlottaPageState extends State<FlottaPage> {
                       'Targa: ${vehicle.plate}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? Colors.white70 : Colors.grey,
+                        color: safeClaimSubtleTextColor(isDark),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -243,7 +238,10 @@ class _FlottaPageState extends State<FlottaPage> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: statusColor,
                   borderRadius: BorderRadius.circular(20),
@@ -302,7 +300,7 @@ class _FlottaPageState extends State<FlottaPage> {
               icon: const Icon(Icons.call, size: 18),
               label: const Text('Contatta'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7380ec),
+                backgroundColor: SafeClaimColors.primary,
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: Colors.grey[300],
                 disabledForegroundColor: Colors.grey,
@@ -326,17 +324,13 @@ class _FlottaPageState extends State<FlottaPage> {
   ) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 18,
-          color: isDark ? Colors.white70 : Colors.grey,
-        ),
+        Icon(icon, size: 18, color: safeClaimSubtleTextColor(isDark)),
         const SizedBox(width: 8),
         Text(
           '$label: ',
           style: TextStyle(
             fontSize: 13,
-            color: isDark ? Colors.white70 : Colors.grey,
+            color: safeClaimSubtleTextColor(isDark),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -346,7 +340,7 @@ class _FlottaPageState extends State<FlottaPage> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : const Color(0xFF111827),
+              color: isDark ? Colors.white : SafeClaimColors.foreground,
             ),
             overflow: TextOverflow.ellipsis,
           ),
