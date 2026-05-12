@@ -5,7 +5,7 @@ import '../../app/theme.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/safeclaim_ui.dart';
 
-// Modello per i veicoli (simile a Angular)
+// Modello per i veicoli
 class Vehicle {
   final String id;
   final String name;
@@ -36,7 +36,6 @@ class FlottaPage extends StatefulWidget {
 }
 
 class _FlottaPageState extends State<FlottaPage> {
-  // Dati finti iniziali (Mock) - identici a Angular
   late List<Vehicle> fleet = [
     Vehicle(
       id: 'V-01',
@@ -142,7 +141,6 @@ class _FlottaPageState extends State<FlottaPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Text(
               'Gestione Flotta',
               style: TextStyle(
@@ -162,16 +160,12 @@ class _FlottaPageState extends State<FlottaPage> {
             ),
             const SizedBox(height: 24),
 
-            // Grid di carte veicoli
-            GridView.builder(
+            // Sostituito GridView con ListView per eliminare lo spazio bianco fisso
+            ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 1,
-                childAspectRatio: 1.3,
-                mainAxisSpacing: 16,
-              ),
               itemCount: fleet.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 final vehicle = fleet[index];
                 return _buildFleetCard(vehicle, isDark, cardColor);
@@ -188,26 +182,26 @@ class _FlottaPageState extends State<FlottaPage> {
     final statusBgColor = getStatusBgColor(vehicle.status);
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16), // Ridotto leggermente da 20 a 16 per compattezza
       decoration: safeClaimCardDecoration(isDark, color: cardColor),
       child: Column(
+        mainAxisSize: MainAxisSize.min, // Occupa solo lo spazio necessario
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header con icona e badge stato
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 50,
-                height: 50,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: statusBgColor,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   Icons.local_shipping_outlined,
                   color: statusColor,
-                  size: 28,
+                  size: 24,
                 ),
               ),
               const SizedBox(width: 12),
@@ -220,12 +214,10 @@ class _FlottaPageState extends State<FlottaPage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
-                        color: isDark
-                            ? Colors.white
-                            : SafeClaimColors.foreground,
+                        color: isDark ? Colors.white : SafeClaimColors.foreground,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       'Targa: ${vehicle.plate}',
                       style: TextStyle(
@@ -238,10 +230,7 @@ class _FlottaPageState extends State<FlottaPage> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusColor,
                   borderRadius: BorderRadius.circular(20),
@@ -249,7 +238,7 @@ class _FlottaPageState extends State<FlottaPage> {
                 child: Text(
                   getStatusLabel(vehicle.status),
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
@@ -257,40 +246,32 @@ class _FlottaPageState extends State<FlottaPage> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           const Divider(height: 1),
-          const SizedBox(height: 16),
-
-          // Dettagli
-          Column(
-            children: [
-              _buildDetailRow(
-                isDark,
-                Icons.person_outline,
-                'Autista',
-                vehicle.driver,
-              ),
-              const SizedBox(height: 12),
-              if (vehicle.status == 'busy') ...[
-                _buildDetailRow(
-                  isDark,
-                  Icons.warning_amber_outlined,
-                  'In intervento su',
-                  vehicle.currentTask ?? 'N/A',
-                ),
-                const SizedBox(height: 12),
-              ],
-              _buildDetailRow(
-                isDark,
-                Icons.location_on_outlined,
-                'Posizione',
-                '${vehicle.lat.toStringAsFixed(4)}, ${vehicle.lng.toStringAsFixed(4)}',
-              ),
-            ],
+          const SizedBox(height: 12),
+          _buildDetailRow(
+            isDark,
+            Icons.person_outline,
+            'Autista',
+            vehicle.driver,
+          ),
+          if (vehicle.status == 'busy') ...[
+            const SizedBox(height: 8),
+            _buildDetailRow(
+              isDark,
+              Icons.warning_amber_outlined,
+              'In intervento su',
+              vehicle.currentTask ?? 'N/A',
+            ),
+          ],
+          const SizedBox(height: 8),
+          _buildDetailRow(
+            isDark,
+            Icons.location_on_outlined,
+            'Posizione',
+            '${vehicle.lat.toStringAsFixed(4)}, ${vehicle.lng.toStringAsFixed(4)}',
           ),
           const SizedBox(height: 16),
-
-          // Bottone Contatta
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -298,15 +279,16 @@ class _FlottaPageState extends State<FlottaPage> {
                   ? null
                   : () => contactDriver(vehicle.driver),
               icon: const Icon(Icons.call, size: 18),
-              label: const Text('Contatta'),
+              label: const Text('Contatta Autista'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: SafeClaimColors.primary,
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: Colors.grey[300],
                 disabledForegroundColor: Colors.grey,
                 padding: const EdgeInsets.symmetric(vertical: 12),
+                elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ),
@@ -316,15 +298,10 @@ class _FlottaPageState extends State<FlottaPage> {
     );
   }
 
-  Widget _buildDetailRow(
-    bool isDark,
-    IconData icon,
-    String label,
-    String value,
-  ) {
+  Widget _buildDetailRow(bool isDark, IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: safeClaimSubtleTextColor(isDark)),
+        Icon(icon, size: 16, color: safeClaimSubtleTextColor(isDark)),
         const SizedBox(width: 8),
         Text(
           '$label: ',
