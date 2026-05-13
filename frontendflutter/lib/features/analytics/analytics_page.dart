@@ -131,8 +131,6 @@ class _AnalyticsPageState extends State<AnalyticsPage>
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
         ),
         actions: [
-          buildSharedThemeToggle(context, isDarkMode),
-          const SizedBox(width: 16),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _refreshData,

@@ -175,10 +175,6 @@ class _DettaglioInterventoPageState extends State<DettaglioInterventoPage> {
           style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white),
         ),
         centerTitle: false,
-        actions: [
-          buildSharedThemeToggle(context, isDark),
-          const SizedBox(width: 16),
-        ],
       ),
       drawer: SizedBox(
         width: MediaQuery.of(context).size.width,

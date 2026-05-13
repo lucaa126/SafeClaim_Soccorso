@@ -131,10 +131,6 @@ class _FlottaPageState extends State<FlottaPage> {
       appBar: AppBar(
         title: const Text('Flotta', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         centerTitle: false,
-        actions: [
-          buildSharedThemeToggle(context, isDark),
-          const SizedBox(width: 16),
-        ],
       ),
       drawer: SizedBox(
         width: MediaQuery.of(context).size.width,
@@ -175,7 +171,9 @@ class _FlottaPageState extends State<FlottaPage> {
     final statusBgColor = getStatusBgColor(vehicle.status);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(
+        16,
+      ), // Ridotto leggermente da 20 a 16 per compattezza
       decoration: safeClaimCardDecoration(isDark, color: cardColor),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -197,16 +195,38 @@ class _FlottaPageState extends State<FlottaPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(vehicle.name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: isDark ? Colors.white : SafeClaimColors.foreground)),
+                    Text(
+                      vehicle.name,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: isDark
+                            ? Colors.white
+                            : SafeClaimColors.foreground,
+                      ),
+                    ),
                     const SizedBox(height: 2),
                     Text('Targa: ${vehicle.plate}', style: TextStyle(fontSize: 12, color: safeClaimSubtleTextColor(isDark), fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(20)),
-                child: Text(getStatusLabel(vehicle.status), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  getStatusLabel(vehicle.status),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ],
           ),
@@ -234,7 +254,12 @@ class _FlottaPageState extends State<FlottaPage> {
     );
   }
 
-  Widget _buildDetailRow(bool isDark, IconData icon, String label, String value) {
+  Widget _buildDetailRow(
+    bool isDark,
+    IconData icon,
+    String label,
+    String value,
+  ) {
     return Row(
       children: [
         Icon(icon, size: 16, color: safeClaimSubtleTextColor(isDark)),

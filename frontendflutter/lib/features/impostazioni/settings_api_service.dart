@@ -1,102 +1,111 @@
 import 'package:http/http.dart' as http;
+
 import '../../app/api_client.dart';
 
 class WorkshopSettings {
-  final int officinaId;
-  final String workshopName;
+  final String serviceName;
   final String email;
   final String phone;
-  final String? address;
-  final String? avatarUrl;
-  final bool? notificheAttive;
+  final String avatarUrl;
+  final bool operativoOnline;
+  final String orarioInizio;
+  final String orarioFine;
+  final int maxCoda;
+  final bool accettazioneAutomatica;
 
   const WorkshopSettings({
-    required this.officinaId,
-    required this.workshopName,
+    required this.serviceName,
     required this.email,
     required this.phone,
-    this.address,
-    this.avatarUrl,
-    this.notificheAttive,
+    required this.avatarUrl,
+    required this.operativoOnline,
+    required this.orarioInizio,
+    required this.orarioFine,
+    required this.maxCoda,
+    required this.accettazioneAutomatica,
   });
+
+  factory WorkshopSettings.empty() {
+    return const WorkshopSettings(
+      serviceName: '',
+      email: '',
+      phone: '',
+      avatarUrl: '',
+      operativoOnline: false,
+      orarioInizio: '',
+      orarioFine: '',
+      maxCoda: 0,
+      accettazioneAutomatica: false,
+    );
+  }
 
   factory WorkshopSettings.fromJson(Map<String, dynamic> json) {
     final payload = _asMap(json['data']) ?? json;
     final profilo = _asMap(payload['profilo']) ?? const <String, dynamic>{};
-    final officina = _asMap(payload['officina']) ?? const <String, dynamic>{};
-    final notifiche = _asMap(payload['notifiche']) ?? const <String, dynamic>{};
+    final parametri =
+        _asMap(payload['parametri_operativi']) ?? const <String, dynamic>{};
 
     return WorkshopSettings(
-      officinaId: _asInt(officina['id']) ?? 0,
-      workshopName: _asString(profilo['nome']) ?? '',
-      email: _asString(profilo['email_contatto']) ??
-          _asString(officina['email']) ??
-          '',
-      phone: _asString(profilo['telefono_contatto']) ??
-          _asString(officina['telefono']) ??
-          '',
-      address: _asString(officina['indirizzo']),
-      avatarUrl: _asString(profilo['avatar_url']),
-      notificheAttive: _asNullableBool(notifiche['push']),
+      serviceName: _asString(profilo['nome']) ?? '',
+      email: _asString(profilo['email_contatto']) ?? '',
+      phone: _asString(profilo['telefono_contatto']) ?? '',
+      avatarUrl: _asString(profilo['avatar_url']) ?? '',
+      operativoOnline: _asBool(parametri['operativo_online']),
+      orarioInizio: _asString(parametri['orario_inizio']) ?? '',
+      orarioFine: _asString(parametri['orario_fine']) ?? '',
+      maxCoda: _asInt(parametri['max_coda']) ?? 0,
+      accettazioneAutomatica: _asBool(parametri['accettazione_automatica']),
     );
   }
 }
 
 class SettingsApiService {
   SettingsApiService({http.Client? client})
-      : _apiClient = SafeClaimApiClient(client: client);
+    : _apiClient = SafeClaimApiClient(client: client);
 
   final SafeClaimApiClient _apiClient;
 
-  Future<WorkshopSettings> getSettings({
-    required int officinaId,
+  Future<WorkshopSettings> getSettings() async {
+    final data = await _apiClient.requestJson('GET', '/impostazioni/');
+    return WorkshopSettings.fromJson(data);
+  }
+
+  Future<WorkshopSettings> updateProfile({
+    required String serviceName,
+    required String email,
+    required String phone,
+    required String avatarUrl,
   }) async {
     final data = await _apiClient.requestJson(
-      'GET',
-      '/impostazioni/?officina_id=$officinaId',
+      'PATCH',
+      '/impostazioni/profilo',
+      body: {
+        'nome': serviceName,
+        'email_contatto': email,
+        'telefono_contatto': phone,
+        'avatar_url': avatarUrl.isEmpty ? null : avatarUrl,
+      },
     );
 
     return WorkshopSettings.fromJson(data);
   }
 
-  Future<WorkshopSettings> updateProfile({
-    required int officinaId,
-    required String workshopName,
-    required String email,
-    required String phone,
-  }) async {
-    final data = await _apiClient.requestJson(
-      'PATCH',
-      '/impostazioni/profilo?officina_id=$officinaId',
-      body: {
-        'nome': workshopName,
-        'email_contatto': email,
-        'telefono_contatto': phone,
-      },
-    );
-
-    final payload = _asMap(data['data']) ?? data;
-
-    return WorkshopSettings(
-      officinaId: _asInt(payload['id']) ?? officinaId,
-      workshopName: _asString(payload['nome']) ?? '',
-      email: _asString(payload['email_contatto']) ?? '',
-      phone: _asString(payload['telefono_contatto']) ?? '',
-      avatarUrl: _asString(payload['avatar_url']),
-      address: null,
-      notificheAttive: null,
-    );
-  }
-
-  Future<void> updateNotifications({
-    required int officinaId,
-    required bool push,
+  Future<void> updateOperationalParameters({
+    required bool operativoOnline,
+    required String orarioInizio,
+    required String orarioFine,
+    required int maxCoda,
+    required bool accettazioneAutomatica,
   }) async {
     await _apiClient.requestJson(
       'PATCH',
-      '/impostazioni/notifiche?officina_id=$officinaId',
+      '/impostazioni/parametri-operativi',
       body: {
-        'push': push,
+        'operativo_online': operativoOnline,
+        'orario_inizio': orarioInizio.isEmpty ? null : orarioInizio,
+        'orario_fine': orarioFine.isEmpty ? null : orarioFine,
+        'max_coda': maxCoda,
+        'accettazione_automatica': accettazioneAutomatica,
       },
     );
   }
@@ -132,9 +141,4 @@ bool _asBool(dynamic value) {
         normalized == 'si';
   }
   return false;
-}
-
-bool? _asNullableBool(dynamic value) {
-  if (value == null) return null;
-  return _asBool(value);
 }

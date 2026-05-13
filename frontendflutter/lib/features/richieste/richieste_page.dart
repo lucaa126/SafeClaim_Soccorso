@@ -76,12 +76,7 @@ class _RichiestePageState extends State<RichiestePage> {
     final cardColor = safeClaimCardColor(isDark);
 
     return Scaffold(
-      appBar: AppBar(
-        actions: [
-          buildSharedThemeToggle(context, isDark),
-          const SizedBox(width: 16),
-        ],
-      ),
+      appBar: AppBar(),
       drawer: SizedBox(
         width: MediaQuery.of(context).size.width,
         child: const AppDrawer(currentRoute: Routes.richieste),

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../../app/routes.dart';
-import '../../widgets/app_drawer.dart';
 import '../../app/theme.dart';
+import '../../widgets/app_drawer.dart';
 import '../../widgets/safeclaim_ui.dart';
 import 'settings_api_service.dart';
 
@@ -19,33 +20,25 @@ class _SettingsPageState extends State<SettingsPage> {
   late final SettingsApiService _settingsApi =
       widget._settingsApi ?? SettingsApiService();
 
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _avatarController = TextEditingController();
+  final _startTimeController = TextEditingController();
+  final _endTimeController = TextEditingController();
+  final _maxQueueController = TextEditingController();
+
   bool _isLoading = true;
   bool _isSaving = false;
   String? _errorMessage;
 
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-
-  bool _notificheAttive = false;
-  bool _notificationsSupported = true;
-
-  int _officinaId = 1;
-  bool _initialized = false;
+  bool _operativoOnline = false;
+  bool _accettazioneAutomatica = false;
 
   @override
   void initState() {
     super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    if (_initialized) return;
-    _initialized = true;
-
-    _resolveOfficinaIdAndLoad();
+    _loadSettings();
   }
 
   @override
@@ -53,49 +46,11 @@ class _SettingsPageState extends State<SettingsPage> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _avatarController.dispose();
+    _startTimeController.dispose();
+    _endTimeController.dispose();
+    _maxQueueController.dispose();
     super.dispose();
-  }
-
-  Future<void> _resolveOfficinaIdAndLoad() async {
-    try {
-      final routeArgs = ModalRoute.of(context)?.settings.arguments;
-      final resolvedId = _extractOfficinaId(routeArgs);
-
-      if (resolvedId != null) {
-        _officinaId = resolvedId;
-      }
-
-      await _loadSettings();
-    } catch (error) {
-      if (!mounted) return;
-
-      setState(() {
-        _nameController.clear();
-        _emailController.clear();
-        _phoneController.clear();
-        _notificheAttive = false;
-        _notificationsSupported = false;
-        _isLoading = false;
-        _errorMessage =
-            'Impostazioni non disponibili dal backend. '
-            '${_normalizeError(error)}';
-      });
-    }
-  }
-
-  int? _extractOfficinaId(dynamic args) {
-    if (args == null) return null;
-
-    if (args is int) return args;
-
-    if (args is Map) {
-      final dynamic value = args['officina_id'] ?? args['officinaId'];
-      if (value is int) return value;
-      if (value is num) return value.toInt();
-      if (value is String) return int.tryParse(value);
-    }
-
-    return null;
   }
 
   Future<void> _loadSettings() async {
@@ -105,31 +60,18 @@ class _SettingsPageState extends State<SettingsPage> {
     });
 
     try {
-      final settings = await _settingsApi.getSettings(officinaId: _officinaId);
-
+      final settings = await _settingsApi.getSettings();
       if (!mounted) return;
 
       setState(() {
-        if (settings.officinaId > 0) {
-          _officinaId = settings.officinaId;
-        }
-
-        _nameController.text = settings.workshopName;
-        _emailController.text = settings.email;
-        _phoneController.text = settings.phone;
-        _notificheAttive = settings.notificheAttive ?? false;
-        _notificationsSupported = settings.notificheAttive != null;
+        _applySettings(settings);
         _isLoading = false;
       });
     } catch (error) {
       if (!mounted) return;
 
       setState(() {
-        _nameController.clear();
-        _emailController.clear();
-        _phoneController.clear();
-        _notificheAttive = false;
-        _notificationsSupported = false;
+        _applySettings(WorkshopSettings.empty());
         _isLoading = false;
         _errorMessage =
             'Impostazioni non disponibili dal backend. '
@@ -138,39 +80,57 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  void _applySettings(WorkshopSettings settings) {
+    _nameController.text = settings.serviceName;
+    _emailController.text = settings.email;
+    _phoneController.text = settings.phone;
+    _avatarController.text = settings.avatarUrl;
+    _startTimeController.text = settings.orarioInizio;
+    _endTimeController.text = settings.orarioFine;
+    _maxQueueController.text = settings.maxCoda.toString();
+    _operativoOnline = settings.operativoOnline;
+    _accettazioneAutomatica = settings.accettazioneAutomatica;
+  }
+
   Future<void> _saveSettings() async {
     FocusScope.of(context).unfocus();
+
+    final maxQueue = int.tryParse(_maxQueueController.text.trim());
+    if (maxQueue == null || maxQueue < 0) {
+      _showError('Numero massimo richieste in coda non valido.');
+      return;
+    }
+
+    final startTime = _startTimeController.text.trim();
+    final endTime = _endTimeController.text.trim();
+    if (!_isValidOptionalTime(startTime) || !_isValidOptionalTime(endTime)) {
+      _showError('Gli orari devono essere nel formato HH:MM.');
+      return;
+    }
 
     setState(() => _isSaving = true);
 
     try {
       await _settingsApi.updateProfile(
-        officinaId: _officinaId,
-        workshopName: _nameController.text.trim(),
+        serviceName: _nameController.text.trim(),
         email: _emailController.text.trim(),
         phone: _phoneController.text.trim(),
+        avatarUrl: _avatarController.text.trim(),
       );
 
-      if (_notificationsSupported) {
-        try {
-          await _settingsApi.updateNotifications(
-            officinaId: _officinaId,
-            push: _notificheAttive,
-          );
-        } catch (_) {
-          _notificationsSupported = false;
-        }
-      }
+      await _settingsApi.updateOperationalParameters(
+        operativoOnline: _operativoOnline,
+        orarioInizio: startTime,
+        orarioFine: endTime,
+        maxCoda: maxQueue,
+        accettazioneAutomatica: _accettazioneAutomatica,
+      );
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _notificationsSupported
-                ? 'Impostazioni salvate con successo!'
-                : 'Profilo salvato. Le notifiche non sono supportate dal backend attuale',
-          ),
+        const SnackBar(
+          content: Text('Impostazioni salvate con successo!'),
           backgroundColor: SafeClaimColors.primary,
         ),
       );
@@ -178,13 +138,7 @@ class _SettingsPageState extends State<SettingsPage> {
       await _loadSettings();
     } catch (error) {
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Errore: ${_normalizeError(error)}'),
-          backgroundColor: SafeClaimColors.danger,
-        ),
-      );
+      _showError(_normalizeError(error));
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -192,8 +146,32 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  bool _isValidOptionalTime(String value) {
+    if (value.isEmpty) return true;
+    final match = RegExp(r'^([01]\d|2[0-3]):[0-5]\d$').hasMatch(value);
+    return match;
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Errore: $message'),
+        backgroundColor: SafeClaimColors.danger,
+      ),
+    );
+  }
+
   String _normalizeError(Object error) {
-    return error.toString().replaceFirst('Exception: ', '').trim();
+    final message = error.toString().replaceFirst('Exception: ', '').trim();
+    final normalized = message.toLowerCase();
+
+    if (normalized.contains('authentication failed') ||
+        normalized.contains('mongodb') ||
+        normalized.contains('database')) {
+      return 'Configurazione database non disponibile. Contatta il supporto tecnico.';
+    }
+
+    return message;
   }
 
   @override
@@ -202,13 +180,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final cardColor = safeClaimCardColor(isDark);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Impostazioni'),
-        actions: [
-          buildSharedThemeToggle(context, isDark),
-          const SizedBox(width: 16),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Impostazioni')),
       drawer: SizedBox(
         width: MediaQuery.of(context).size.width,
         child: const AppDrawer(currentRoute: Routes.impostazioni),
@@ -224,7 +196,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 children: [
                   Text(
-                    'Configurazione Officina',
+                    'Impostazioni Soccorso',
                     style: TextStyle(
                       fontSize: 34,
                       fontWeight: FontWeight.w900,
@@ -233,81 +205,108 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Officina ID: $_officinaId',
+                    'Profilo e parametri operativi del servizio.',
                     style: TextStyle(
                       fontSize: 14,
                       color: safeClaimSubtleTextColor(isDark),
                     ),
                   ),
                   const SizedBox(height: 24),
-                  if (_errorMessage != null)
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      margin: const EdgeInsets.only(bottom: 24),
-                      decoration: BoxDecoration(
-                        color: SafeClaimColors.dangerSoft,
-                        border: Border.all(color: SafeClaimColors.danger),
-                        borderRadius: BorderRadius.circular(12),
+                  if (_errorMessage != null) _buildErrorBanner(),
+                  _settingsCard(
+                    isDark: isDark,
+                    cardColor: cardColor,
+                    title: 'Profilo',
+                    icon: Icons.support_agent_rounded,
+                    children: [
+                      TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nome servizio soccorso',
+                          prefixIcon: Icon(Icons.business_rounded),
+                        ),
                       ),
-                      child: Text(
-                        _errorMessage!,
-                        style: const TextStyle(color: SafeClaimColors.danger),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          labelText: 'Email contatto',
+                          prefixIcon: Icon(Icons.email_rounded),
+                        ),
                       ),
-                    ),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: safeClaimCardDecoration(
-                      isDark,
-                      color: cardColor,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Nome Officina',
-                            prefixIcon: Icon(Icons.build),
-                          ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(
+                          labelText: 'Telefono contatto',
+                          prefixIcon: Icon(Icons.phone_rounded),
                         ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
-                            labelText: 'Email di contatto',
-                            prefixIcon: Icon(Icons.email),
-                          ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _avatarController,
+                        keyboardType: TextInputType.url,
+                        decoration: const InputDecoration(
+                          labelText: 'Avatar URL',
+                          prefixIcon: Icon(Icons.image_rounded),
                         ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _phoneController,
-                          keyboardType: TextInputType.phone,
-                          decoration: const InputDecoration(
-                            labelText: 'Numero di telefono',
-                            prefixIcon: Icon(Icons.phone),
-                          ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _settingsCard(
+                    isDark: isDark,
+                    cardColor: cardColor,
+                    title: 'Parametri Operativi',
+                    icon: Icons.tune_rounded,
+                    children: [
+                      _switchTile(
+                        title: 'Stato operativo online',
+                        subtitle: 'Disponibilita del servizio soccorso',
+                        value: _operativoOnline,
+                        onChanged: (value) =>
+                            setState(() => _operativoOnline = value),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _startTimeController,
+                        keyboardType: TextInputType.datetime,
+                        decoration: const InputDecoration(
+                          labelText: 'Orario inizio servizio',
+                          hintText: '08:00',
+                          prefixIcon: Icon(Icons.schedule_rounded),
                         ),
-                        const SizedBox(height: 24),
-                        SwitchListTile.adaptive(
-                          title: const Text('Ricevi notifiche push'),
-                          subtitle: Text(
-                            _notificationsSupported
-                                ? 'Avvisi per nuove richieste di soccorso'
-                                : 'Non disponibile con il backend attuale',
-                          ),
-                          value: _notificheAttive,
-                          activeThumbColor: Colors.white,
-                          activeTrackColor: SafeClaimColors.primary,
-                          contentPadding: EdgeInsets.zero,
-                          onChanged: _notificationsSupported
-                              ? (val) {
-                                  setState(() => _notificheAttive = val);
-                                }
-                              : null,
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _endTimeController,
+                        keyboardType: TextInputType.datetime,
+                        decoration: const InputDecoration(
+                          labelText: 'Orario fine servizio',
+                          hintText: '18:30',
+                          prefixIcon: Icon(Icons.schedule_send_rounded),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _maxQueueController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Numero massimo richieste in coda',
+                          prefixIcon: Icon(Icons.format_list_numbered_rounded),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _switchTile(
+                        title: 'Accettazione automatica richieste',
+                        subtitle: 'Assegna automaticamente le richieste nuove',
+                        value: _accettazioneAutomatica,
+                        onChanged: (value) =>
+                            setState(() => _accettazioneAutomatica = value),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 32),
                   SizedBox(
@@ -343,6 +342,73 @@ class _SettingsPageState extends State<SettingsPage> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildErrorBanner() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: SafeClaimColors.dangerSoft,
+        border: Border.all(color: SafeClaimColors.danger),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        _errorMessage!,
+        style: const TextStyle(color: SafeClaimColors.danger),
+      ),
+    );
+  }
+
+  Widget _settingsCard({
+    required bool isDark,
+    required Color cardColor,
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: safeClaimCardDecoration(isDark, color: cardColor),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: SafeClaimColors.primary),
+              const SizedBox(width: 10),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : SafeClaimColors.foreground,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _switchTile({
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return SwitchListTile.adaptive(
+      title: Text(title),
+      subtitle: Text(subtitle),
+      value: value,
+      activeThumbColor: Colors.white,
+      activeTrackColor: SafeClaimColors.primary,
+      contentPadding: EdgeInsets.zero,
+      onChanged: onChanged,
     );
   }
 }
