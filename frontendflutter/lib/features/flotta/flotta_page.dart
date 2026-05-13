@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart'; // Assicurati di averlo nel pubspec.yaml
+import 'package:url_launcher/url_launcher.dart'; // Import necessario
 
 import '../../app/routes.dart';
 import '../../app/theme.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/safeclaim_ui.dart';
 
-// Modello per i veicoli (Identico al tuo originale)
+// Modello per i veicoli (Originale)
 class Vehicle {
   final String id;
   final String name;
   final String plate;
-  final String status; 
+  final String status; // 'available', 'busy', 'maintenance'
   final String driver;
   final double lat;
   final double lng;
@@ -37,7 +37,7 @@ class FlottaPage extends StatefulWidget {
 }
 
 class _FlottaPageState extends State<FlottaPage> {
-  // Dati statici originali
+  // Dati originali
   late List<Vehicle> fleet = [
     Vehicle(
       id: 'V-01',
@@ -69,9 +69,9 @@ class _FlottaPageState extends State<FlottaPage> {
     ),
   ];
 
-  // FUNZIONE MODIFICATA: Apre l'app chiamate del telefono
+  // FUNZIONE CORRETTA: Apre l'app chiamate del tuo smartphone
   Future<void> contactDriver(String driverName) async {
-    // Inserisci qui il numero reale che vuoi far apparire nel tastierino
+    // Sostituisci questo numero con quello che vuoi testare
     const String numeroDaChiamare = "+393331234567"; 
 
     final Uri launchUri = Uri(
@@ -79,13 +79,18 @@ class _FlottaPageState extends State<FlottaPage> {
       path: numeroDaChiamare,
     );
 
+    // Verifichiamo se il telefono può gestire la chiamata
     if (await canLaunchUrl(launchUri)) {
-      await launchUrl(launchUri);
-    } else {
-      // Fallback se fallisce (es. su tablet senza SIM)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Impossibile aprire il tastierino per: $driverName')),
+      await launchUrl(
+        launchUri,
+        mode: LaunchMode.externalApplication, // Forza l'apertura dell'app Telefono
       );
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Impossibile aprire il tastierino per $driverName')),
+        );
+      }
     }
   }
 
@@ -210,7 +215,6 @@ class _FlottaPageState extends State<FlottaPage> {
           const SizedBox(height: 12),
           _buildDetailRow(isDark, Icons.person_outline, 'Autista', vehicle.driver),
           const SizedBox(height: 16),
-          // IL TASTO CHE APRE IL TELEFONO
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
