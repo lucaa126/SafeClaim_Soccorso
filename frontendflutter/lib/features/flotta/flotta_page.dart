@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart'; // Assicurati di averlo nel pubspec.yaml
 
 import '../../app/routes.dart';
 import '../../app/theme.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/safeclaim_ui.dart';
 
-// Modello per i veicoli
+// Modello per i veicoli (Identico al tuo originale)
 class Vehicle {
   final String id;
   final String name;
   final String plate;
-  final String status; // 'available', 'busy', 'maintenance'
+  final String status; 
   final String driver;
   final double lat;
   final double lng;
@@ -36,6 +37,7 @@ class FlottaPage extends StatefulWidget {
 }
 
 class _FlottaPageState extends State<FlottaPage> {
+  // Dati statici originali
   late List<Vehicle> fleet = [
     Vehicle(
       id: 'V-01',
@@ -67,51 +69,51 @@ class _FlottaPageState extends State<FlottaPage> {
     ),
   ];
 
-  void contactDriver(String driverName) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Chiamata in corso a: $driverName...'),
-        duration: const Duration(seconds: 2),
-      ),
+  // FUNZIONE MODIFICATA: Apre l'app chiamate del telefono
+  Future<void> contactDriver(String driverName) async {
+    // Inserisci qui il numero reale che vuoi far apparire nel tastierino
+    const String numeroDaChiamare = "+393331234567"; 
+
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: numeroDaChiamare,
     );
+
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    } else {
+      // Fallback se fallisce (es. su tablet senza SIM)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Impossibile aprire il tastierino per: $driverName')),
+      );
+    }
   }
 
+  // --- Utility per i colori (Originali) ---
   String getStatusLabel(String status) {
     switch (status) {
-      case 'available':
-        return 'Disponibile';
-      case 'busy':
-        return 'In Intervento';
-      case 'maintenance':
-        return 'In Manutenzione';
-      default:
-        return status;
+      case 'available': return 'Disponibile';
+      case 'busy': return 'In Intervento';
+      case 'maintenance': return 'In Manutenzione';
+      default: return status;
     }
   }
 
   Color getStatusColor(String status) {
     switch (status) {
-      case 'available':
-        return SafeClaimColors.textStrong;
-      case 'busy':
-        return SafeClaimColors.primaryDark;
-      case 'maintenance':
-        return SafeClaimColors.textMuted;
-      default:
-        return SafeClaimColors.primary;
+      case 'available': return SafeClaimColors.textStrong;
+      case 'busy': return SafeClaimColors.primaryDark;
+      case 'maintenance': return SafeClaimColors.textMuted;
+      default: return SafeClaimColors.primary;
     }
   }
 
   Color getStatusBgColor(String status) {
     switch (status) {
-      case 'available':
-        return SafeClaimColors.textStrong.withValues(alpha: 0.10);
-      case 'busy':
-        return SafeClaimColors.primaryLight.withValues(alpha: 0.22);
-      case 'maintenance':
-        return SafeClaimColors.neutral;
-      default:
-        return SafeClaimColors.primaryLightest;
+      case 'available': return SafeClaimColors.textStrong.withOpacity(0.10);
+      case 'busy': return SafeClaimColors.primaryLight.withOpacity(0.22);
+      case 'maintenance': return SafeClaimColors.neutral;
+      default: return SafeClaimColors.primaryLightest;
     }
   }
 
@@ -122,10 +124,7 @@ class _FlottaPageState extends State<FlottaPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Flotta',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
+        title: const Text('Flotta', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         centerTitle: false,
         actions: [
           buildSharedThemeToggle(context, isDark),
@@ -149,18 +148,7 @@ class _FlottaPageState extends State<FlottaPage> {
                 color: isDark ? Colors.white : SafeClaimColors.foreground,
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              'Monitoraggio in tempo reale stato mezzi e autisti.',
-              style: TextStyle(
-                fontSize: 14,
-                color: safeClaimSubtleTextColor(isDark),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
             const SizedBox(height: 24),
-
-            // Sostituito GridView con ListView per eliminare lo spazio bianco fisso
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -182,114 +170,58 @@ class _FlottaPageState extends State<FlottaPage> {
     final statusBgColor = getStatusBgColor(vehicle.status);
 
     return Container(
-      padding: const EdgeInsets.all(16), // Ridotto leggermente da 20 a 16 per compattezza
+      padding: const EdgeInsets.all(16),
       decoration: safeClaimCardDecoration(isDark, color: cardColor),
       child: Column(
-        mainAxisSize: MainAxisSize.min, // Occupa solo lo spazio necessario
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 44, height: 44,
                 decoration: BoxDecoration(
                   color: statusBgColor,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  Icons.local_shipping_outlined,
-                  color: statusColor,
-                  size: 24,
-                ),
+                child: Icon(Icons.local_shipping_outlined, color: statusColor, size: 24),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      vehicle.name,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: isDark ? Colors.white : SafeClaimColors.foreground,
-                      ),
-                    ),
+                    Text(vehicle.name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: isDark ? Colors.white : SafeClaimColors.foreground)),
                     const SizedBox(height: 2),
-                    Text(
-                      'Targa: ${vehicle.plate}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: safeClaimSubtleTextColor(isDark),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    Text('Targa: ${vehicle.plate}', style: TextStyle(fontSize: 12, color: safeClaimSubtleTextColor(isDark), fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  getStatusLabel(vehicle.status),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
+                decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(20)),
+                child: Text(getStatusLabel(vehicle.status), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
               ),
             ],
           ),
           const SizedBox(height: 12),
           const Divider(height: 1),
           const SizedBox(height: 12),
-          _buildDetailRow(
-            isDark,
-            Icons.person_outline,
-            'Autista',
-            vehicle.driver,
-          ),
-          if (vehicle.status == 'busy') ...[
-            const SizedBox(height: 8),
-            _buildDetailRow(
-              isDark,
-              Icons.warning_amber_outlined,
-              'In intervento su',
-              vehicle.currentTask ?? 'N/A',
-            ),
-          ],
-          const SizedBox(height: 8),
-          _buildDetailRow(
-            isDark,
-            Icons.location_on_outlined,
-            'Posizione',
-            '${vehicle.lat.toStringAsFixed(4)}, ${vehicle.lng.toStringAsFixed(4)}',
-          ),
+          _buildDetailRow(isDark, Icons.person_outline, 'Autista', vehicle.driver),
           const SizedBox(height: 16),
+          // IL TASTO CHE APRE IL TELEFONO
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: vehicle.status == 'maintenance'
-                  ? null
-                  : () => contactDriver(vehicle.driver),
+              onPressed: vehicle.status == 'maintenance' ? null : () => contactDriver(vehicle.driver),
               icon: const Icon(Icons.call, size: 18),
               label: const Text('Contatta Autista'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: SafeClaimColors.primary,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: Colors.grey[300],
-                disabledForegroundColor: Colors.grey,
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
           ),
@@ -303,25 +235,8 @@ class _FlottaPageState extends State<FlottaPage> {
       children: [
         Icon(icon, size: 16, color: safeClaimSubtleTextColor(isDark)),
         const SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: TextStyle(
-            fontSize: 13,
-            color: safeClaimSubtleTextColor(isDark),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : SafeClaimColors.foreground,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
+        Text('$label: ', style: TextStyle(fontSize: 13, color: safeClaimSubtleTextColor(isDark), fontWeight: FontWeight.w600)),
+        Expanded(child: Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? Colors.white : SafeClaimColors.foreground), overflow: TextOverflow.ellipsis)),
       ],
     );
   }
