@@ -120,10 +120,25 @@ class SafeClaimApiClient {
     }
 
     if (response.statusCode >= 400) {
-      throw Exception(decoded['message'] ?? 'Errore API');
+      final message = _responseErrorMessage(decoded, response.statusCode);
+      throw Exception(message);
     }
 
     return decoded;
+  }
+
+  String _responseErrorMessage(Map<String, dynamic> decoded, int statusCode) {
+    final message = decoded['message']?.toString().trim();
+    if (message != null && message.isNotEmpty) {
+      return message;
+    }
+
+    final error = decoded['error']?.toString().trim();
+    if (error != null && error.isNotEmpty) {
+      return error;
+    }
+
+    return 'Errore API ($statusCode)';
   }
 }
 

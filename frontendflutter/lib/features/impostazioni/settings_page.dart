@@ -6,14 +6,18 @@ import '../../widgets/safeclaim_ui.dart';
 import 'settings_api_service.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+  const SettingsPage({super.key, SettingsApiService? settingsApi})
+    : _settingsApi = settingsApi;
+
+  final SettingsApiService? _settingsApi;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  final SettingsApiService _settingsApi = SettingsApiService();
+  late final SettingsApiService _settingsApi =
+      widget._settingsApi ?? SettingsApiService();
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -66,8 +70,15 @@ class _SettingsPageState extends State<SettingsPage> {
       if (!mounted) return;
 
       setState(() {
+        _nameController.clear();
+        _emailController.clear();
+        _phoneController.clear();
+        _notificheAttive = false;
+        _notificationsSupported = false;
         _isLoading = false;
-        _errorMessage = _normalizeError(error);
+        _errorMessage =
+            'Impostazioni non disponibili dal backend. '
+            '${_normalizeError(error)}';
       });
     }
   }
@@ -114,8 +125,15 @@ class _SettingsPageState extends State<SettingsPage> {
       if (!mounted) return;
 
       setState(() {
+        _nameController.clear();
+        _emailController.clear();
+        _phoneController.clear();
+        _notificheAttive = false;
+        _notificationsSupported = false;
         _isLoading = false;
-        _errorMessage = _normalizeError(error);
+        _errorMessage =
+            'Impostazioni non disponibili dal backend. '
+            '${_normalizeError(error)}';
       });
     }
   }

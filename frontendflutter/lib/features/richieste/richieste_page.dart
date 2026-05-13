@@ -17,7 +17,12 @@ class RichiestePage extends StatefulWidget {
 }
 
 class _RichiestePageState extends State<RichiestePage> {
-  static const _filterLabels = ["Tutte", "Da Gestire", "In Corso", "Completate"];
+  static const _filterLabels = [
+    "Tutte",
+    "Da Gestire",
+    "In Corso",
+    "Completate",
+  ];
   final RichiesteApiService _apiService = RichiesteApiService();
 
   int _selectedFilterIndex = 0;
@@ -120,7 +125,7 @@ class _RichiestePageState extends State<RichiestePage> {
               else if (_errorMessage != null)
                 _buildErrorState()
               else
-                _buildTableContainer(cardColor, isDark),
+                _buildCardsContainer(cardColor, isDark),
               const SizedBox(height: 40),
             ],
           ),
@@ -207,9 +212,10 @@ class _RichiestePageState extends State<RichiestePage> {
     );
   }
 
-  Widget _buildTableContainer(Color cardColor, bool isDark) {
+  Widget _buildCardsContainer(Color cardColor, bool isDark) {
     return Container(
       width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(20),
@@ -226,112 +232,310 @@ class _RichiestePageState extends State<RichiestePage> {
               padding: EdgeInsets.all(60.0),
               child: Center(child: Text("Nessuna richiesta trovata.")),
             )
-          : SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                headingTextStyle: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : SafeClaimColors.foreground,
-                ),
-                dataRowMaxHeight: 75,
-                dataRowMinHeight: 75,
-                columns: const [
-                  DataColumn(label: Text("ID INTERVENTO")),
-                  DataColumn(label: Text("DATA E ORA")),
-                  DataColumn(label: Text("AZIONI")),
-                ],
-                rows: _interventi.map((item) {
-                  return DataRow(
-                    cells: [
-                      DataCell(
-                        _buildColoredId("#SOS-${item.id}", item.stato, isDark),
-                      ),
-                      DataCell(
-                        Text(
-                          _formatShortDateTime(item.dataRichiesta),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: isDark
-                                ? Colors.white70
-                                : SafeClaimColors.textMuted,
-                          ),
-                        ),
-                      ),
-                      DataCell(_buildActionButtons(item.stato)),
-                    ],
-                  );
-                }).toList(),
-              ),
+          : Column(
+              children: _interventi.map((item) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: item == _interventi.last ? 0 : 12,
+                  ),
+                  child: _buildInterventoCard(item, isDark),
+                );
+              }).toList(),
             ),
     );
   }
 
-  Widget _buildColoredId(String id, String status, bool isDark) {
-    Color bgColor;
-    Color textColor;
-    switch (status) {
-      case "PENDING":
-        bgColor = SafeClaimColors.primaryLightest;
-        textColor = SafeClaimColors.textStrong;
-        break;
-      case "ACCEPTED":
-        bgColor = SafeClaimColors.primaryLight.withValues(alpha: 0.22);
-        textColor = SafeClaimColors.primaryDark;
-        break;
-      case "HANDLED":
-        bgColor = SafeClaimColors.textStrong.withValues(alpha: 0.10);
-        textColor = SafeClaimColors.textStrong;
-        break;
-      default:
-        bgColor = SafeClaimColors.neutral;
-        textColor = SafeClaimColors.textStrong;
-    }
-    if (isDark) bgColor = bgColor.withValues(alpha: 0.18);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: textColor.withValues(alpha: 0.45)),
-      ),
-      child: Text(
-        id,
-        style: TextStyle(
-          color: textColor,
-          fontWeight: FontWeight.w900,
-          fontSize: 13,
+  Widget _buildInterventoCard(RichiestaIntervento item, bool isDark) {
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : SafeClaimColors.primaryLight.withValues(alpha: 0.45);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () {},
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? SafeClaimColors.darkCard : Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: borderColor),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: SafeClaimColors.primary.withValues(alpha: 0.14),
+                    ),
+                    child: const Icon(
+                      Icons.assignment_rounded,
+                      color: SafeClaimColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "#SOS-${item.id}",
+                          style: TextStyle(
+                            color: isDark
+                                ? Colors.white
+                                : SafeClaimColors.foreground,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                            height: 1.15,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatFullDateTime(item.dataRichiesta),
+                          style: TextStyle(
+                            color: isDark
+                                ? Colors.white70
+                                : SafeClaimColors.textMuted,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final pillMaxWidth = constraints.maxWidth;
+
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _statusChip(
+                        isDark: isDark,
+                        status: item.stato,
+                        maxWidth: pillMaxWidth,
+                      ),
+                      _metaPill(
+                        isDark: isDark,
+                        icon: Icons.tag_rounded,
+                        label: "#SOS-${item.id}",
+                        maxWidth: pillMaxWidth,
+                      ),
+                      if (item.orarioArrivo != null)
+                        _metaPill(
+                          isDark: isDark,
+                          icon: Icons.flag_circle_rounded,
+                          label:
+                              'Arrivo ${_formatShortDateTime(item.orarioArrivo!)}',
+                          maxWidth: pillMaxWidth,
+                        ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                height: 1,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.07)
+                    : SafeClaimColors.primaryLight.withValues(alpha: 0.45),
+              ),
+              const SizedBox(height: 14),
+              _buildActionButtons(item.stato, isDark),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildActionButtons(String status) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+  Widget _buildActionButtons(String status, bool isDark) {
+    final normalizedStatus = _normalizedStatus(status);
+    final hasPrimaryAction = normalizedStatus == "PENDING";
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
       children: [
-        if (status == "PENDING") ...[
-          _iconButton(Icons.check, SafeClaimColors.primary),
-          const SizedBox(width: 8),
-        ],
-        _iconButton(Icons.visibility_outlined, SafeClaimColors.textStrong),
-        const SizedBox(width: 8),
-        _iconButton(Icons.close, SafeClaimColors.danger),
+        _actionButton(
+          isDark: isDark,
+          icon: Icons.visibility_rounded,
+          label: 'Dettaglio',
+          color: isDark ? Colors.white70 : SafeClaimColors.textStrong,
+          onPressed: () {},
+        ),
+        if (normalizedStatus == "PENDING")
+          _actionButton(
+            isDark: isDark,
+            icon: Icons.check,
+            label: 'Prendi in carico',
+            color: SafeClaimColors.primary,
+            onPressed: () {},
+          ),
+        if (normalizedStatus == "ACCEPTED")
+          _actionButton(
+            isDark: isDark,
+            icon: Icons.done_all_rounded,
+            label: 'Completa',
+            color: SafeClaimColors.textStrong,
+            onPressed: () {},
+          ),
+        if (hasPrimaryAction)
+          _actionButton(
+            isDark: isDark,
+            icon: Icons.close,
+            label: 'Rifiuta',
+            color: Colors.redAccent,
+            onPressed: () {},
+          ),
+        if (normalizedStatus == "HANDLED")
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : SafeClaimColors.primaryLightest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'Nessuna azione disponibile',
+              style: TextStyle(
+                color: isDark ? Colors.white70 : SafeClaimColors.textMuted,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  Widget _iconButton(IconData icon, Color color) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+  String _normalizedStatus(String status) {
+    switch (status.trim().toLowerCase()) {
+      case 'pending':
+      case 'in_attesa':
+      case 'da_gestire':
+        return 'PENDING';
+      case 'accepted':
+      case 'in_corso':
+        return 'ACCEPTED';
+      case 'handled':
+      case 'completata':
+        return 'HANDLED';
+      default:
+        return status.toUpperCase();
+    }
+  }
+
+  Widget _statusChip({
+    required bool isDark,
+    required String status,
+    double? maxWidth,
+  }) {
+    final style = safeClaimStatusStyle(status);
+    final bg = isDark
+        ? style.background.withValues(alpha: 0.22)
+        : style.background;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: style.foreground.withValues(alpha: 0.45)),
+        ),
+        child: Text(
+          style.label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: style.foreground,
+            fontWeight: FontWeight.w800,
+            fontSize: 13,
+          ),
+        ),
       ),
-      child: IconButton(
-        icon: Icon(icon, size: 18, color: color),
-        onPressed: () {},
-        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-        padding: EdgeInsets.zero,
+    );
+  }
+
+  Widget _metaPill({
+    required bool isDark,
+    required IconData icon,
+    required String label,
+    double? maxWidth,
+  }) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: isDark ? SafeClaimColors.darkSurface : Colors.white,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : SafeClaimColors.primaryLight.withValues(alpha: 0.45),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: SafeClaimColors.primary),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: isDark ? Colors.white : SafeClaimColors.foreground,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _actionButton({
+    required bool isDark,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback? onPressed,
+  }) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: color,
+        side: BorderSide(color: color.withValues(alpha: 0.5)),
+        backgroundColor: isDark
+            ? color.withValues(alpha: 0.08)
+            : color.withValues(alpha: 0.05),
+        disabledForegroundColor: color.withValues(alpha: 0.35),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+      ),
+      icon: Icon(icon, size: 16),
+      label: Text(label),
     );
   }
 
@@ -363,5 +567,14 @@ class _RichiestePageState extends State<RichiestePage> {
     final hour = date.hour.toString().padLeft(2, '0');
     final minute = date.minute.toString().padLeft(2, '0');
     return '$day/$month $hour:$minute';
+  }
+
+  String _formatFullDateTime(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    return '$day/$month/$year alle $hour:$minute';
   }
 }

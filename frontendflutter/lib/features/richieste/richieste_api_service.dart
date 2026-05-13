@@ -1,26 +1,53 @@
 import 'dart:async';
+import 'package:http/http.dart' as http;
+
 import '../../app/api_client.dart';
 import 'richiesta_model.dart';
 
 class RichiesteApiService {
-  // Istanziamo il tuo client specifico
-  final SafeClaimApiClient _apiClient = SafeClaimApiClient();
+  RichiesteApiService({http.Client? client})
+    : _apiClient = SafeClaimApiClient(client: client);
+
+  final SafeClaimApiClient _apiClient;
 
   Future<List<RichiestaIntervento>> fetchRichieste({String? stato}) async {
     try {
-      final query = (stato != null && stato != "Tutte")
-          ? '?stato=${Uri.encodeQueryComponent(stato)}'
-          : '';
-      final response = await _apiClient.requestJson('GET', '/richieste/$query');
+      final response = await _apiClient.requestJson('GET', '/soccorsi/');
 
-      if (response['success'] == true) {
-        final List data = response['data'] as List;
-        return data.map((json) => RichiestaIntervento.fromJson(json)).toList();
-      } else {
-        throw Exception(response['message'] ?? 'Errore nel recupero delle richieste');
+      final rawItems = response['data'] is List
+          ? response['data'] as List
+          : const [];
+      final richieste = rawItems
+          .whereType<Map>()
+          .map(
+            (item) =>
+                RichiestaIntervento.fromJson(Map<String, dynamic>.from(item)),
+          )
+          .toList();
+
+      final normalizedFilter = _statusForFilter(stato);
+      if (normalizedFilter == null) {
+        return richieste;
       }
+
+      return richieste
+          .where((richiesta) => richiesta.stato == normalizedFilter)
+          .toList();
     } catch (e) {
       rethrow;
+    }
+  }
+
+  String? _statusForFilter(String? filter) {
+    switch (filter) {
+      case 'Da Gestire':
+        return 'in_attesa';
+      case 'In Corso':
+        return 'in_corso';
+      case 'Completate':
+        return 'completata';
+      default:
+        return null;
     }
   }
 }

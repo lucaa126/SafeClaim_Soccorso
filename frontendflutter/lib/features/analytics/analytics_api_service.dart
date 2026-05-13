@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 
 import '../../app/api_client.dart';
+import '../../app/auth_service.dart';
 
 class AnalyticsSummary {
   final int total;
@@ -89,13 +90,22 @@ class AnalyticsApiService {
   final SafeClaimApiClient _apiClient;
 
   Future<AnalyticsSummary> getAnalyticsSummary() async {
-    final totalResponse = await _requestJson(
+    final totalResponse = await _requestJsonOrEmpty(
       'GET',
       '/analytics/total-requests',
     );
-    final pendingResponse = await _requestJson('GET', '/analytics/pending');
-    final acceptedResponse = await _requestJson('GET', '/analytics/accepted');
-    final handledResponse = await _requestJson('GET', '/analytics/handled');
+    final pendingResponse = await _requestJsonOrEmpty(
+      'GET',
+      '/analytics/pending',
+    );
+    final acceptedResponse = await _requestJsonOrEmpty(
+      'GET',
+      '/analytics/accepted',
+    );
+    final handledResponse = await _requestJsonOrEmpty(
+      'GET',
+      '/analytics/handled',
+    );
 
     final data = {
       'data': {
@@ -129,7 +139,7 @@ class AnalyticsApiService {
   }
 
   Future<List<Review>> getRecentReviews() async {
-    final data = await _requestJson('GET', '/analytics/reviews');
+    final data = await _requestJsonOrEmpty('GET', '/analytics/reviews');
     final rawItems = data['data'] is List ? data['data'] as List : const [];
 
     return rawItems
@@ -139,7 +149,7 @@ class AnalyticsApiService {
   }
 
   Future<List<TrafficIncident>> getRealTimeTraffic(String city) async {
-    final data = await _requestJson(
+    final data = await _requestJsonOrEmpty(
       'GET',
       '/analytics/traffic',
       body: {'city': city},
@@ -160,6 +170,20 @@ class AnalyticsApiService {
     Map<String, dynamic>? body,
   }) async {
     return _apiClient.requestJson(method, path, body: body);
+  }
+
+  Future<Map<String, dynamic>> _requestJsonOrEmpty(
+    String method,
+    String path, {
+    Map<String, dynamic>? body,
+  }) async {
+    try {
+      return await _requestJson(method, path, body: body);
+    } on TokenInvalidException {
+      rethrow;
+    } catch (_) {
+      return const <String, dynamic>{};
+    }
   }
 }
 
