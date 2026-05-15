@@ -26,8 +26,6 @@ class _AnalyticsPageState extends State<AnalyticsPage>
   Map<String, int> fleetStatus = {};
   int averageHandlingMins = 0;
 
-  List<TrafficIncident> traffic = [];
-  bool loadingTraffic = false;
   bool loadingAnalytics = true;
 
   String selectedCategory = 'overview';
@@ -39,7 +37,6 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     super.initState();
     _tabController = TabController(length: 4, vsync: this, initialIndex: 0);
     _loadAllData();
-    _loadTraffic();
   }
 
   Future<void> _loadAllData() async {
@@ -77,22 +74,6 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     }
   }
 
-  Future<void> _loadTraffic() async {
-    setState(() => loadingTraffic = true);
-    try {
-      traffic = await _analyticsApi.getRealTimeTraffic('Milano');
-      if (mounted) {
-        setState(() => loadingTraffic = false);
-      }
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
-      setState(() => loadingTraffic = false);
-      _showSnack(e.toString().replaceFirst('Exception: ', ''));
-    }
-  }
-
   void _showSnack(String message) {
     ScaffoldMessenger.of(
       context,
@@ -101,7 +82,6 @@ class _AnalyticsPageState extends State<AnalyticsPage>
 
   void _refreshData() {
     _loadAllData();
-    _loadTraffic();
   }
 
   @override
@@ -157,13 +137,6 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                   Text(
                     'Caricamento dati analytics...',
                     style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Simulazione API in corso',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: safeClaimSubtleTextColor(isDarkMode),
-                    ),
                   ),
                 ],
               ),
@@ -431,8 +404,6 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         _buildOperationsCard(),
         const SizedBox(height: 20),
         _buildFleetCard(),
-        const SizedBox(height: 20),
-        _buildTrafficCard(),
       ],
     );
   }
@@ -467,6 +438,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     final max = last7Days.isEmpty
         ? 1
         : last7Days.reduce((a, b) => a > b ? a : b);
+    final safeMax = max == 0 ? 1 : max;
 
     return Container(
       decoration: BoxDecoration(
@@ -495,55 +467,66 @@ class _AnalyticsPageState extends State<AnalyticsPage>
           const SizedBox(height: 20),
           SizedBox(
             height: 150,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(last7Days.length, (index) {
-                final value = last7Days[index];
-                final height = (value / max) * 120;
-                final isToday = index == last7Days.length - 1;
-
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Tooltip(
-                      message: '$value richieste',
-                      child: Container(
-                        width: 30,
-                        height: height,
-                        decoration: BoxDecoration(
-                          color: SafeClaimColors.primary,
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(8),
-                            topRight: Radius.circular(8),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: SafeClaimColors.primary.withValues(
-                                alpha: 0.3,
-                              ),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      isToday ? 'oggi' : 'g${6 - index}',
+            child: last7Days.isEmpty
+                ? Center(
+                    child: Text(
+                      'Nessun dato disponibile',
                       style: TextStyle(
-                        fontSize: 11,
                         color: safeClaimSubtleTextColor(
                           Theme.of(context).brightness == Brightness.dark,
                         ),
-                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ],
-                );
-              }),
-            ),
+                  )
+                : Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: List.generate(last7Days.length, (index) {
+                      final value = last7Days[index];
+                      final height = (value / safeMax) * 120;
+                      final isToday = index == last7Days.length - 1;
+
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Tooltip(
+                            message: '$value richieste',
+                            child: Container(
+                              width: 30,
+                              height: height,
+                              decoration: BoxDecoration(
+                                color: SafeClaimColors.primary,
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(8),
+                                  topRight: Radius.circular(8),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: SafeClaimColors.primary.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            isToday ? 'oggi' : 'g${last7Days.length - 1 - index}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: safeClaimSubtleTextColor(
+                                Theme.of(context).brightness == Brightness.dark,
+                              ),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                  ),
           ),
         ],
       ),
@@ -721,285 +704,61 @@ class _AnalyticsPageState extends State<AnalyticsPage>
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          ...fleetStatus.entries.map((entry) {
-            final colors = {
-              'available': SafeClaimColors.textStrong,
-              'busy': SafeClaimColors.primaryDark,
-              'maintenance': SafeClaimColors.textMuted,
-            };
-            final labels = {
-              'available': 'Disponibili',
-              'busy': 'Impegnati',
-              'maintenance': 'Manutenzione',
-            };
-
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: colors[entry.key],
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        labels[entry.key] ?? entry.key,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                  Text(
-                    entry.value.toString(),
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+          if (fleetStatus.isEmpty)
+            Text(
+              'Nessun dato di flotta disponibile',
+              style: TextStyle(
+                color: safeClaimSubtleTextColor(
+                  Theme.of(context).brightness == Brightness.dark,
+                ),
               ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  // ===== TRAFFIC CARD =====
-  Widget _buildTrafficCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? SafeClaimColors.darkCard
-            : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Traffico Live',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              IconButton(
-                onPressed: _loadTraffic,
-                icon: loadingTraffic
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            SafeClaimColors.primary,
-                          ),
-                        ),
-                      )
-                    : const Icon(Icons.refresh),
-                tooltip: 'Aggiorna',
-                padding: EdgeInsets.zero,
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (loadingTraffic && traffic.isEmpty)
-            _buildLoadingState()
-          else if (!loadingTraffic && traffic.isEmpty)
-            _buildEmptyState()
+            )
           else
-            _buildTrafficList(),
-        ],
-      ),
-    );
-  }
+            ...fleetStatus.entries.map((entry) {
+              final colors = {
+                'available': SafeClaimColors.textStrong,
+                'busy': SafeClaimColors.primaryDark,
+                'maintenance': SafeClaimColors.textMuted,
+              };
+              final labels = {
+                'available': 'Disponibili',
+                'busy': 'Impegnati',
+                'maintenance': 'Manutenzione',
+              };
 
-  // ===== TRAFFIC LOADING STATE =====
-  Widget _buildLoadingState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(
-                SafeClaimColors.primary,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Ricerca notizie in corso...',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: safeClaimSubtleTextColor(
-                  Theme.of(context).brightness == Brightness.dark,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ===== TRAFFIC EMPTY STATE =====
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: SafeClaimColors.textStrong.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: const Icon(
-                Icons.check_circle,
-                color: SafeClaimColors.textStrong,
-                size: 32,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Nessuna criticità rilevata.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: safeClaimSubtleTextColor(
-                  Theme.of(context).brightness == Brightness.dark,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ===== TRAFFIC LIST =====
-  Widget _buildTrafficList() {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: traffic.length,
-      separatorBuilder: (context, index) => const Divider(height: 16),
-      itemBuilder: (context, index) {
-        final incident = traffic[index];
-        return _buildTrafficItem(incident);
-      },
-    );
-  }
-
-  // ===== TRAFFIC ITEM =====
-  Widget _buildTrafficItem(TrafficIncident incident) {
-    final isDanger = incident.title.toLowerCase().contains('incidente');
-    final isWarning =
-        incident.title.toLowerCase().contains('coda') ||
-        incident.title.toLowerCase().contains('code');
-
-    Color iconBgColor;
-    IconData icon;
-
-    if (isDanger) {
-      iconBgColor = SafeClaimColors.danger;
-      icon = Icons.car_crash;
-    } else if (isWarning) {
-      iconBgColor = SafeClaimColors.warning;
-      icon = Icons.traffic;
-    } else {
-      iconBgColor = SafeClaimColors.primary;
-      icon = Icons.info;
-    }
-
-    return GestureDetector(
-      onTap: () {
-        // Potrebbe aprire link in future
-      },
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: iconBgColor.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: iconBgColor.withValues(alpha: 0.2),
-            width: 1,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: iconBgColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, color: iconBgColor, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        incident.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: colors[entry.key],
+                            borderRadius: BorderRadius.circular(3),
+                          ),
                         ),
+                        const SizedBox(width: 12),
+                        Text(
+                          labels[entry.key] ?? entry.key,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                    Text(
+                      entry.value.toString(),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            incident.source,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: SafeClaimColors.primary,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                          Text(
-                            _formatTime(incident.pubDate),
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: safeClaimSubtleTextColor(
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark,
-                                  ),
-                                  fontSize: 11,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ],
-        ),
+              );
+            }),
+        ],
       ),
     );
   }
@@ -1056,10 +815,5 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         ],
       ),
     );
-  }
-
-  // ===== UTILITY FUNCTIONS =====
-  String _formatTime(DateTime date) {
-    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

@@ -12,7 +12,7 @@ class RichiesteApiService {
 
   Future<List<RichiestaIntervento>> fetchRichieste({String? stato}) async {
     try {
-      final response = await _apiClient.requestJson('GET', '/soccorsi/');
+      final response = await _apiClient.requestJson('GET', '/v1/soccorsi');
 
       final rawItems = response['data'] is List
           ? response['data'] as List

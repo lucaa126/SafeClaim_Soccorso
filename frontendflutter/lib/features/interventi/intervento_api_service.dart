@@ -83,7 +83,7 @@ class InterventoApiService {
   final SafeClaimApiClient _apiClient;
 
   Future<InterventionDetail> getInterventoDetail(String requestId) async {
-    final data = await _requestJson('GET', '/dettaglioIntervento/$requestId');
+    final data = await _requestJson('GET', '/v1/sinistri/$requestId');
     return InterventionDetail.fromJson(
       (data['data'] as Map<String, dynamic>? ?? const {}),
     );
@@ -92,7 +92,7 @@ class InterventoApiService {
   Future<ActionResponse> takeInCharge(String requestId) async {
     final data = await _requestJson(
       'POST',
-      '/dettaglioIntervento/$requestId/take-in-charge',
+      '/v1/sinistri/$requestId/prendi-in-carico',
     );
     return ActionResponse.fromJson(data);
   }
@@ -100,7 +100,7 @@ class InterventoApiService {
   Future<ActionResponse> reject(String requestId) async {
     final data = await _requestJson(
       'POST',
-      '/dettaglioIntervento/$requestId/reject',
+      '/v1/sinistri/$requestId/rifiuta',
     );
     return ActionResponse.fromJson(data);
   }
@@ -108,7 +108,7 @@ class InterventoApiService {
   Future<ActionResponse> complete(String requestId) async {
     final data = await _requestJson(
       'POST',
-      '/dettaglioIntervento/$requestId/complete',
+      '/v1/sinistri/$requestId/completa',
     );
     return ActionResponse.fromJson(data);
   }

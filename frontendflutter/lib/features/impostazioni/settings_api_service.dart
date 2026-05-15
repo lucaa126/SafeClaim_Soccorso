@@ -59,6 +59,49 @@ class WorkshopSettings {
   }
 }
 
+/// Dati dell'account loggato (sezione "Account" della pagina Impostazioni).
+class AccountProfile {
+  final int? id;
+  final String nome;
+  final String? cognome;
+  final String email;
+  final String telefono;
+  final List<String> ruoli;
+
+  const AccountProfile({
+    required this.id,
+    required this.nome,
+    required this.cognome,
+    required this.email,
+    required this.telefono,
+    required this.ruoli,
+  });
+
+  /// Il backend omette `cognome` se è blank — qui resta `null`.
+  bool get hasCognome => cognome != null && cognome!.trim().isNotEmpty;
+
+  factory AccountProfile.empty() => const AccountProfile(
+    id: null, nome: '', cognome: null, email: '', telefono: '', ruoli: [],
+  );
+
+  factory AccountProfile.fromJson(Map<String, dynamic> json) {
+    final payload = _asMap(json['data']) ?? json;
+    final ruoliRaw = payload['ruolo'];
+    final ruoli = ruoliRaw is List
+        ? ruoliRaw.map((e) => e.toString()).toList()
+        : <String>[];
+
+    return AccountProfile(
+      id: _asInt(payload['id']),
+      nome: _asString(payload['nome']) ?? '',
+      cognome: _asString(payload['cognome']),
+      email: _asString(payload['email']) ?? '',
+      telefono: _asString(payload['telefono']) ?? '',
+      ruoli: ruoli,
+    );
+  }
+}
+
 class SettingsApiService {
   SettingsApiService({http.Client? client})
     : _apiClient = SafeClaimApiClient(client: client);
@@ -66,7 +109,7 @@ class SettingsApiService {
   final SafeClaimApiClient _apiClient;
 
   Future<WorkshopSettings> getSettings() async {
-    final data = await _apiClient.requestJson('GET', '/impostazioni/');
+    final data = await _apiClient.requestJson('GET', '/v1/impostazioni');
     return WorkshopSettings.fromJson(data);
   }
 
@@ -78,7 +121,7 @@ class SettingsApiService {
   }) async {
     final data = await _apiClient.requestJson(
       'PATCH',
-      '/impostazioni/profilo',
+      '/v1/impostazioni/profilo',
       body: {
         'nome': serviceName,
         'email_contatto': email,
@@ -99,13 +142,52 @@ class SettingsApiService {
   }) async {
     await _apiClient.requestJson(
       'PATCH',
-      '/impostazioni/parametri-operativi',
+      '/v1/impostazioni/parametri-operativi',
       body: {
         'operativo_online': operativoOnline,
         'orario_inizio': orarioInizio.isEmpty ? null : orarioInizio,
         'orario_fine': orarioFine.isEmpty ? null : orarioFine,
         'max_coda': maxCoda,
         'accettazione_automatica': accettazioneAutomatica,
+      },
+    );
+  }
+
+  // ----- Account -------------------------------------------------------
+
+  Future<AccountProfile> getAccount() async {
+    final data = await _apiClient.requestJson('GET', '/v1/auth/me');
+    return AccountProfile.fromJson(data);
+  }
+
+  Future<AccountProfile> updateAccount({
+    String? nome,
+    String? telefono,
+  }) async {
+    final body = <String, dynamic>{};
+    if (nome != null) body['nome'] = nome;
+    if (telefono != null) body['telefono'] = telefono;
+
+    final data = await _apiClient.requestJson(
+      'PATCH',
+      '/v1/auth/me',
+      body: body,
+    );
+    return AccountProfile.fromJson(data);
+  }
+
+  /// Cambia la password dell'utente loggato. Lancia eccezione con
+  /// messaggio user-facing in caso di old_password errata.
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    await _apiClient.requestJson(
+      'POST',
+      '/v1/auth/me/password',
+      body: {
+        'old_password': oldPassword,
+        'new_password': newPassword,
       },
     );
   }

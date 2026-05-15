@@ -70,10 +70,11 @@ class FlottaApiService {
   FlottaApiService({http.Client? client})
     : _apiClient = SafeClaimApiClient(client: client);
 
-  /// Recupera la lista completa dei veicoli
+  /// Recupera la lista completa dei veicoli.
+  /// Bug storico: usava `/api/flotta/` con prefisso doppio (il base URL
+  /// finisce già con `/api`). Ora path corretto `/v1/veicoli`.
   Future<List<Vehicle>> getFleet() async {
-    // Nota: Ho aggiunto 'api' al percorso come da tua specifica /api/flotta/
-    final dynamic data = await _requestJson('GET', '/api/flotta/');
+    final dynamic data = await _requestJson('GET', '/v1/veicoli');
 
     if (data is List) {
       return data
@@ -85,7 +86,7 @@ class FlottaApiService {
 
   /// Recupera i dettagli di un singolo veicolo
   Future<Vehicle> getVehicle(int vehicleId) async {
-    final data = await _requestJson('GET', '/api/flotta/$vehicleId');
+    final data = await _requestJson('GET', '/v1/veicoli/$vehicleId');
     return Vehicle.fromJson(Map<String, dynamic>.from(data));
   }
 
@@ -93,7 +94,7 @@ class FlottaApiService {
   Future<Map<String, dynamic>> contactDriver(String driverName) async {
     return await _requestJson(
       'POST',
-      '/api/flotta/contact',
+      '/v1/veicoli/contatto-autista',
       body: {'driver': driverName},
     );
   }

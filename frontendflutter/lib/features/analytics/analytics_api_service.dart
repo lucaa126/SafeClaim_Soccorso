@@ -1,13 +1,14 @@
 import 'package:http/http.dart' as http;
 
 import '../../app/api_client.dart';
-import '../../app/auth_service.dart';
+import '../../app/auth_service.dart' show TokenInvalidException;
 
 class AnalyticsSummary {
   final int total;
   final int pending;
   final int accepted;
   final int handled;
+  final int rejected;
   final List<int> last7Days;
   final Map<String, int> fleetStatus;
   final int averageHandlingMins;
@@ -17,70 +18,22 @@ class AnalyticsSummary {
     required this.pending,
     required this.accepted,
     required this.handled,
+    required this.rejected,
     required this.last7Days,
     required this.fleetStatus,
     required this.averageHandlingMins,
   });
 
-  factory AnalyticsSummary.fromJson(Map<String, dynamic> json) {
-    final payload = _asMap(json['data']) ?? json;
-
-    return AnalyticsSummary(
-      total: _asInt(payload['total']),
-      pending: _asInt(payload['pending']),
-      accepted: _asInt(payload['accepted']),
-      handled: _asInt(payload['handled']),
-      last7Days: _asIntList(payload['last7Days']),
-      fleetStatus: _asStringIntMap(payload['fleetStatus']),
-      averageHandlingMins: _asInt(payload['averageHandlingMins']),
-    );
-  }
-}
-
-class Review {
-  final String author;
-  final int rating;
-  final String comment;
-  final DateTime date;
-
-  Review({
-    required this.author,
-    required this.rating,
-    required this.comment,
-    required this.date,
-  });
-
-  factory Review.fromJson(Map<String, dynamic> json) {
-    return Review(
-      author: _asString(json['author']) ?? '',
-      rating: _asInt(json['rating']),
-      comment: _asString(json['comment']) ?? '',
-      date: _asDateTime(json['date']) ?? DateTime.now(),
-    );
-  }
-}
-
-class TrafficIncident {
-  final String title;
-  final String source;
-  final DateTime pubDate;
-  final String link;
-
-  TrafficIncident({
-    required this.title,
-    required this.source,
-    required this.pubDate,
-    required this.link,
-  });
-
-  factory TrafficIncident.fromJson(Map<String, dynamic> json) {
-    return TrafficIncident(
-      title: _asString(json['title']) ?? '',
-      source: _asString(json['source']) ?? '',
-      pubDate: _asDateTime(json['pubDate']) ?? DateTime.now(),
-      link: _asString(json['link']) ?? '',
-    );
-  }
+  factory AnalyticsSummary.empty() => const AnalyticsSummary(
+    total: 0,
+    pending: 0,
+    accepted: 0,
+    handled: 0,
+    rejected: 0,
+    last7Days: [],
+    fleetStatus: {},
+    averageHandlingMins: 0,
+  );
 }
 
 class AnalyticsApiService {
@@ -89,173 +42,71 @@ class AnalyticsApiService {
 
   final SafeClaimApiClient _apiClient;
 
-  Future<AnalyticsSummary> getAnalyticsSummary() async {
-    final totalResponse = await _requestJsonOrEmpty(
-      'GET',
-      '/analytics/total-requests',
+  /// Carica i KPI principali + serie temporale + stato flotta con un set
+  /// minimo di chiamate. Una singola fallita non blocca le altre.
+  Future<AnalyticsSummary> getAnalyticsSummary({int daysWindow = 7}) async {
+    final summary = await _safeRequest('GET', '/v1/analytics/riepilogo');
+    final series = await _safeRequest(
+      'GET', '/v1/analytics/ultimi-giorni/$daysWindow',
     );
-    final pendingResponse = await _requestJsonOrEmpty(
-      'GET',
-      '/analytics/pending',
-    );
-    final acceptedResponse = await _requestJsonOrEmpty(
-      'GET',
-      '/analytics/accepted',
-    );
-    final handledResponse = await _requestJsonOrEmpty(
-      'GET',
-      '/analytics/handled',
-    );
+    final fleet = await _safeRequest('GET', '/v1/analytics/stato-flotta');
 
-    final data = {
-      'data': {
-        'total':
-            totalResponse['data'] ??
-            totalResponse['count'] ??
-            totalResponse['total'] ??
-            0,
-        'pending':
-            pendingResponse['data'] ??
-            pendingResponse['count'] ??
-            pendingResponse['pending'] ??
-            0,
-        'accepted':
-            acceptedResponse['data'] ??
-            acceptedResponse['count'] ??
-            acceptedResponse['accepted'] ??
-            0,
-        'handled':
-            handledResponse['data'] ??
-            handledResponse['count'] ??
-            handledResponse['handled'] ??
-            0,
-        'last7Days': totalResponse['last7Days'] ?? const [],
-        'fleetStatus': totalResponse['fleetStatus'] ?? const {},
-        'averageHandlingMins': totalResponse['averageHandlingMins'] ?? 0,
-      },
-    };
-
-    return AnalyticsSummary.fromJson(data);
+    return AnalyticsSummary(
+      total: _asInt(summary['total']),
+      pending: _asInt(summary['pending']),
+      accepted: _asInt(summary['accepted']),
+      handled: _asInt(summary['handled']),
+      rejected: _asInt(summary['rejected']),
+      averageHandlingMins: _asInt(summary['average_handling_minutes']),
+      last7Days: _asIntList(series['data']),
+      fleetStatus: _asStringIntMap(fleet),
+    );
   }
 
-  Future<List<Review>> getRecentReviews() async {
-    final data = await _requestJsonOrEmpty('GET', '/analytics/reviews');
-    final rawItems = data['data'] is List ? data['data'] as List : const [];
-
-    return rawItems
-        .whereType<Map>()
-        .map((item) => Review.fromJson(Map<String, dynamic>.from(item)))
-        .toList();
-  }
-
-  Future<List<TrafficIncident>> getRealTimeTraffic(String city) async {
-    final data = await _requestJsonOrEmpty(
-      'GET',
-      '/analytics/traffic',
-      body: {'city': city},
-    );
-    final rawItems = data['data'] is List ? data['data'] as List : const [];
-
-    return rawItems
-        .whereType<Map>()
-        .map(
-          (item) => TrafficIncident.fromJson(Map<String, dynamic>.from(item)),
-        )
-        .toList();
-  }
-
-  Future<Map<String, dynamic>> _requestJson(
-    String method,
-    String path, {
-    Map<String, dynamic>? body,
-  }) async {
-    return _apiClient.requestJson(method, path, body: body);
-  }
-
-  Future<Map<String, dynamic>> _requestJsonOrEmpty(
-    String method,
-    String path, {
-    Map<String, dynamic>? body,
-  }) async {
+  Future<Map<String, dynamic>> _safeRequest(String method, String path) async {
     try {
-      return await _requestJson(method, path, body: body);
+      return await _apiClient.requestJson(method, path);
     } on TokenInvalidException {
       rethrow;
     } catch (_) {
+      // Un singolo endpoint giù non deve impedire alla pagina di renderizzarsi.
       return const <String, dynamic>{};
     }
   }
 }
 
-Map<String, dynamic>? _asMap(dynamic value) {
-  if (value is Map<String, dynamic>) {
-    return value;
-  }
-  if (value is Map) {
-    return Map<String, dynamic>.from(value);
-  }
-  return null;
-}
-
-String? _asString(dynamic value) {
-  if (value == null) {
-    return null;
-  }
-  if (value is String) {
-    return value;
-  }
-  return value.toString();
-}
-
 int _asInt(dynamic value) {
-  if (value is int) {
-    return value;
-  }
-  if (value is num) {
-    return value.toInt();
-  }
-  if (value is String) {
-    return int.tryParse(value) ?? 0;
-  }
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value) ?? 0;
   return 0;
 }
 
 List<int> _asIntList(dynamic value) {
-  if (value is List<int>) {
-    return value;
-  }
   if (value is List) {
-    return value.whereType<int>().toList();
+    return value.map((e) {
+      if (e is int) return e;
+      if (e is num) return e.toInt();
+      if (e is String) return int.tryParse(e) ?? 0;
+      return 0;
+    }).toList();
   }
   return const [];
 }
 
 Map<String, int> _asStringIntMap(dynamic value) {
-  if (value is Map<String, int>) {
-    return value;
-  }
   if (value is Map) {
     final result = <String, int>{};
     for (final entry in value.entries) {
       final key = entry.key.toString();
-      final val = entry.value;
-      if (val is int) {
-        result[key] = val;
-      } else if (val is num) {
-        result[key] = val.toInt();
+      final v = entry.value;
+      if (v is int) {
+        result[key] = v;
+      } else if (v is num) {
+        result[key] = v.toInt();
       }
     }
     return result;
   }
   return const {};
-}
-
-DateTime? _asDateTime(dynamic value) {
-  if (value is DateTime) {
-    return value;
-  }
-  if (value is String) {
-    return DateTime.tryParse(value);
-  }
-  return null;
 }

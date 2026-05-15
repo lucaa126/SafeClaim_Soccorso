@@ -86,12 +86,12 @@ class DashboardApiService {
   final SafeClaimApiClient _apiClient;
 
   Future<DashboardSummary> getDashboardSummary() async {
-    final data = await _requestJson('GET', '/dashboard/summary');
+    final data = await _requestJson('GET', '/v1/dashboard/riepilogo');
     return DashboardSummary.fromJson(data);
   }
 
   Future<List<QueueRequest>> getDashboardRequests() async {
-    final data = await _requestJson('GET', '/dashboard/requests');
+    final data = await _requestJson('GET', '/v1/dashboard/coda');
     final rawItems = data['data'] is List ? data['data'] as List : const [];
 
     return rawItems
@@ -103,7 +103,7 @@ class DashboardApiService {
   Future<DashboardSummary> setOperationalStatus(bool operativoOnline) async {
     final data = await _requestJson(
       'PATCH',
-      '/dashboard/operational-status',
+      '/v1/dashboard/stato-operativo',
       body: {'operativo_online': operativoOnline},
     );
     return DashboardSummary.fromJson(data);
