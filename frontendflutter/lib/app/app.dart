@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'routes.dart';
+import 'session_manager.dart';
 import 'theme.dart';
 import '../features/dashboard/dashboard_page.dart';
 import '../features/richieste/richieste_page.dart';
@@ -33,6 +34,7 @@ class SoccorsoAppState extends State<SoccorsoApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: SessionManager.instance.navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Soccorso Admin',
       theme: lightTheme(),

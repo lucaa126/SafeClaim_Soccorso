@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import 'api_config.dart';
 import 'auth_service.dart';
+import 'session_manager.dart';
 import '../features/login/login_api_service.dart';
 
 class SafeClaimApiClient {
@@ -61,16 +62,24 @@ class SafeClaimApiClient {
 
     final refreshToken = await AuthService.getRefreshToken();
     if (refreshToken == null || refreshToken.isEmpty) {
-      await AuthService.clearSession();
+      await _onSessionExpired();
       throw const TokenInvalidException();
     }
 
     try {
       await LoginApiService(client: _client).refreshToken();
     } catch (_) {
-      await AuthService.clearSession();
+      await _onSessionExpired();
       throw const TokenInvalidException();
     }
+  }
+
+  Future<void> _onSessionExpired() async {
+    await AuthService.clearSession();
+    // Forziamo il redirect alla LoginPage senza dover propagare l'eccezione
+    // fino alla UI di ogni singola pagina. Il SessionManager evita redirect
+    // multipli concomitanti.
+    await SessionManager.instance.forceLogoutToLogin();
   }
 
   Future<http.Response> _send(
@@ -106,7 +115,8 @@ class SafeClaimApiClient {
 
   Map<String, dynamic> _decodeJson(http.Response response) {
     if (response.statusCode == 401 || response.statusCode == 403) {
-      AuthService.clearSession();
+      // Non aspettiamo il completamento qui: il redirect è side-effect.
+      _onSessionExpired();
       throw const TokenInvalidException();
     }
 
