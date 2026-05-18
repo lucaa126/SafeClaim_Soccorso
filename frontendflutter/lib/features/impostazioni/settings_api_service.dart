@@ -109,7 +109,7 @@ class SettingsApiService {
   final SafeClaimApiClient _apiClient;
 
   Future<WorkshopSettings> getSettings() async {
-    final data = await _apiClient.requestJson('GET', '/v1/impostazioni');
+    final data = await _apiClient.requestJson('GET', '/v1/impostazioni/');
     return WorkshopSettings.fromJson(data);
   }
 
